@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Quotation</title>
+    <style>
+      <%= css %>
+    </style>
+  </head>
+
+  <body>
+    <!-- FIXED HEADER -->
+    <header class="header">
+      <div class="logo-wrap">
+        <img src="<%= logoUrl %>" class="logo" />
+      </div>
+      <div class="company-address">
+        <div>196, Kabadi Market, Ward Number 9, Bapod,</div>
+        <div>Ajwa Rd, Vadodara, Gujarat 390019</div>
+        <div>UDYAM - GJ-24 - 0184605</div>
+      </div>
+    </header>
+
+    <!-- FIXED FOOTER -->
+    <footer class="footer-bar"></footer>
+
+    <img src="<%= watermarkUrl %>" class="watermark" />
+
+    <main class="main-content">
+      <!-- ITEMS PAGES -->
+      <% pages.forEach(function(pageRows, pageIndex) { %>
+      <section class="page">
+        <!-- CONTACT BAR (NOT FIXED) -->
+        <div
+          class="contact-bar <%= pageIndex === 0 ? 'first-page' : 'other-page' %>"
+        >
+          <div>+91 7096413502</div>
+          <div>vidyadigitalstudio.com</div>
+          <div>contact@vidyadigitalstudio.com</div>
+        </div>
+
+        <div class="page-body">
+          <% if (pageIndex === 0) { %>
+          <h1 class="title">QUOTATION</h1>
+
+          <section class="client-info">
+            <% if (client.name) { %>
+            <div><strong>Name/Company:</strong> <%= client.name %></div>
+            <% } %> <% if (client.email) { %>
+            <div><strong>Email:</strong> <%= client.email %></div>
+            <% } %> <% if (client.designation) { %>
+            <div><strong>Designation:</strong> <%= client.designation %></div>
+            <% } %> <% if (client.address) { %>
+            <div><strong>Address:</strong> <%= client.address %></div>
+            <% } %> <% if (client.contact) { %>
+            <div><strong>Contact:</strong> <%= client.contact %></div>
+            <% } %>
+          </section>
+          <% } %>
+
+          <section class="table-wrap">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Service</th>
+                  <th>Description</th>
+                  <th>Quantity</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% pageRows.forEach(function(item) { %>
+                <tr>
+                  <td><%= item.category || '' %></td>
+                  <td><%= item.service || '' %></td>
+                  <td><%= item.description || '-' %></td>
+                  <td style="text-align: center">
+                    <%= item.quantity || '-' %>
+                  </td>
+                  <td style="text-align: center">
+                    ₹<%= Number(item.total).toLocaleString('en-IN') %>
+                  </td>
+                </tr>
+                <% }); %> <% if (pageIndex === pages.length - 1) { %>
+                <tr class="subtotal-row">
+                  <td
+                    colspan="3"
+                    style="
+                      text-align: right;
+                      font-weight: bold;
+                      background: #f5f5f5;
+                    "
+                  >
+                    Subtotal:
+                  </td>
+                  <td
+                    colspan="2"
+                    style="
+                      font-weight: bold;
+                      text-align: center;
+                      background: #f5f5f5;
+                    "
+                  >
+                    ₹<%= subtotal.toLocaleString("en-IN") %>
+                  </td>
+                </tr>
+                <% } %>
+              </tbody>
+            </table>
+
+            <!-- FINAL MESSAGE after table on LAST ITEMS PAGE -->
+            <% if (pageIndex === pages.length - 1) { %>
+            <div class="final-message">
+              <p class="thank">Thank you for your business!</p>
+              <p class="final-total">
+                Your final total is
+                <strong>₹<%= subtotal.toLocaleString("en-IN") %></strong>
+              </p>
+            </div>
+            <% } %>
+          </section>
+        </div>
+      </section>
+
+      <% if (pageIndex < pages.length - 1) { %>
+      <div class="page-break"></div>
+      <% } %> <% }); %>
+
+      <!-- FINAL SUMMARY PAGE -->
+      <section class="page">
+        <div class="contact-bar other-page">
+          <div>+91 7096413502</div>
+          <div>vidyadigitalstudio.com</div>
+          <div>contact@vidyadigitalstudio.com</div>
+        </div>
+
+        <div class="page-body">
+          <!-- NOTES: show only if provided -->
+          <% if (notes && notes.length > 0) { %>
+          <div class="note-title">Notes :</div>
+          <ul class="note-body">
+            <% if (duration && duration.trim().length > 0) { %>
+            <li>
+              The total amount specified represents the cost or value allocated
+              for a period of <%= duration %>.
+            </li>
+            <% } %> <% notes.forEach(function(n) { %>
+            <li><%= n %></li>
+            <% }) %>
+          </ul>
+          <% } %>
+
+          <!-- ALWAYS SHOW TERMS & CONDITIONS -->
+          <div class="note-title">Terms and Conditions :</div>
+          <ul class="note-body">
+            <li>
+              This is system generated quotation and does not require a physical
+              signature.
+            </li>
+            <li>
+              Quoted pricing is standard, but final pricing can be negotiated
+              before signing.
+            </li>
+            <li>
+              Approved discounts or changes will be updated in the regenerated
+              quotation.
+            </li>
+            <li>Services included are based on the selected plan/package.</li>
+          </ul>
+
+          <!-- SIGNATURE -->
+          <div class="signature-wrap">
+            <img src="<%= signatureUrl %>" class="signature" />
+            <div class="sig-text">
+              Dheemahi Joshi<br />
+              Founder,<br />
+              Vidya Digital Studio
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

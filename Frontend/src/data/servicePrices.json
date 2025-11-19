@@ -1,0 +1,94 @@
+{
+  "Content Writing": {
+    "Script Writing for Social Media Reels": {
+      "id": "cw_script_reels",
+      "description": "Engaging and trend-aligned scripts for Instagram, YouTube Shorts, and other short-form platforms.",
+      "priceType": "perScript",
+      "unit": "script",
+      "price": 300
+    },
+    "Social Media Post Copywriting": {
+      "id": "cw_post_copy",
+      "description": "Creative, scroll-stopping captions and copy for posts, ads, and campaigns.",
+      "priceType": "perPage",
+      "unit": "page",
+      "price": 150
+    },
+    "Website Copywriting": {
+      "id": "cw_website_copy",
+      "description": "Conversion-focused web content designed to match your brand voice.",
+      "priceType": "perPage",
+      "unit": "page",
+      "price": 2000
+    },
+    "Blogs and Articles": {
+      "id": "cw_blogs",
+      "description": "SEO-optimized blog posts and articles for authority and visibility.",
+      "priceType": "perWord",
+      "unit": "word",
+      "price": 2
+    },
+    "Product Descriptions": {
+      "id": "cw_product_desc",
+      "description": "Persuasive, keyword-rich product content to boost online sales.",
+      "priceType": "perWord",
+      "unit": "word",
+      "price": 4
+    }
+  },
+
+  "Content Strategy": {
+    "Starter Strategy": {
+      "id": "cs_starter",
+      "description": "Ideal for freelancers and startups — includes brand discovery, tone setup, and a 30-day roadmap.",
+      "priceType": "range",
+      "priceRange": [7000, 10000]
+    },
+    "Growth Strategy": {
+      "id": "cs_growth",
+      "description": "For small businesses and influencers — adds content pillars, engagement tactics, and performance tracking.",
+      "priceType": "range",
+      "priceRange": [12000, 18000]
+    },
+    "Premium Strategy Suite": {
+      "id": "cs_premium",
+      "description": "Full 360° system for established brands — includes templates, analytics, and optimization plans.",
+      "priceType": "range",
+      "priceRange": [20000, 35000]
+    },
+    "Enterprise Custom Plan": {
+      "id": "cs_enterprise",
+      "description": "Tailored enterprise-level strategy with team training, reporting, and monthly optimization.",
+      "priceType": "custom"
+    }
+  },
+
+  "Content Production": {
+    "Videography": {
+      "id": "cp_videography",
+      "description": "On-site video shoot options for 1hr, 4hr, or 8hr sessions.",
+      "priceType": "multiOption",
+      "options": { "1hr": 1500, "4hr": 4000, "8hr": 6500 }
+    },
+    "Cinematography": {
+      "id": "cp_cinematography",
+      "description": "Full-day (8hr) cinematic shoot with professional direction and gear.",
+      "priceType": "fixed",
+      "price": 10000
+    },
+    "Concept Reel (Script + Shoot + Edit)": {
+      "id": "cp_concept_reel",
+      "description": "End-to-end concept-based reel creation for social media.",
+      "priceType": "perReel",
+      "unit": "reel",
+      "price": 5000
+    },
+    "Product Reel (Script + Shoot + Edit)": {
+      "id": "cp_product_reel",
+      "description": "Product showcase reel with creative direction and edit.",
+      "priceType": "perReel",
+      "unit": "reel",
+      "price": 2000
+    }
+  }
+}

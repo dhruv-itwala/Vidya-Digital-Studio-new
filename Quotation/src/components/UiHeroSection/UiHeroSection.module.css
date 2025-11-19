@@ -1,0 +1,24 @@
+.hero {
+  width: 100%;
+  background: var(--deep-forest);
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.hero h1 {
+  font-family: "Inter", sans-serif;
+  font-size: 48px;
+  font-weight: 600;
+}
+
+.hero p {
+  font-family: "Inter", sans-serif;
+  margin-top: 12px;
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 100;
+}

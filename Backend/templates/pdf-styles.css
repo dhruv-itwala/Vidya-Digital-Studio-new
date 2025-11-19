@@ -1,0 +1,296 @@
+/* templates/pdf-styles.css */
+@page {
+  size: A4;
+  margin: 15mm 0mm 0mm 0mm;
+}
+:root {
+  --green: #0f5c44;
+  --header-height: 96px;
+  --contact-height: 48px;
+  --footer-height: 36px;
+  --gap: 20px; /* extra gap to ensure content clear fixed header/footer */
+  --top-offset: calc(var(--header-height) + var(--contact-height) + var(--gap));
+  --bottom-offset: calc(var(--footer-height) + var(--gap));
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "FranklinBook", Arial, sans-serif;
+  -webkit-print-color-adjust: exact;
+  color: #111;
+}
+/* ---------------- HEADER ---------------- */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: #fff;
+  padding: 15px 75px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+}
+
+.logo {
+  height: 40px;
+}
+
+.company-address {
+  text-align: right;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.contact-bar {
+  position: fixed;
+  width: 100%;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  height: var(--contact-height);
+  background: var(--green);
+  color: #fff;
+  padding: 15px 75px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  font-size: 16px;
+  z-index: 19;
+}
+
+/* Different spacing for first page vs others */
+.contact-bar.first-page {
+  margin-bottom: 0px;
+}
+.contact-bar.other-page {
+  margin-bottom: 150px;
+}
+
+.watermark {
+  position: fixed;
+  width: 60%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.08;
+  z-index: 0;
+}
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--footer-height);
+  background: var(--green);
+  z-index: 20;
+}
+
+/* ---------------- MAIN (uses margins to offset fixed header/footer) ---------------- */
+.main-content {
+  margin-top: var(--top-offset);
+  margin-bottom: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+
+/* PAGE container - do not force breaks here */
+.page {
+  width: 100%;
+  page-break-after: auto;
+  page-break-inside: avoid;
+}
+.page-body {
+  padding: 15px 75px;
+  box-sizing: border-box;
+}
+
+/* explicit page-break utility - only used where we put .page-break */
+.page-break {
+  page-break-before: always;
+  height: 0;
+}
+
+/* ---------------- CONTENT ---------------- */
+.title {
+  text-align: right;
+  font-size: 48px;
+  margin: 0 0 12px 0;
+}
+.client-info {
+  font-size: 16px;
+  line-height: 1.8;
+}
+.table-wrap {
+  margin-top: 30px;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #000;
+  table-layout: fixed;
+}
+
+/* Exact column widths */
+.items-table th:nth-child(1),
+.items-table td:nth-child(1) {
+  width: 20%;
+}
+
+.items-table th:nth-child(2),
+.items-table td:nth-child(2) {
+  width: 20%;
+}
+
+.items-table th:nth-child(3),
+.items-table td:nth-child(3) {
+  width: 40%;
+}
+
+.items-table th:nth-child(4),
+.items-table td:nth-child(4) {
+  width: 10%;
+  font-size: 14px;
+  text-align: center;
+}
+
+.items-table th:nth-child(5),
+.items-table td:nth-child(5) {
+  width: 10%;
+  font-size: 14px;
+  text-align: center;
+}
+
+.items-table thead {
+  display: table-header-group;
+}
+.items-table th,
+.items-table td {
+  padding: 12px;
+  border-bottom: 1px solid #000;
+  border-right: 1px solid #000;
+  font-size: 16px;
+  vertical-align: top;
+}
+.items-table th {
+  background: rgba(15, 92, 68, 0.05);
+  font-size: 16px;
+}
+.items-table td:last-child,
+.items-table th:last-child {
+  border-right: none;
+}
+.items-table tbody {
+  display: table-row-group;
+  page-break-inside: auto;
+}
+.items-table tbody tr {
+  page-break-inside: avoid;
+}
+
+/* NOTES & SIGNATURE - avoid splitting these across pages */
+.notes-wrap,
+.signature-wrap,
+.subtotal-block,
+.final-message {
+  page-break-inside: avoid;
+}
+.thank {
+  font-size: 26px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.subtotal-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 24px;
+}
+.subtotal-price-block {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.subtotal-right {
+  font-weight: bold;
+  font-size: 26px;
+  margin-left: 6px;
+}
+.note-title {
+  margin-top: 16px;
+  font-size: 24px;
+  font-weight: bold;
+}
+.note-body {
+  padding-left: 20px;
+  font-size: 20px;
+  line-height: 1.6;
+}
+.signature-wrap {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.signature {
+  width: 160px;
+}
+.sig-text {
+  font-size: 16px;
+  margin-top: 6px;
+  text-align: right;
+}
+
+.final-message {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 18px;
+  page-break-inside: avoid;
+}
+.final-total {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 6px;
+}
+.subtotal-row td {
+  border-top: 2px solid #000;
+  font-size: 18px !important;
+  background: rgba(0, 0, 0, 0.05);
+  font-weight: bold;
+}
+
+/* Print tweaks */
+@media print {
+  .header,
+  .contact-bar,
+  .footer-bar {
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* Page-specific vertical offsets */
+.page:first-child .page-body {
+  margin-top: 10px;
+}
+.page:not(:first-child) .page-body {
+  margin-top: 200px;
+}
+
+/* Force page break after each .page section except last */
+.page {
+  page-break-after: always;
+}
+.page:last-child {
+  page-break-after: auto;
+}
+
+/* make sure contact bar fixed position doesn't duplicate rules */

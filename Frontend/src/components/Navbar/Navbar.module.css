@@ -1,0 +1,25 @@
+.navbar {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Ensures the ul stays centered */
+  align-items: center;
+}
+
+.navbar ul {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navbar li {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--beige-soft);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.navbar li:hover {
+  color: var(--color-text-hover);
+}

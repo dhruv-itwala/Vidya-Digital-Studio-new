@@ -1,0 +1,12 @@
+{
+  "name": "vidyadigitalstudio",
+  "private": true,
+  "scripts": {
+    "backend": "npm run dev --prefix Backend",
+    "quotation": "npm run dev --prefix Quotation",
+    "start": "concurrently -c \"green,blue\" -n \"BACKEND,QUOTATION\" \"npm run backend\" \"npm run quotation\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

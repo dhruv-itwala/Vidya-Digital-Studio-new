@@ -1,0 +1,49 @@
+.wrapper {
+  width: 100%;
+  max-width: 900px;
+  background: white;
+  margin: -120px auto 38px auto;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldFull {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.input,
+.select {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  /* background: #000; */
+  color: var(--color-text);
+  font-size: 15px;
+}

@@ -1,0 +1,50 @@
+.navbarWrapper {
+  width: 100%;
+  background: var(--soft-ivory);
+  padding: 20px 0;
+}
+
+.navbar {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo img {
+  padding: 8px;
+  height: 45px;
+  object-fit: contain;
+}
+
+.links {
+  display: flex;
+  gap: 40px;
+}
+
+.links a {
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.rightButtons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.contactBtn {
+  background: var(--deep-forest);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.loginLink {
+  color: var(--deep-forest);
+  cursor: pointer;
+}

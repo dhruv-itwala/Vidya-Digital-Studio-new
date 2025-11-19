@@ -1,0 +1,16 @@
+/* SITE */
+Site: https://vidyadigitalstudio.com
+Owner: Vidya Digital Studio
+
+/* DEVELOPER */
+Developer: Dhruv Itwala
+Role: Full Stack Developer (MERN , Shopify) , Game Developer
+Portfolio: https://dhruv-itwala-portfolio.onrender.com
+GitHub: https://github.com/dhruv-itwala
+LinkedIn: https://www.linkedin.com/in/dhruv-itwala/
+YouTube: https://www.youtube.com/channel/UCtIK90b4aJPtdbDVnoV9dGw
+YouTube (Alt): https://www.youtube.com/c/DhruvItwala
+Instagram: https://www.instagram.com/itwala_dhruv/
+Game Dev Portfolio: https://dhruvitwala.weebly.com/
+Behance: https://www.behance.net/dhruvitwala
+itch.io: https://dhruv-itwala.itch.io/

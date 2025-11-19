@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f5f5f5;
+      }
+
+      .email-wrapper {
+        max-width: 640px;
+        margin: auto;
+        background: #ffffff;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #eaeaea;
+      }
+
+      .header {
+        background: #0f5c44;
+        padding: 25px;
+        text-align: center;
+      }
+
+      .logo {
+        max-width: 160px;
+        margin-bottom: 10px;
+      }
+
+      .header-title {
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .content {
+        padding: 28px;
+        color: #333333;
+        line-height: 1.65;
+        font-size: 15px;
+      }
+
+      .button {
+        display: inline-block;
+        margin-top: 18px;
+        padding: 12px 22px;
+        background: #0f5c44;
+        color: #ffffff !important; /* Force white text */
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: bold;
+      }
+
+      .footer {
+        margin-top: 35px;
+        background: #fafafa;
+        padding: 16px;
+        font-size: 13px;
+        text-align: center;
+        color: #888;
+        border-top: 1px solid #ececec;
+      }
+
+      .small {
+        color: #999;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="email-wrapper">
+      <div class="header">
+        <img src="<%= logoUrl %>" alt="Logo" class="logo" />
+        <div class="header-title">Your Quotation is Ready!</div>
+      </div>
+
+      <div class="content">
+        <p>Hi <strong><%= client.name %></strong>,</p>
+
+        <p>
+          Thank you for choosing <strong>Vidya Digital Studio</strong>. Your
+          quotation is now ready and can be downloaded using the button below.
+        </p>
+
+        <a href="<%= pdfUrl %>" class="button" target="_blank">
+          Download Quotation (PDF)
+        </a>
+
+        <p>
+          This link will remain valid for
+          <strong><%= expireDays %> days</strong>.
+        </p>
+
+        <% if (notes && notes.length > 0) { %>
+        <p><strong>Your Notes:</strong></p>
+        <ul>
+          <% notes.forEach(n => { %>
+          <li><%= n %></li>
+          <% }) %>
+        </ul>
+        <% } %>
+
+        <p>
+          If you need any changes or want to proceed further, simply reply to
+          this email.
+        </p>
+
+        <p>
+          Regards,<br />
+          <strong>Vidyadigitalstudio</strong>
+        </p>
+      </div>
+
+      <div class="footer">
+        <div>Vidya Digital Studio</div>
+        <div class="small">
+          This is an automated email. Please do not reply directly.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
