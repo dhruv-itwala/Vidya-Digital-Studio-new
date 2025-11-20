@@ -1,8 +1,8 @@
 .wrapper {
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   background: white;
-  margin: -120px auto 38px auto;
+  margin: -120px auto 20px auto;
   padding: 32px;
   border-radius: 16px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
@@ -44,9 +44,21 @@ label {
   padding: 12px 14px;
   border-radius: 8px;
   border: 1px solid var(--color-border);
-  /* background: #000; */
-  color: var(--color-text);
   font-size: 15px;
+
+  /* responsive width */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive dropdown arrow */
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'><polyline points='20,50 70,90 120,50' stroke='%23666' stroke-width='18' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-size: 14px;
+  background-position: right 14px center;
+  padding-right: 40px;
 }
 
 .textarea {
@@ -62,4 +74,58 @@ label {
   color: #ff4d4d;
   font-size: 12px;
   margin-top: 4px;
+}
+
+/* ======================== RESPONSIVE ======================== */
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr; /* stack fields */
+    gap: 16px;
+  }
+
+  .fieldFull {
+    grid-column: span 1; /* also full width */
+  }
+
+  .wrapper {
+    width: auto;
+    padding: 22px;
+    margin: -60px 12px 12px 12px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .select {
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+}
+
+@media (max-width: 600px) {
+  .wrapper {
+    width: auto;
+    padding: 18px;
+    margin: -60px 12px 12px 12px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .select {
+    background-size: 12px;
+    background-position: right 10px center;
+    padding-right: 32px;
+  }
 }

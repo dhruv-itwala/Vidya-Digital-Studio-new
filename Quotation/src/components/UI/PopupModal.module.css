@@ -100,3 +100,94 @@
   cursor: pointer;
   font-size: 15px;
 }
+
+/* ======================== RESPONSIVE MODAL ========================= */
+
+/* Tablets and below */
+@media (max-width: 768px) {
+  .modal {
+    width: 90%;
+    padding: 26px 22px;
+    border-radius: 14px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .subText {
+    font-size: 14px;
+  }
+
+  .downloadBtn,
+  .tryAgainBtn {
+    width: 100%;
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  .loader {
+    width: 46px;
+    height: 46px;
+    border-width: 4px;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .modal {
+    width: 92%;
+    padding: 22px 18px;
+    border-radius: 12px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .subText {
+    font-size: 13px;
+  }
+
+  .loadingText {
+    font-size: 14px;
+  }
+
+  .closeX {
+    top: 8px;
+    right: 8px;
+    font-size: 18px;
+  }
+
+  .downloadBtn,
+  .tryAgainBtn {
+    padding: 11px 14px;
+    font-size: 14px;
+  }
+}
+
+/* Extra small screens (iPhone SE / 320px) */
+@media (max-width: 360px) {
+  .modal {
+    width: 94%;
+    padding: 18px 16px;
+  }
+
+  .title {
+    font-size: 17px;
+  }
+
+  .subText {
+    font-size: 12px;
+  }
+
+  .loadingText {
+    font-size: 13px;
+  }
+
+  .loader {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+}

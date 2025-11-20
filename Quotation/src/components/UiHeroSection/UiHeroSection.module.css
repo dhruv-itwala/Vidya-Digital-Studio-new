@@ -7,8 +7,11 @@
   align-items: center;
   justify-content: center;
   color: white;
+  padding: 0 20px; /* Prevent text touching screen edges on mobile */
+  text-align: center; /* Better for small screens */
 }
 
+/* Desktop */
 .hero h1 {
   font-family: "Inter", sans-serif;
   font-size: 48px;
@@ -21,4 +24,57 @@
   font-size: 22px;
   font-style: italic;
   font-weight: 100;
+}
+
+/* ========================== TABLETS ========================== */
+@media (max-width: 992px) {
+  .hero {
+    height: 420px;
+  }
+  .hero h1 {
+    font-size: 40px;
+  }
+  .hero p {
+    font-size: 20px;
+  }
+}
+
+/* ========================== MOBILE (Medium) ========================== */
+@media (max-width: 768px) {
+  .hero {
+    height: 380px;
+  }
+  .hero h1 {
+    font-size: 34px;
+  }
+  .hero p {
+    font-size: 18px;
+  }
+}
+
+/* ========================== MOBILE (Small) ========================== */
+@media (max-width: 480px) {
+  .hero {
+    height: 340px;
+    padding: 0 14px;
+  }
+  .hero h1 {
+    font-size: 28px;
+  }
+  .hero p {
+    font-size: 16px;
+  }
+}
+
+/* ========================== TINY PHONES ========================== */
+@media (max-width: 360px) {
+  .hero {
+    height: 300px;
+  }
+  .hero h1 {
+    font-size: 24px;
+  }
+  .hero p {
+    font-size: 14px;
+  }
 }

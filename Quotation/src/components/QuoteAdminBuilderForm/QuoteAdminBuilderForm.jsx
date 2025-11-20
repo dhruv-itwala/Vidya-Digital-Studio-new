@@ -158,6 +158,7 @@ const QuoteAdminBuilderForm = () => {
               validateServiceAdd={validateServiceAdd}
               lockedCategory={lockedCategory}
               resetSystem={resetSystem}
+              isAdmin={true}
             />
           </div>
 

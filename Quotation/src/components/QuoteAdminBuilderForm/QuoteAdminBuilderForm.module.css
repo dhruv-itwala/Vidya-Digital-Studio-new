@@ -1,6 +1,6 @@
 .wrapper {
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   background: white;
   margin: -120px auto 36px auto;
   padding: 32px;
@@ -14,7 +14,6 @@
   margin-bottom: 20px;
 }
 
-/* GRID */
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -45,9 +44,9 @@ label {
   padding: 12px 14px;
   border-radius: 8px;
   border: 1px solid var(--color-border);
-  /* background: #000; */
   color: var(--color-text);
   font-size: 15px;
+  width: 100%; /* ensures no overflow */
 }
 
 .textarea {
@@ -63,4 +62,58 @@ label {
   color: #ff4d4d;
   font-size: 12px;
   margin-top: 4px;
+}
+
+/* ========================= TABLETS (900px and below) ========================= */
+@media (max-width: 900px) {
+  .wrapper {
+    max-width: 100%; /* full width */
+    margin: 20px 16px; /* auto margin removed */
+    padding: 24px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr; /* single column */
+  }
+
+  .fieldFull {
+    grid-column: span 1; /* full width in mobile layout */
+  }
+
+  .title {
+    font-size: 22px;
+  }
+}
+
+/* ========================= MOBILE (600px and below) ========================= */
+@media (max-width: 600px) {
+  .wrapper {
+    width: auto;
+    padding: 20px; /* smaller padding */
+    margin: -60px 12px 12px 12px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+}
+
+/* ========================= SMALL MOBILE (360px and below) ========================= */
+@media (max-width: 360px) {
+  .wrapper {
+    width: auto;
+    padding: 16px;
+    margin: -60px 12px 12px 12px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
 }

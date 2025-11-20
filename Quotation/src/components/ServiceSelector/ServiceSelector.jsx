@@ -1,8 +1,8 @@
 // src/components/ServiceSelector/ServiceSelector.jsx
+
 import React, { useEffect, useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import useServicePrices from "../../hooks/useServicePrices";
-import useQuoteSystem from "../../modules/QuoteSystem";
 import styles from "../styles/quote.module.css";
 
 const SPECIAL = ["Content Production", "Content Distribution"];
@@ -25,20 +25,17 @@ const ServiceSelector = ({
   validateServiceAdd,
   lockedCategory,
   resetSystem,
+  isAdmin,
 }) => {
   const { getValues, control, watch } = useFormContext();
   const { append, update } = useFieldArray({ control, name: "services" });
 
-  // const { reset: resetSystem } = useQuoteSystem();
   const { servicePrices, loading, error } = useServicePrices();
-
   const servicesList = watch("services") || [];
 
-  /** 🟢 FIXED — Unlock category when last item removed */
+  /** UNLOCK */
   useEffect(() => {
-    if (servicesList.length === 0 && lockedCategory) {
-      resetSystem(); // unlock CP/CD
-    }
+    if (servicesList.length === 0 && lockedCategory) resetSystem();
   }, [servicesList.length]);
 
   const categories = Object.keys(servicePrices || {});
@@ -53,7 +50,7 @@ const ServiceSelector = ({
     return true;
   });
 
-  // LOCAL UI STATE
+  // Standard service selector states
   const [category, setCategory] = useState("");
   const [service, setService] = useState("");
   const [selectedData, setSelectedData] = useState(null);
@@ -78,7 +75,7 @@ const ServiceSelector = ({
     setTotal(0);
   }, [service]);
 
-  // calculate total
+  /** AUTO TOTAL */
   useEffect(() => {
     if (!selectedData) return;
 
@@ -88,7 +85,7 @@ const ServiceSelector = ({
       t = quantity * selectedData.price;
     else if (selectedData.priceType === "range") t = selectedData.priceRange[0];
     else if (selectedData.priceType === "multiOption")
-      t = selectedData.options[optionKey] || 0;
+      t = selectedData.options[optionKey];
 
     setTotal(Number(t) || 0);
   }, [quantity, optionKey, selectedData]);
@@ -96,7 +93,7 @@ const ServiceSelector = ({
   /** ADD SERVICE */
   const handleAdd = () => {
     if (!category || !service || !selectedData)
-      return alert("Select service first");
+      return alert("Select a service properly.");
 
     const newItem = {
       category,
@@ -111,9 +108,7 @@ const ServiceSelector = ({
 
     if (!validateServiceAdd(newItem)) return;
 
-    /** 🟢 FIXED MERGE — use fresh RHF values */
     const current = getValues("services") || [];
-
     const idx = current.findIndex(
       (it) =>
         it.category === newItem.category &&
@@ -132,13 +127,70 @@ const ServiceSelector = ({
       append(newItem);
     }
 
-    // reset UI
+    // Clear
     setCategory("");
     setService("");
     setSelectedData(null);
     setQuantity("");
     setOptionKey("");
     setTotal(0);
+  };
+
+  /** -------------------------
+   * CUSTOM ROW LOGIC
+   * ------------------------ */
+
+  const [showCustom, setShowCustom] = useState(false);
+
+  const [custom, setCustom] = useState({
+    category: "",
+    service: "",
+    description: "",
+    quantity: 1,
+    unitPrice: 0,
+    total: 0,
+  });
+
+  /** Handle custom input updates */
+  const updateCustom = (field, value) => {
+    const newData = { ...custom, [field]: value };
+
+    // auto-update total
+    if (field === "quantity" || field === "unitPrice") {
+      newData.total = Number(newData.quantity) * Number(newData.unitPrice);
+    }
+
+    setCustom(newData);
+  };
+
+  /** Save custom row */
+  const saveCustom = () => {
+    if (
+      !custom.category ||
+      !custom.service ||
+      !custom.quantity ||
+      !custom.unitPrice
+    ) {
+      alert("Fill all required custom fields");
+      return;
+    }
+
+    append({
+      ...custom,
+      id: "custom_" + Date.now(),
+      option: null,
+    });
+
+    // reset
+    setCustom({
+      category: "",
+      service: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      total: 0,
+    });
+    setShowCustom(false);
   };
 
   if (loading) return <p>Loading services…</p>;
@@ -153,7 +205,10 @@ const ServiceSelector = ({
     <div className={styles.selectorBox}>
       <h3>Add Service</h3>
 
-      {/* CATEGORY */}
+      {/* -------------------------
+        NORMAL SERVICE SELECTOR
+      -------------------------- */}
+
       <label>Category</label>
       <select
         className={styles.select}
@@ -166,7 +221,6 @@ const ServiceSelector = ({
         ))}
       </select>
 
-      {/* SERVICE */}
       {category && (
         <>
           <label>Service</label>
@@ -183,7 +237,6 @@ const ServiceSelector = ({
         </>
       )}
 
-      {/* OPTIONS */}
       {selectedData?.priceType === "multiOption" && (
         <>
           <label>Option</label>
@@ -200,7 +253,6 @@ const ServiceSelector = ({
         </>
       )}
 
-      {/* QUANTITY */}
       {selectedData && unitTypes.includes(selectedData.priceType) && (
         <>
           <label>Quantity</label>
@@ -214,16 +266,92 @@ const ServiceSelector = ({
         </>
       )}
 
-      {/* TOTAL */}
       {selectedData && (
         <p className={styles.totalBox}>
           Total: <strong>₹{calculatedTotal}</strong>
         </p>
       )}
 
-      <button className={styles.addButton} onClick={handleAdd}>
-        Add Service
-      </button>
+      <div className={styles.selectorActions}>
+        <button className={styles.addButton} onClick={handleAdd}>
+          Add Service
+        </button>
+        {isAdmin && (
+          <button
+            className={styles.addButton}
+            onClick={() => setShowCustom(!showCustom)}
+          >
+            Add Custom Row
+          </button>
+        )}
+      </div>
+
+      {/* ------------------------- CUSTOM ROW FIELDS -------------------------- */}
+
+      {showCustom && (
+        <div className={styles.customBox}>
+          <h4>Add Custom Entry</h4>
+          <label>Category</label>
+          <input
+            className={styles.input}
+            placeholder="Category"
+            value={custom.category}
+            onChange={(e) => updateCustom("category", e.target.value)}
+          />
+
+          <label>Service</label>
+          <input
+            className={styles.input}
+            placeholder="Service"
+            value={custom.service}
+            onChange={(e) => updateCustom("service", e.target.value)}
+          />
+
+          <label>Description</label>
+          <textarea
+            className={styles.textarea}
+            placeholder="Description (optional)"
+            value={custom.description}
+            onChange={(e) => updateCustom("description", e.target.value)}
+          />
+
+          <label>Quantity</label>
+          <input
+            type="number"
+            className={styles.input}
+            placeholder="Quantity"
+            min="1"
+            value={custom.quantity}
+            onChange={(e) => updateCustom("quantity", Number(e.target.value))}
+          />
+
+          <label>Unit Price</label>
+          <input
+            type="number"
+            className={styles.input}
+            placeholder="Unit Price"
+            min="0"
+            value={custom.unitPrice}
+            onChange={(e) => updateCustom("unitPrice", Number(e.target.value))}
+          />
+
+          <p className={styles.totalBox}>
+            Total: <strong>₹{custom.total}</strong>
+          </p>
+
+          <div className={styles.customActions}>
+            <button className={styles.saveCustom} onClick={saveCustom}>
+              Add
+            </button>
+            <button
+              className={styles.cancelCustom}
+              onClick={() => setShowCustom(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

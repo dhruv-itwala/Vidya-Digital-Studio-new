@@ -447,3 +447,245 @@
   height: 16px;
   cursor: pointer;
 }
+/* =========================================================
+   GLOBAL RESPONSIVE ENHANCEMENTS
+   Works for service selector, table, summary, modals, etc.
+   ========================================================= */
+
+/* TABLE RESPONSIVE */
+@media (max-width: 900px) {
+  .tableWrap {
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+
+  .descCell {
+    max-width: 200px;
+  }
+}
+
+/* MOBILE (below 600px) - stack everything gracefully */
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 16px;
+    margin: 12px;
+    border-radius: 10px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  /* ✔ Form grid becomes 1-column (already present but refining spacing) */
+  .formGrid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .fieldFull {
+    grid-column: span 1 !important;
+  }
+
+  /* Inputs + selects shrink nicely */
+  .input,
+  .select,
+  .textarea {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  /* Dropdown arrow refine on small screens */
+  .select {
+    background-size: 12px;
+    padding-right: 34px;
+    background-position: right 10px center;
+  }
+
+  /* SERVICE SELECTOR */
+  .selectorBox {
+    padding: 14px;
+    gap: 8px;
+  }
+
+  .selectorBox h3 {
+    font-size: 15px;
+  }
+
+  .addButton {
+    width: 100%; /* full-width for mobile */
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  /* INLINE SERVICE EDIT INPUTS */
+  .inlineInput {
+    width: 90px;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  /* SUMMARY BOX */
+  .summaryRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .totalText {
+    font-size: 16px;
+  }
+
+  /* Buttons adapt */
+  .editBtn,
+  .deleteBtn,
+  .saveBtn,
+  .cancelBtn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* Table cell spacing */
+  .table tbody td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .actionsCell {
+    gap: 6px;
+  }
+
+  /* PDF button adapt */
+  .pdfBtn {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  /* MODAL */
+  .modalContent {
+    width: 100%;
+    min-width: auto;
+    padding: 16px;
+  }
+
+  .spinner {
+    width: 30px;
+    height: 30px;
+  }
+
+  .modalSending,
+  .modalResult,
+  .modalError {
+    gap: 6px;
+  }
+}
+
+/* EXTRA SMALL (below 400px) */
+@media (max-width: 400px) {
+  /* shrink padding more */
+  .wrapper {
+    padding: 12px;
+    margin: 8px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .select {
+    padding-right: 30px;
+  }
+
+  .addButton {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .table {
+    min-width: 520px; /* allow scrolling but readable */
+  }
+}
+
+.editTextarea {
+  width: 160px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  resize: vertical;
+}
+
+.customRow input,
+.customRow textarea {
+  background: #f9f9f9;
+}
+
+.addCustomRowBtn {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--deep-forest);
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.addCustomRowBtn {
+  background: #2b4cff;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.customBox {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f7f7f7;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.customActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.saveCustom {
+  background: var(--deep-forest);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.cancelCustom {
+  background: #ff6b6b;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.selectorActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}

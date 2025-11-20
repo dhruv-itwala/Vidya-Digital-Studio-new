@@ -204,29 +204,9 @@ const QuoteSummary = ({ isAdmin, resetSystem }) => {
                   </td>
                 </tr>
               ))}
-              {/* <tr>
-                <td colSpan="5" className={styles.subtotalText}>
-                  Your Subtotal is <span>₹{subtotal}</span>
-                </td>
-              </tr> */}
             </tbody>
           </table>
         </div>
-
-        {/* <p className={styles.totalText}>
-          Subtotal: <span>₹{subtotal}</span>
-        </p>
-
-        <div className={styles.checkboxWrap}>
-          <input
-            type="checkbox"
-            checked={!!isApproved}
-            onChange={(e) => setValue("isApproved", e.target.checked)}
-          />
-          <label className={styles.checkboxLabel}>
-            I accept the terms & conditions
-          </label>
-        </div> */}
 
         <div className={styles.summaryRow}>
           <div className={styles.checkboxWrap}>
