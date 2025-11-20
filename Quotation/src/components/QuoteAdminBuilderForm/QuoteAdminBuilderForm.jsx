@@ -108,6 +108,7 @@ const QuoteAdminBuilderForm = () => {
             <ServiceSelector
               validateServiceAdd={validateServiceAdd}
               lockedCategory={lockedCategory}
+              resetSystem={resetSystem}
             />
           </div>
 
@@ -142,7 +143,7 @@ const QuoteAdminBuilderForm = () => {
         </div>
 
         {/* SUMMARY */}
-        <QuoteSummary isAdmin={true} />
+        <QuoteSummary isAdmin={true} resetSystem={resetSystem} />
       </div>
     </FormProvider>
   );

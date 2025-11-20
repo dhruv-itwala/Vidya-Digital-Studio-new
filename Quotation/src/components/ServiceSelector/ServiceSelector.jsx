@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import useServicePrices from "../../hooks/useServicePrices";
+import useQuoteSystem from "../../modules/QuoteSystem";
 import styles from "../styles/quote.module.css";
 
 const SPECIAL = ["Content Production", "Content Distribution"];
@@ -20,17 +21,28 @@ const unitTypes = [
   "perAd",
 ];
 
-const ServiceSelector = ({ validateServiceAdd, lockedCategory }) => {
-  const { control } = useFormContext();
-  const { append, update, fields } = useFieldArray({
-    control,
-    name: "services",
-  });
+const ServiceSelector = ({
+  validateServiceAdd,
+  lockedCategory,
+  resetSystem,
+}) => {
+  const { getValues, control, watch } = useFormContext();
+  const { append, update } = useFieldArray({ control, name: "services" });
 
+  // const { reset: resetSystem } = useQuoteSystem();
   const { servicePrices, loading, error } = useServicePrices();
-  const { getValues } = useFormContext();
+
+  const servicesList = watch("services") || [];
+
+  /** 🟢 FIXED — Unlock category when last item removed */
+  useEffect(() => {
+    if (servicesList.length === 0 && lockedCategory) {
+      resetSystem(); // unlock CP/CD
+    }
+  }, [servicesList.length]);
 
   const categories = Object.keys(servicePrices || {});
+
   const filteredCategories = categories.filter((cat) => {
     if (!lockedCategory) return true;
     if (lockedCategory === "Content Production")
@@ -41,59 +53,55 @@ const ServiceSelector = ({ validateServiceAdd, lockedCategory }) => {
     return true;
   });
 
-  // LOCAL STATE
+  // LOCAL UI STATE
   const [category, setCategory] = useState("");
   const [service, setService] = useState("");
   const [selectedData, setSelectedData] = useState(null);
   const [quantity, setQuantity] = useState("");
   const [optionKey, setOptionKey] = useState("");
-  const [calculatedTotal, setCalculatedTotal] = useState(0);
+  const [calculatedTotal, setTotal] = useState(0);
 
-  // Reset when changing category
   useEffect(() => {
     setService("");
     setSelectedData(null);
     setQuantity("");
     setOptionKey("");
-    setCalculatedTotal(0);
+    setTotal(0);
   }, [category]);
 
-  // Load service details
   useEffect(() => {
-    if (category && service && servicePrices[category]?.[service]) {
-      const data = servicePrices[category][service];
-      setSelectedData(data);
-      setQuantity("");
-      setOptionKey("");
-      setCalculatedTotal(0);
-    }
+    if (!category || !service) return;
+    const d = servicePrices[category]?.[service];
+    setSelectedData(d || null);
+    setQuantity("");
+    setOptionKey("");
+    setTotal(0);
   }, [service]);
 
-  // Calculate total
+  // calculate total
   useEffect(() => {
     if (!selectedData) return;
 
-    let total = 0;
-    if (selectedData.priceType === "fixed") total = selectedData.price;
+    let t = 0;
+    if (selectedData.priceType === "fixed") t = selectedData.price;
     else if (unitTypes.includes(selectedData.priceType))
-      total = quantity * selectedData.price;
-    else if (selectedData.priceType === "range")
-      total = selectedData.priceRange[0];
+      t = quantity * selectedData.price;
+    else if (selectedData.priceType === "range") t = selectedData.priceRange[0];
     else if (selectedData.priceType === "multiOption")
-      total = selectedData.options[optionKey] || 0;
+      t = selectedData.options[optionKey] || 0;
 
-    setCalculatedTotal(Number(total) || 0);
+    setTotal(Number(t) || 0);
   }, [quantity, optionKey, selectedData]);
 
-  // MAIN ACTION: ADD SERVICE
+  /** ADD SERVICE */
   const handleAdd = () => {
     if (!category || !service || !selectedData)
-      return alert("Select category & service");
+      return alert("Select service first");
 
-    const item = {
-      id: selectedData.id,
+    const newItem = {
       category,
       service,
+      id: selectedData.id,
       description: selectedData.description || "",
       quantity: selectedData.priceType === "fixed" ? 1 : Number(quantity),
       option: selectedData.priceType === "multiOption" ? optionKey : null,
@@ -101,45 +109,42 @@ const ServiceSelector = ({ validateServiceAdd, lockedCategory }) => {
       total: calculatedTotal,
     };
 
-    // Validate CP/CD logic
-    if (!validateServiceAdd(item)) return;
+    if (!validateServiceAdd(newItem)) return;
 
-    // MERGE logic inside RHF
+    /** 🟢 FIXED MERGE — use fresh RHF values */
     const current = getValues("services") || [];
 
-    const existingIndex = current.findIndex(
+    const idx = current.findIndex(
       (it) =>
-        it.category === item.category &&
-        it.service === item.service &&
-        (it.option || "") === (item.option || "") &&
-        it.unitPrice === item.unitPrice
+        it.category === newItem.category &&
+        it.service === newItem.service &&
+        (it.option || "") === (newItem.option || "") &&
+        it.unitPrice === newItem.unitPrice
     );
 
-    if (existingIndex !== -1) {
-      const merged = {
-        ...fields[existingIndex],
-        quantity: fields[existingIndex].quantity + item.quantity,
-        total:
-          (fields[existingIndex].quantity + item.quantity) * item.unitPrice,
-      };
-      update(existingIndex, merged);
+    if (idx !== -1) {
+      update(idx, {
+        ...current[idx],
+        quantity: current[idx].quantity + newItem.quantity,
+        total: (current[idx].quantity + newItem.quantity) * newItem.unitPrice,
+      });
     } else {
-      append(item);
+      append(newItem);
     }
 
-    // reset local UI
+    // reset UI
     setCategory("");
     setService("");
     setSelectedData(null);
     setQuantity("");
     setOptionKey("");
-    setCalculatedTotal(0);
+    setTotal(0);
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p>Loading services…</p>;
   if (error) return <p>Failed to load services</p>;
 
-  const services =
+  const serviceNames =
     category && servicePrices[category]
       ? Object.keys(servicePrices[category])
       : [];
@@ -149,7 +154,7 @@ const ServiceSelector = ({ validateServiceAdd, lockedCategory }) => {
       <h3>Add Service</h3>
 
       {/* CATEGORY */}
-      <label className={styles.label}>Category</label>
+      <label>Category</label>
       <select
         className={styles.select}
         value={category}
@@ -164,32 +169,32 @@ const ServiceSelector = ({ validateServiceAdd, lockedCategory }) => {
       {/* SERVICE */}
       {category && (
         <>
-          <label className={styles.label}>Service</label>
+          <label>Service</label>
           <select
             className={styles.select}
             value={service}
             onChange={(e) => setService(e.target.value)}
           >
             <option value="">Select Service</option>
-            {services.map((s) => (
+            {serviceNames.map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
         </>
       )}
 
-      {/* MULTI-OPTION */}
+      {/* OPTIONS */}
       {selectedData?.priceType === "multiOption" && (
         <>
-          <label className={styles.label}>Option</label>
+          <label>Option</label>
           <select
             className={styles.select}
             value={optionKey}
             onChange={(e) => setOptionKey(e.target.value)}
           >
-            <option value="">Select Option</option>
-            {Object.keys(selectedData.options).map((opt) => (
-              <option key={opt}>{opt}</option>
+            <option value="">Select</option>
+            {Object.keys(selectedData.options).map((o) => (
+              <option key={o}>{o}</option>
             ))}
           </select>
         </>
@@ -198,7 +203,7 @@ const ServiceSelector = ({ validateServiceAdd, lockedCategory }) => {
       {/* QUANTITY */}
       {selectedData && unitTypes.includes(selectedData.priceType) && (
         <>
-          <label className={styles.label}>Quantity</label>
+          <label>Quantity</label>
           <input
             type="number"
             className={styles.input}

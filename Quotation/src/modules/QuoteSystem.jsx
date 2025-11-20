@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 const SPECIAL = ["Content Production", "Content Distribution"];
 
-export default function useQuoteSystem({ isAdmin = false }) {
+export default function useQuoteSystem({ isAdmin = false } = {}) {
   const [lockedCategory, setLockedCategory] = useState(null);
 
   const [client, setClient] = useState({

@@ -9,8 +9,13 @@ import QuoteSummary from "../QuoteSummary/QuoteSummary";
 import styles from "./QuoteUserBuilderForm.module.css";
 
 const QuoteUserBuilderForm = () => {
-  const { client, setClient, validateServiceAdd, lockedCategory } =
-    useQuoteSystem({ isAdmin: false });
+  const {
+    client,
+    setClient,
+    validateServiceAdd,
+    lockedCategory,
+    reset: resetSystem,
+  } = useQuoteSystem({ isAdmin: false });
 
   const methods = useForm({
     defaultValues: {
@@ -21,12 +26,13 @@ const QuoteUserBuilderForm = () => {
       address: client.address,
       duration: client.duration,
       services: [],
+      isApproved: false, // ✅ NEW
     },
   });
 
   const { register, watch } = methods;
 
-  // Sync to QuoteSystem
+  // Sync form state → QuoteSystem global
   useEffect(() => {
     const sub = watch((v) => {
       setClient({
@@ -36,6 +42,7 @@ const QuoteUserBuilderForm = () => {
         designation: v.designation,
         address: v.address,
         duration: v.duration,
+        isApproved: v.isApproved, // ✅ NEW sync
       });
     });
     return () => sub.unsubscribe();
@@ -46,6 +53,9 @@ const QuoteUserBuilderForm = () => {
       <div className={styles.wrapper}>
         <h2 className={styles.title}>Get Your Custom Quote</h2>
 
+        {/* ------------------------------------ */}
+        {/* CLIENT DETAILS */}
+        {/* ------------------------------------ */}
         <div className={styles.formGrid}>
           <div className={styles.field}>
             <label>Name</label>
@@ -93,11 +103,18 @@ const QuoteUserBuilderForm = () => {
           </div>
         </div>
 
+        {/* ------------------------------------ */}
+        {/* SERVICE SELECTOR */}
+        {/* ------------------------------------ */}
         <ServiceSelector
           validateServiceAdd={validateServiceAdd}
           lockedCategory={lockedCategory}
+          resetSystem={resetSystem}
         />
 
+        {/* ------------------------------------ */}
+        {/* DURATION FOR CP/CD */}
+        {/* ------------------------------------ */}
         {(lockedCategory === "Content Production" ||
           lockedCategory === "Content Distribution") && (
           <div className={styles.fieldFull}>
@@ -115,7 +132,10 @@ const QuoteUserBuilderForm = () => {
           </div>
         )}
 
-        <QuoteSummary isAdmin={false} />
+        {/* ------------------------------------ */}
+        {/* SUMMARY (PDF Button inside summary) */}
+        {/* ------------------------------------ */}
+        <QuoteSummary isAdmin={false} resetSystem={resetSystem} />
       </div>
     </FormProvider>
   );

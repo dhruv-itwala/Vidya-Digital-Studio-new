@@ -141,6 +141,8 @@ export const generateQuotePdfBuffer = async ({
   items = [],
   notes = [],
   duration,
+  isAdmin,
+  isApproved,
 }) => {
   try {
     const templatePath = path.join(__dirname, "../templates/quoteTemplate.ejs");
@@ -163,15 +165,33 @@ export const generateQuotePdfBuffer = async ({
     // Calculate subtotal (ensure numbers)
     const subtotal = items.reduce((t, i) => t + (Number(i.total) || 0), 0);
 
+    const defaultNotes = [
+      "This quotation is system-generated and does not represent any legal, contractual, or official commitment.",
+      "The prices and services mentioned are subject to change and are fully negotiable. Please contact us at +91 7096413502 or email contact@vidyadigitalstudio.com for confirmation or adjustments.",
+      "This document is issued for discussion and estimation purposes only and shall not be treated as a legally binding offer or agreement.",
+      "Vidya Digital Studio reserves the right to modify services, prices, or terms without prior notice until a formal contract is signed.",
+    ];
+
+    // Merge default notes with provided ones
+    const finalNotes =
+      isAdmin === "true"
+        ? [...(Array.isArray(notes) ? notes : [])]
+        : [...defaultNotes, ...(Array.isArray(notes) ? notes : [])];
+
+    const isAdminBoolean = isAdmin === "true";
+
     // 2) RENDER TEMPLATE
     const html = await ejs.renderFile(templatePath, {
       client,
       items,
       pages,
       subtotal,
-      notes: Array.isArray(notes) ? notes : [],
+      notes: finalNotes,
       duration,
+      finalNotes,
       css,
+      isApproved,
+      isAdmin: isAdminBoolean,
       logoUrl:
         "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763035703/jtvl8nd5iux8lv3lhvvb.png",
       signatureUrl:

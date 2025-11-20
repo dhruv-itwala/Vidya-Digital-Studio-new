@@ -86,21 +86,13 @@
                 <tr class="subtotal-row">
                   <td
                     colspan="3"
-                    style="
-                      text-align: right;
-                      font-weight: bold;
-                      background: #f5f5f5;
-                    "
+                    style="text-align: right; font-weight: bold; background: #f5f5f5;"
                   >
                     Subtotal:
                   </td>
                   <td
                     colspan="2"
-                    style="
-                      font-weight: bold;
-                      text-align: center;
-                      background: #f5f5f5;
-                    "
+                    style="font-weight: bold; text-align: center; background: #f5f5f5;"
                   >
                     ₹<%= subtotal.toLocaleString("en-IN") %>
                   </td>
@@ -151,25 +143,9 @@
           </ul>
           <% } %>
 
-          <!-- ALWAYS SHOW TERMS & CONDITIONS -->
-          <div class="note-title">Terms and Conditions :</div>
-          <ul class="note-body">
-            <li>
-              This is system generated quotation and does not require a physical
-              signature.
-            </li>
-            <li>
-              Quoted pricing is standard, but final pricing can be negotiated
-              before signing.
-            </li>
-            <li>
-              Approved discounts or changes will be updated in the regenerated
-              quotation.
-            </li>
-            <li>Services included are based on the selected plan/package.</li>
-          </ul>
-
-          <!-- SIGNATURE -->
+          <!-- SIGNATURE: Only show if isAdmin is true -->
+         
+          <% if (isAdmin === true) { %>
           <div class="signature-wrap">
             <img src="<%= signatureUrl %>" class="signature" />
             <div class="sig-text">
@@ -178,6 +154,7 @@
               Vidya Digital Studio
             </div>
           </div>
+          <% } %>
         </div>
       </section>
     </main>

@@ -29,6 +29,8 @@ const QuoteSchema = new mongoose.Schema(
     pdfUrl: String,
     cloudinaryPublicId: String,
     expiresAt: Date,
+    isAdmin: { type: Boolean, default: false }, // New field
+    isApproved: { type: Boolean, default: false }, // New field
     emailSent: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
   },

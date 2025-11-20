@@ -237,6 +237,15 @@
   color: #444;
 }
 
+.subtotalText {
+  font-size: 20px !important;
+  text-align: center;
+}
+
+.subtotalText span {
+  font-weight: bold;
+}
+
 /* inline edit inputs */
 .inlineEdit {
   display: flex;

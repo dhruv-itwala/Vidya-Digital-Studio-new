@@ -6,7 +6,14 @@ import { sendEmailTemplate } from "../services/Email.service.js";
 
 export const createQuote = async (req, res) => {
   try {
-    const { client = {}, items = [], notes = [], duration = "" } = req.body;
+    const {
+      client = {},
+      items = [],
+      notes = [],
+      duration = "",
+      isAdmin, // Extracting isAdmin
+      isApproved, // Extracting isApproved
+    } = req.body;
 
     if (!client.name || !client.email) {
       return res.status(400).json({
@@ -25,27 +32,32 @@ export const createQuote = async (req, res) => {
       items,
       notes,
       duration,
+      isAdmin,
+      isApproved,
     });
 
-    // Upload
+    // Upload PDF to Cloudinary
     const filenameBase = `${client.name.replace(/\s+/g, "_")}_${Date.now()}`;
     const upload = await uploadBufferToCloudinary(pdfBuffer, filenameBase);
 
     const subtotal = items.reduce((sum, i) => sum + Number(i.total || 0), 0);
 
+    // Create the quote
     const quote = await Quote.create({
       client,
       items,
       notes,
       subtotal,
       duration,
+      isAdmin, // Saving isAdmin field
+      isApproved, // Saving isApproved field
       pdfUrl: upload.url,
       cloudinaryPublicId: upload.public_id,
       expiresAt: upload.expires_at,
       emailSent: false,
     });
 
-    // SEND EMAIL
+    // Send email
     try {
       await sendEmailTemplate({
         to: client.email,
@@ -71,6 +83,8 @@ export const createQuote = async (req, res) => {
       success: true,
       pdfUrl: upload.url,
       quoteId: quote._id,
+      isAdmin: quote.isAdmin,
+      isApproved: quote.isApproved,
       expiresAt: upload.expires_at,
       emailSent: quote.emailSent,
     });
@@ -130,7 +144,13 @@ export const deleteQuote = async (req, res) => {
 
 export const testPdf = async (req, res) => {
   try {
-    const { client = {}, items = [], notes = [], duration = "" } = req.body;
+    const {
+      client = {},
+      items = [],
+      notes = [],
+      duration = "",
+      isAdmin,
+    } = req.body;
 
     // Minimal validation
     if (!client.name) client.name = "Test Client";
@@ -142,6 +162,7 @@ export const testPdf = async (req, res) => {
       items,
       notes,
       duration,
+      isAdmin,
     });
 
     // Send as file download

@@ -2,69 +2,77 @@
 import React, { useMemo, useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import PopupModal from "../UI/PopupModal";
-import { generateQuote } from "../../utils/api.endpoints";
-import styles from "../styles/quote.module.css";
-import useQuoteSystem from "../../modules/QuoteSystem";
-
 import { FiEdit, FiTrash, FiSave, FiX } from "react-icons/fi";
+import { generateQuote } from "../../utils/api.endpoints";
+import useQuoteSystem from "../../modules/QuoteSystem";
+import styles from "../styles/quote.module.css";
+import { toast } from "react-toastify";
 
-const QuoteSummary = ({ isAdmin }) => {
-  const { watch, reset: resetForm, control } = useFormContext();
-  const { reset: resetSystem } = useQuoteSystem({ isAdmin });
+const QuoteSummary = ({ isAdmin, resetSystem }) => {
+  const { watch, reset: resetForm, control, setValue } = useFormContext();
+  // const { reset: resetSystem } = useQuoteSystem();
 
-  const { update, remove } = useFieldArray({
-    control,
-    name: "services",
-  });
+  const { update, remove } = useFieldArray({ control, name: "services" });
 
   const services = watch("services") || [];
+  const isApproved = watch("isApproved") || false;
 
-  /** MERGE SERVICES */
+  /** MERGED SERVICES */
   const merged = useMemo(() => {
     const map = {};
-    services.forEach((s, index) => {
+    services.forEach((s, idx) => {
       const key = `${s.category}|${s.service}|${s.option || ""}|${s.unitPrice}`;
-      if (!map[key]) {
-        map[key] = { ...s, _indexes: [index] };
-      } else {
+      if (!map[key]) map[key] = { ...s, _indexes: [idx] };
+      else {
         map[key].quantity += Number(s.quantity);
         map[key].total = map[key].quantity * map[key].unitPrice;
-        map[key]._indexes.push(index);
+        map[key]._indexes.push(idx);
       }
     });
     return Object.values(map);
   }, [services]);
 
-  /** INLINE EDITING (Admin only) */
+  /** INLINE EDIT */
   const [editIndex, setEditIndex] = useState(null);
   const [editValue, setEditValue] = useState("");
 
   const handleSave = (mergedIndex) => {
     const row = merged[mergedIndex];
-    const newTotal = Number(editValue);
-
     row._indexes.forEach((idx) => {
-      update(idx, {
-        ...services[idx],
-        total: newTotal,
-      });
+      update(idx, { ...services[idx], total: Number(editValue) });
     });
-
     setEditIndex(null);
   };
 
+  /** DELETE */
+  const handleDelete = (row) => {
+    row._indexes
+      .slice()
+      .sort((a, b) => b - a)
+      .forEach((idx) => remove(idx));
+
+    const after = watch("services");
+    if (!after || after.length === 0) resetSystem();
+  };
+
   /** MODAL */
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModal] = useState(false);
   const [status, setStatus] = useState("idle");
   const [pdfUrl, setPdfUrl] = useState("");
 
   const subtotal = merged.reduce((a, b) => a + Number(b.total), 0);
 
-  /** GENERATE PDF */
+  /** PDF GENERATION */
   const handleGenerate = async () => {
     const form = watch();
 
-    setModalOpen(true);
+    if (!form.isApproved) {
+      return toast.error(
+        "You must accept terms & conditions before continuing."
+      );
+    }
+
+    setModal(true);
     setStatus("loading");
 
     try {
@@ -78,12 +86,14 @@ const QuoteSummary = ({ isAdmin }) => {
         },
         items: merged,
         duration: form.duration || "",
-        notes: Array.isArray(form.notes)
-          ? form.notes
-          : (form.notes || "")
-              .split("\n")
-              .map((n) => n.trim())
-              .filter((n) => n.length > 0),
+        notes: (form.notes || "")
+          .split("\n")
+          .map((n) => n.trim())
+          .filter((n) => n),
+
+        // 🔥 NEW
+        isAdmin: isAdmin === true,
+        isApproved: form.isApproved === true,
       };
 
       const res = await generateQuote(payload);
@@ -97,15 +107,13 @@ const QuoteSummary = ({ isAdmin }) => {
     }
   };
 
-  /** CLOSE MODAL → RESET FORM ON SUCCESS */
   const closeModal = () => {
-    const wasSuccess = status === "success";
-
-    setModalOpen(false);
+    const ok = status === "success";
+    setModal(false);
     setStatus("idle");
     setPdfUrl("");
 
-    if (wasSuccess) {
+    if (ok) {
       resetForm({
         name: "",
         email: "",
@@ -114,6 +122,7 @@ const QuoteSummary = ({ isAdmin }) => {
         address: "",
         duration: "",
         notes: "",
+        isApproved: false,
         services: [],
       });
       resetSystem();
@@ -135,11 +144,7 @@ const QuoteSummary = ({ isAdmin }) => {
                 <th>Service</th>
                 <th>Qty</th>
                 <th>Total</th>
-
-                {/* ADMIN ONLY → show Edit column */}
                 {isAdmin && <th>Edit</th>}
-
-                {/* DELETE column (always visible) */}
                 <th>Delete</th>
               </tr>
             </thead>
@@ -163,68 +168,72 @@ const QuoteSummary = ({ isAdmin }) => {
                     )}
                   </td>
 
-                  {/* EDIT CELL (only admin) */}
                   {isAdmin && (
-                    <td className={styles.actionsCell}>
+                    <td style={{ display: "flex", gap: "10px" }}>
                       {editIndex === i ? (
                         <>
-                          <button
+                          <FiSave
+                            size={30}
                             className={styles.iconBtn}
                             onClick={() => handleSave(i)}
-                          >
-                            <FiSave size={18} />
-                          </button>
-                          <button
+                          />
+
+                          <FiX
+                            size={30}
                             className={styles.iconBtn}
                             onClick={() => setEditIndex(null)}
-                          >
-                            <FiX size={18} />
-                          </button>
+                          />
                         </>
                       ) : (
-                        <button
+                        <FiEdit
+                          size={30}
                           className={styles.iconBtn}
                           onClick={() => {
                             setEditIndex(i);
                             setEditValue(row.total);
                           }}
-                        >
-                          <FiEdit size={18} />
-                        </button>
+                        />
                       )}
                     </td>
                   )}
 
-                  {/* DELETE CELL (always visible) */}
                   <td className={styles.deleteCell}>
-                    <button
+                    <FiTrash
+                      size={30}
                       className={styles.iconBtnDanger}
-                      onClick={() =>
-                        row._indexes
-                          .slice()
-                          .sort((a, b) => b - a)
-                          .forEach((idx) => remove(idx))
-                      }
-                    >
-                      <FiTrash size={18} />
-                    </button>
+                      onClick={() => handleDelete(row)}
+                    />
                   </td>
                 </tr>
               ))}
+              <tr>
+                <td colSpan="5" className={styles.subtotalText}>
+                  Your Subtotal is <span>₹{subtotal}</span>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
 
-        <p className={styles.totalText}>
+        {/* <p className={styles.totalText}>
           Subtotal: <strong>₹{subtotal}</strong>
-        </p>
+        </p> */}
+
+        {/* NEW CHECKBOX */}
+        <div className={styles.checkboxWrap}>
+          <input
+            type="checkbox"
+            checked={!!isApproved}
+            onChange={(e) => setValue("isApproved", e.target.checked)}
+          />
+          <label>I accept the terms & conditions</label>
+        </div>
 
         <button className={styles.pdfBtn} onClick={handleGenerate}>
           Generate Quotation PDF
         </button>
       </div>
 
-      {/* MODAL */}
       <PopupModal
         open={modalOpen}
         status={status}
