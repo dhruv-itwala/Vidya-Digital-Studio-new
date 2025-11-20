@@ -172,13 +172,18 @@ export const generateQuotePdfBuffer = async ({
       "Vidya Digital Studio reserves the right to modify services, prices, or terms without prior notice until a formal contract is signed.",
     ];
 
-    // Merge default notes with provided ones
-    const finalNotes =
-      isAdmin === "true"
-        ? [...(Array.isArray(notes) ? notes : [])]
-        : [...defaultNotes, ...(Array.isArray(notes) ? notes : [])];
+    const isAdminBool =
+      isAdmin === true ||
+      isAdmin === "true" ||
+      isAdmin === 1 ||
+      isAdmin === "1";
 
-    const isAdminBoolean = isAdmin === "true";
+    // Merge default notes with provided ones
+    const finalNotes = isAdminBool
+      ? [...(Array.isArray(notes) ? notes : [])]
+      : [...defaultNotes, ...(Array.isArray(notes) ? notes : [])];
+
+    const isAdminBoolean = isAdminBool;
 
     // 2) RENDER TEMPLATE
     const html = await ejs.renderFile(templatePath, {

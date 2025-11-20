@@ -49,3 +49,18 @@ label {
   color: var(--color-text);
   font-size: 15px;
 }
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.inputError {
+  border: 1px solid #ff4d4d !important;
+}
+
+.errorText {
+  color: #ff4d4d;
+  font-size: 12px;
+  margin-top: 4px;
+}

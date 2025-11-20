@@ -15,6 +15,18 @@ export const createQuote = async (req, res) => {
       isApproved, // Extracting isApproved
     } = req.body;
 
+    const isAdminBool =
+      isAdmin === true ||
+      isAdmin === "true" ||
+      isAdmin === 1 ||
+      isAdmin === "1";
+
+    const isApprovedBool =
+      isApproved === true ||
+      isApproved === "true" ||
+      isApproved === 1 ||
+      isApproved === "1";
+
     if (!client.name || !client.email) {
       return res.status(400).json({
         success: false,
@@ -32,8 +44,8 @@ export const createQuote = async (req, res) => {
       items,
       notes,
       duration,
-      isAdmin,
-      isApproved,
+      isAdmin: isAdminBool,
+      isApproved: isApprovedBool,
     });
 
     // Upload PDF to Cloudinary
@@ -49,8 +61,8 @@ export const createQuote = async (req, res) => {
       notes,
       subtotal,
       duration,
-      isAdmin, // Saving isAdmin field
-      isApproved, // Saving isApproved field
+      isAdmin: isAdminBool,
+      isApproved: isApprovedBool,
       pdfUrl: upload.url,
       cloudinaryPublicId: upload.public_id,
       expiresAt: upload.expires_at,

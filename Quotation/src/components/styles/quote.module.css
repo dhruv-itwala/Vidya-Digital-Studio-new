@@ -56,7 +56,6 @@
 
 /* generic inputs */
 .input,
-.select,
 .textarea {
   width: 100%;
   padding: 12px 14px;
@@ -67,10 +66,23 @@
   transition: box-shadow 0.12s ease, border-color 0.12s ease;
 }
 
-/* tweak select/textarea */
 .select {
-  height: 44px;
+  width: 100%;
+  padding: 12px 40px 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  outline: none;
+  appearance: none; /* 🔥 remove default arrow */
+  background-color: #fff;
+
+  /* 📌 Add custom arrow */
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'><polyline points='20,50 70,90 120,50' stroke='%23666' stroke-width='18' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-size: 14px;
+  background-position: right 14px center; /* 👉 move arrow to the right with padding */
 }
+
 .textarea {
   min-height: 84px;
   resize: vertical;
@@ -81,7 +93,6 @@
 .select:focus,
 .textarea:focus {
   border-color: var(--deep-forest);
-  box-shadow: 0 0 0 4px rgba(242, 92, 5, 0.06);
 }
 
 /* SERVICE SELECTOR */
@@ -260,19 +271,25 @@
 }
 
 /* totals & actions */
-.totalText {
+/* .totalText {
   text-align: right;
-  font-size: 16px;
-  margin-top: 8px;
+  font-size: 20px;
+  margin-top: 10px;
 }
+.totalText span {
+  font-weight: bold;
+  padding: 0 10px;
+} */
 .actionsRow {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 6px;
 }
+
 .pdfBtn {
-  padding: 10px 14px;
+  padding: 15px 14px;
+  font-size: 18px;
   background: var(--deep-forest);
   color: #fff;
   border: none;
@@ -379,4 +396,54 @@
 
 .actionsCol button {
   margin-right: 6px;
+}
+
+/* .checkboxWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  margin-bottom: 0px;
+  color: var(--color-text);
+} */
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 10px 12px 0;
+}
+
+.totalText {
+  font-size: 18px;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.totalText span {
+  font-weight: 600;
+  padding-left: 6px;
+}
+
+.checkboxWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  color: var(--color-text);
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+/* Making checkbox slightly nicer */
+.checkboxWrap input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }

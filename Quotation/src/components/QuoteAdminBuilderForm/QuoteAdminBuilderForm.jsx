@@ -2,10 +2,8 @@
 import React, { useEffect } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import useQuoteSystem from "../../modules/QuoteSystem";
-
 import ServiceSelector from "../ServiceSelector/ServiceSelector";
 import QuoteSummary from "../QuoteSummary/QuoteSummary";
-
 import styles from "./QuoteAdminBuilderForm.module.css";
 
 const QuoteAdminBuilderForm = () => {
@@ -18,6 +16,8 @@ const QuoteAdminBuilderForm = () => {
   } = useQuoteSystem({ isAdmin: true });
 
   const methods = useForm({
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     defaultValues: {
       name: client.name,
       email: client.email,
@@ -59,30 +59,79 @@ const QuoteAdminBuilderForm = () => {
         {/* CLIENT DETAILS */}
         <div className={styles.formGrid}>
           <div className={styles.field}>
-            <label>Name</label>
+            <label>Name *</label>
             <input
-              className={styles.input}
-              {...register("name")}
+              className={`${styles.input} ${
+                methods.formState.errors.name ? styles.inputError : ""
+              }`}
+              {...register("name", { required: "Name is required" })}
               placeholder="Client name"
             />
+            {methods.formState.errors.name && (
+              <p className={styles.errorText}>
+                {methods.formState.errors.name.message}
+              </p>
+            )}
           </div>
 
           <div className={styles.field}>
-            <label>Email</label>
+            <label>Email *</label>
             <input
-              className={styles.input}
-              {...register("email")}
+              className={`${styles.input} ${
+                methods.formState.errors.email ? styles.inputError : ""
+              }`}
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Invalid email format",
+                },
+              })}
               placeholder="Email address"
             />
+            {methods.formState.errors.email && (
+              <p className={styles.errorText}>
+                {methods.formState.errors.email.message}
+              </p>
+            )}
           </div>
 
           <div className={styles.field}>
-            <label>Phone</label>
+            <label>Contact *</label>
             <input
-              className={styles.input}
-              {...register("contact")}
+              className={`${styles.input} ${
+                methods.formState.errors.contact ? styles.inputError : ""
+              }`}
+              {...register("contact", {
+                required: "Phone number is required",
+                pattern: {
+                  value: /^[0-9]{10}$/,
+                  message: "Phone must be exactly 10 digits",
+                },
+              })}
               placeholder="Contact number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              onKeyDown={(e) => {
+                // Block non-numeric keys
+                if (
+                  !/[0-9]/.test(e.key) &&
+                  e.key !== "Backspace" &&
+                  e.key !== "Delete" &&
+                  e.key !== "ArrowLeft" &&
+                  e.key !== "ArrowRight" &&
+                  e.key !== "Tab"
+                ) {
+                  e.preventDefault();
+                }
+              }}
             />
+
+            {methods.formState.errors.contact && (
+              <p className={styles.errorText}>
+                {methods.formState.errors.contact.message}
+              </p>
+            )}
           </div>
 
           <div className={styles.field}>

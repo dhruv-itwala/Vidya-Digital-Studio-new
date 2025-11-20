@@ -4,7 +4,6 @@ import { useFormContext, useFieldArray } from "react-hook-form";
 import PopupModal from "../UI/PopupModal";
 import { FiEdit, FiTrash, FiSave, FiX } from "react-icons/fi";
 import { generateQuote } from "../../utils/api.endpoints";
-import useQuoteSystem from "../../modules/QuoteSystem";
 import styles from "../styles/quote.module.css";
 import { toast } from "react-toastify";
 
@@ -90,9 +89,8 @@ const QuoteSummary = ({ isAdmin, resetSystem }) => {
           .split("\n")
           .map((n) => n.trim())
           .filter((n) => n),
-
         // 🔥 NEW
-        isAdmin: isAdmin === true,
+        isAdmin,
         isApproved: form.isApproved === true,
       };
 
@@ -206,27 +204,44 @@ const QuoteSummary = ({ isAdmin, resetSystem }) => {
                   </td>
                 </tr>
               ))}
-              <tr>
+              {/* <tr>
                 <td colSpan="5" className={styles.subtotalText}>
                   Your Subtotal is <span>₹{subtotal}</span>
                 </td>
-              </tr>
+              </tr> */}
             </tbody>
           </table>
         </div>
 
         {/* <p className={styles.totalText}>
-          Subtotal: <strong>₹{subtotal}</strong>
-        </p> */}
+          Subtotal: <span>₹{subtotal}</span>
+        </p>
 
-        {/* NEW CHECKBOX */}
         <div className={styles.checkboxWrap}>
           <input
             type="checkbox"
             checked={!!isApproved}
             onChange={(e) => setValue("isApproved", e.target.checked)}
           />
-          <label>I accept the terms & conditions</label>
+          <label className={styles.checkboxLabel}>
+            I accept the terms & conditions
+          </label>
+        </div> */}
+
+        <div className={styles.summaryRow}>
+          <div className={styles.checkboxWrap}>
+            <input
+              type="checkbox"
+              checked={!!isApproved}
+              onChange={(e) => setValue("isApproved", e.target.checked)}
+            />
+            <label className={styles.checkboxLabel}>
+              I accept the terms & conditions
+            </label>
+          </div>
+          <p className={styles.totalText}>
+            Subtotal: <span>₹{subtotal}</span>
+          </p>
         </div>
 
         <button className={styles.pdfBtn} onClick={handleGenerate}>
