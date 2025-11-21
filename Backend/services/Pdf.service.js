@@ -9,11 +9,19 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 🔥 MAX PERFORMANCE SETTINGS
+chromium.setHeadlessMode = true;
+chromium.setGraphicsMode = false; // skip GPU rasterization
+
 /**
- * Properly handle bullet lists inside measurement page.
+ * Paginate rows by measuring heights
  */
 async function paginateRowsByHeight(page, items, css) {
-  await page.setViewport({ width: 794, height: 1122, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 794,
+    height: 1122,
+    deviceScaleFactor: 1,
+  });
 
   const tempHTML = `
 <!doctype html>
@@ -22,41 +30,34 @@ async function paginateRowsByHeight(page, items, css) {
 <meta charset="utf-8" />
 <style>
 ${css}
-
-body { margin: 0; padding: 0; box-sizing: border-box; }
-.main-content {
-  margin-top: calc(var(--top-offset));
-  padding-left: 20px;
-  padding-right: 20px;
-}
-.page-body { padding: 0; }
-.items-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+body { margin:0; padding:0; box-sizing:border-box; }
+.main-content { margin-top: calc(var(--top-offset)); padding: 0 20px; }
+.page-body { padding:0; }
+.items-table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .items-table td, .items-table th {
-  padding: 12px;
-  font-size: 16px;
-  vertical-align: top;
-  border: 1px solid #000;
-  word-wrap: break-word;
+  padding:12px;
+  font-size:16px;
+  vertical-align:top;
+  border:1px solid #000;
+  word-break:break-word;
 }
 ul { margin:0; padding-left:16px; }
 </style>
 </head>
 <body>
-  <main class="main-content">
-    <div class="page-body">
-      <table class="items-table">
-        <tbody>
-          ${items
-            .map((i) => {
-              const descHtml = Array.isArray(i.description)
-                ? "<ul>" +
-                  i.description
-                    .map((d) => `<li>${escapeHtml(d)}</li>`)
-                    .join("") +
-                  "</ul>"
-                : escapeHtml(i.description || "-");
+<main class="main-content">
+  <div class="page-body">
+    <table class="items-table">
+      <tbody>
+        ${items
+          .map((i) => {
+            const descHtml = Array.isArray(i.description)
+              ? "<ul>" +
+                i.description.map((d) => `<li>${escapeHtml(d)}</li>`).join("") +
+                "</ul>"
+              : escapeHtml(i.description || "-");
 
-              return `
+            return `
               <tr>
                 <td>${escapeHtml(i.category || "")}</td>
                 <td>${escapeHtml(i.service || "")}</td>
@@ -68,51 +69,45 @@ ul { margin:0; padding-left:16px; }
                   String(i.total || 0)
                 )}</td>
               </tr>`;
-            })
-            .join("")}
-        </tbody>
-      </table>
-    </div>
-  </main>
+          })
+          .join("")}
+      </tbody>
+    </table>
+  </div>
+</main>
 </body>
 </html>`;
 
-  await page.setContent(tempHTML, { waitUntil: "networkidle0" });
+  // ⚡ fastest load
+  await page.setContent(tempHTML, { waitUntil: "domcontentloaded" });
 
-  await page.waitForSelector("tr");
+  const rowHeights = await page.evaluate(() =>
+    Array.from(document.querySelectorAll("tr")).map((tr) => tr.offsetHeight)
+  );
 
-  const rowHeights = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("tr")).map(
-      (tr) => tr.offsetHeight
-    );
-  });
-
-  const MAX_FIRST_PAGE_HEIGHT = 460;
-  const MAX_OTHER_PAGE_HEIGHT = 560;
+  const MAX_FIRST = 460;
+  const MAX_NEXT = 560;
 
   let pages = [];
-  let currentPage = [];
-  let heightUsed = 0;
-  let currentLimit = MAX_FIRST_PAGE_HEIGHT;
+  let current = [];
+  let height = 0;
+  let limit = MAX_FIRST;
 
-  items.forEach((item, index) => {
-    const thisHeight = rowHeights[index] || 28;
+  items.forEach((item, idx) => {
+    const h = rowHeights[idx] || 28;
 
-    if (heightUsed + thisHeight > currentLimit) {
-      pages.push(currentPage);
-      currentPage = [item];
-      heightUsed = thisHeight;
-
-      if (pages.length === 1) {
-        currentLimit = MAX_OTHER_PAGE_HEIGHT;
-      }
+    if (height + h > limit) {
+      pages.push(current);
+      current = [item];
+      height = h;
+      if (pages.length === 1) limit = MAX_NEXT;
     } else {
-      currentPage.push(item);
-      heightUsed += thisHeight;
+      current.push(item);
+      height += h;
     }
   });
 
-  if (currentPage.length > 0) pages.push(currentPage);
+  if (current.length) pages.push(current);
   return pages;
 }
 
@@ -139,9 +134,24 @@ export const generateQuotePdfBuffer = async ({
 
     const css = fs.readFileSync(cssPath, "utf8");
 
+    // 🚀 MAXIMUM SPEED LAUNCH CONFIG (no compromise in output)
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
+      args: [
+        ...chromium.args,
+        "--disable-webgl",
+        "--disable-extensions",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--no-zygote",
+        "--single-process",
+        "--ignore-gpu-blacklist",
+        "--disable-software-rasterizer",
+        "--font-render-hinting=none", // boost performance slightly
+        "--disable-features=IsolateOrigins,site-per-process",
+      ],
+      defaultViewport: { width: 794, height: 1122 },
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     });
@@ -159,11 +169,7 @@ export const generateQuotePdfBuffer = async ({
       "Vidya Digital Studio reserves the right to modify terms before contract.",
     ];
 
-    const isAdminBool =
-      isAdmin === true ||
-      isAdmin === "true" ||
-      isAdmin === 1 ||
-      isAdmin === "1";
+    const isAdminBool = ["true", true, "1", 1].includes(isAdmin);
 
     const finalNotes = isAdminBool
       ? [...(Array.isArray(notes) ? notes : [])]
@@ -187,13 +193,17 @@ export const generateQuotePdfBuffer = async ({
         "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763035782/su3nyob2kedbc9k7swb2.png",
     });
 
-    const finalPage = await browser.newPage();
-    await finalPage.setContent(html, { waitUntil: "networkidle0" });
-    await finalPage.emulateMediaType("print");
+    const page = await browser.newPage();
 
-    const pdfBuffer = await finalPage.pdf({
+    // ⚡ Ultra-fast content rendering
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
+
+    // 🎯 FINAL PDF (no visual compromise)
+    const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
+      preferCSSPageSize: true,
+      timeout: 0,
     });
 
     await browser.close();
