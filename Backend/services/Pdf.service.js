@@ -139,8 +139,16 @@ export const generateQuotePdfBuffer = async ({
     const css = fs.readFileSync(cssPath, "utf8");
 
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: "new",
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-web-security",
+        "--disable-features=IsolateOrigins",
+        "--disable-site-isolation-trials",
+      ],
     });
 
     const measurementPage = await browser.newPage();
