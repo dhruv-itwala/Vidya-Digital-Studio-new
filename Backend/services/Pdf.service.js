@@ -135,26 +135,57 @@ export const generateQuotePdfBuffer = async ({
     const css = fs.readFileSync(cssPath, "utf8");
 
     // 🚀 MAXIMUM SPEED LAUNCH CONFIG (no compromise in output)
-    const browser = await puppeteer.launch({
-      args: [
-        ...chromium.args,
-        "--disable-webgl",
-        "--disable-extensions",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--disable-gpu",
-        "--no-sandbox",
-        "--no-zygote",
-        "--single-process",
-        "--ignore-gpu-blacklist",
-        "--disable-software-rasterizer",
-        "--font-render-hinting=none", // boost performance slightly
-        "--disable-features=IsolateOrigins,site-per-process",
-      ],
-      defaultViewport: { width: 794, height: 1122 },
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-    });
+    // const browser = await puppeteer.launch({
+    //   args: [
+    //     ...chromium.args,
+    //     "--disable-webgl",
+    //     "--disable-extensions",
+    //     "--disable-dev-shm-usage",
+    //     "--disable-setuid-sandbox",
+    //     "--disable-gpu",
+    //     "--no-sandbox",
+    //     "--no-zygote",
+    //     "--single-process",
+    //     "--ignore-gpu-blacklist",
+    //     "--disable-software-rasterizer",
+    //     "--font-render-hinting=none", // boost performance slightly
+    //     "--disable-features=IsolateOrigins,site-per-process",
+    //   ],
+    //   defaultViewport: { width: 794, height: 1122 },
+    //   executablePath: await chromium.executablePath(),
+    //   headless: chromium.headless,
+    // });
+
+    let browser;
+
+    if (process.platform === "win32") {
+      // Running locally on Windows → use normal Puppeteer
+      const localPuppeteer = await import("puppeteer");
+      browser = await localPuppeteer.default.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+    } else {
+      // Running on Render (Linux) → use puppeteer-core + sparticuz chromium
+      browser = await puppeteer.launch({
+        args: [
+          ...chromium.args,
+          "--disable-webgl",
+          "--disable-extensions",
+          "--disable-dev-shm-usage",
+          "--disable-setuid-sandbox",
+          "--disable-gpu",
+          "--no-sandbox",
+          "--no-zygote",
+          "--single-process",
+          "--ignore-gpu-blacklist",
+          "--disable-software-rasterizer",
+        ],
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+    }
 
     const measurementPage = await browser.newPage();
     const pages = await paginateRowsByHeight(measurementPage, items, css);
@@ -196,7 +227,7 @@ export const generateQuotePdfBuffer = async ({
     const page = await browser.newPage();
 
     // ⚡ Ultra-fast content rendering
-    await page.setContent(html, { waitUntil: "domcontentloaded" });
+    await page.setContent(html, { waitUntil: "networkidle0" });
 
     // 🎯 FINAL PDF (no visual compromise)
     const pdfBuffer = await page.pdf({
