@@ -12,21 +12,23 @@ const FROM_EMAIL = process.env.FROM_EMAIL || "contact@vidyadigitalstudio.com";
 /* -------------------- Load EJS Email Template -------------------- */
 async function renderEmailTemplate(templateName, data = {}) {
   const templatePath = path.join(__dirname, `../templates/${templateName}.ejs`);
-
   return await ejs.renderFile(templatePath, data);
 }
 
-/* -------------------- Send Email via Nodemailer (Only) -------------------- */
+/* -------------------- Send Email using Resend SMTP -------------------- */
 export async function sendEmailTemplate({ to, subject, templateName, data }) {
   const html = await renderEmailTemplate(templateName, data);
 
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: Number(process.env.SMTP_PORT) === 465,
+    host: "smtp.resend.com",
+    port: 587,
+    secure: false,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: "resend",
+      pass: process.env.RESEND_API_KEY,
+    },
+    tls: {
+      rejectUnauthorized: false, // avoid TLS issues on Render / Railway
     },
   });
 
