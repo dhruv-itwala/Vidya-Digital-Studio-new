@@ -74,7 +74,18 @@
                 <tr>
                   <td><%= item.category || '' %></td>
                   <td><%= item.service || '' %></td>
-                  <td><%= item.description || '-' %></td>
+                  <td>
+  <% if (item.description && Array.isArray(item.description)) { %>
+    <ul>
+      <% item.description.forEach(function(desc) { %>
+        <li><%= desc %></li>
+      <% }); %>
+    </ul>
+  <% } else { %>
+    <%= item.description || '-' %>
+  <% } %>
+</td>
+
                   <td style="text-align: center">
                     <%= item.quantity || '-' %>
                   </td>

@@ -5,7 +5,10 @@ const ItemSchema = new mongoose.Schema(
   {
     category: String,
     service: String,
-    description: String,
+    description: {
+      type: mongoose.Schema.Types.Mixed,
+      default: "",
+    },
     quantity: { type: Number, default: 1 },
     total: { type: Number, default: 0 },
     option: String,

@@ -9,11 +9,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Paginate rows by measuring actual rendered TR heights inside a measurement page
- * that mimics the final PDF layout closely (main-content, padding, fonts, table width).
+ * Properly handle bullet lists inside measurement page.
  */
 async function paginateRowsByHeight(page, items, css) {
-  // Ensure measurement viewport matches A4-ish rendering at 96dpi (approx)
   await page.setViewport({ width: 794, height: 1122, deviceScaleFactor: 1 });
 
   const tempHTML = `
@@ -24,32 +22,22 @@ async function paginateRowsByHeight(page, items, css) {
 <style>
 ${css}
 
-/* Minimal overrides to ensure measurement matches final template */
 body { margin: 0; padding: 0; box-sizing: border-box; }
 .main-content {
-  /* replicate the top offset so table width/wrapping matches final template */
   margin-top: calc(var(--top-offset));
   padding-left: 20px;
   padding-right: 20px;
-  box-sizing: border-box;
 }
-.page-body { padding: 0; box-sizing: border-box; }
-
-.items-table { 
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-/* Use identical cell paddings and font sizing as final CSS */
+.page-body { padding: 0; }
+.items-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .items-table td, .items-table th {
   padding: 12px;
   font-size: 16px;
   vertical-align: top;
-  word-wrap: break-word;
   border: 1px solid #000;
-  box-sizing: border-box;
+  word-wrap: break-word;
 }
+ul { margin:0; padding-left:16px; }
 </style>
 </head>
 <body>
@@ -58,20 +46,28 @@ body { margin: 0; padding: 0; box-sizing: border-box; }
       <table class="items-table">
         <tbody>
           ${items
-            .map(
-              (i) => `
-            <tr>
-              <td>${escapeHtml(i.category || "")}</td>
-              <td>${escapeHtml(i.service || "")}</td>
-              <td>${escapeHtml(i.description || "-")}</td>
-              <td style="text-align:center">${escapeHtml(
-                String(i.quantity || "-")
-              )}</td>
-              <td style="text-align:center">${escapeHtml(
-                String(i.total || 0)
-              )}</td>
-            </tr>`
-            )
+            .map((i) => {
+              const descHtml = Array.isArray(i.description)
+                ? "<ul>" +
+                  i.description
+                    .map((d) => `<li>${escapeHtml(d)}</li>`)
+                    .join("") +
+                  "</ul>"
+                : escapeHtml(i.description || "-");
+
+              return `
+              <tr>
+                <td>${escapeHtml(i.category || "")}</td>
+                <td>${escapeHtml(i.service || "")}</td>
+                <td>${descHtml}</td>
+                <td style="text-align:center">${escapeHtml(
+                  String(i.quantity || "-")
+                )}</td>
+                <td style="text-align:center">${escapeHtml(
+                  String(i.total || 0)
+                )}</td>
+              </tr>`;
+            })
             .join("")}
         </tbody>
       </table>
@@ -82,20 +78,16 @@ body { margin: 0; padding: 0; box-sizing: border-box; }
 
   await page.setContent(tempHTML, { waitUntil: "networkidle0" });
 
-  // Wait for rows to be present
   await page.waitForSelector("tr");
 
-  // Read actual heights of each row
   const rowHeights = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("tr")).map((tr) => {
-      // offsetHeight includes borders/padding — good for our use
-      return tr.offsetHeight;
-    });
+    return Array.from(document.querySelectorAll("tr")).map(
+      (tr) => tr.offsetHeight
+    );
   });
 
-  // Safe max page height — tuned to your layout. If you change header/contact/footer
-  const MAX_FIRST_PAGE_HEIGHT = 360; // page 1 limit
-  const MAX_OTHER_PAGE_HEIGHT = 560; // page 2+ limit
+  const MAX_FIRST_PAGE_HEIGHT = 460;
+  const MAX_OTHER_PAGE_HEIGHT = 560;
 
   let pages = [];
   let currentPage = [];
@@ -106,14 +98,10 @@ body { margin: 0; padding: 0; box-sizing: border-box; }
     const thisHeight = rowHeights[index] || 28;
 
     if (heightUsed + thisHeight > currentLimit) {
-      // close current page
       pages.push(currentPage);
-
-      // start new page
       currentPage = [item];
       heightUsed = thisHeight;
 
-      // if we just finished page 1, change the limit for remaining
       if (pages.length === 1) {
         currentLimit = MAX_OTHER_PAGE_HEIGHT;
       }
@@ -155,21 +143,17 @@ export const generateQuotePdfBuffer = async ({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
-    // measurement page used to compute pagination
     const measurementPage = await browser.newPage();
-
-    // 1) PAGINATION
     const pages = await paginateRowsByHeight(measurementPage, items, css);
     await measurementPage.close();
 
-    // Calculate subtotal (ensure numbers)
     const subtotal = items.reduce((t, i) => t + (Number(i.total) || 0), 0);
 
     const defaultNotes = [
       "This quotation is system-generated and does not represent any legal, contractual, or official commitment.",
-      "The prices and services mentioned are subject to change and are fully negotiable. Please contact us at +91 7096413502 or email contact@vidyadigitalstudio.com for confirmation or adjustments.",
-      "This document is issued for discussion and estimation purposes only and shall not be treated as a legally binding offer or agreement.",
-      "Vidya Digital Studio reserves the right to modify services, prices, or terms without prior notice until a formal contract is signed.",
+      "The prices and services mentioned are subject to change.",
+      "This document is issued for estimation and discussion only.",
+      "Vidya Digital Studio reserves the right to modify terms before contract.",
     ];
 
     const isAdminBool =
@@ -178,14 +162,10 @@ export const generateQuotePdfBuffer = async ({
       isAdmin === 1 ||
       isAdmin === "1";
 
-    // Merge default notes with provided ones
     const finalNotes = isAdminBool
       ? [...(Array.isArray(notes) ? notes : [])]
       : [...defaultNotes, ...(Array.isArray(notes) ? notes : [])];
 
-    const isAdminBoolean = isAdminBool;
-
-    // 2) RENDER TEMPLATE
     const html = await ejs.renderFile(templatePath, {
       client,
       items,
@@ -193,10 +173,9 @@ export const generateQuotePdfBuffer = async ({
       subtotal,
       notes: finalNotes,
       duration,
-      finalNotes,
       css,
       isApproved,
-      isAdmin: isAdminBoolean,
+      isAdmin: isAdminBool,
       logoUrl:
         "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763035703/jtvl8nd5iux8lv3lhvvb.png",
       signatureUrl:
@@ -205,7 +184,6 @@ export const generateQuotePdfBuffer = async ({
         "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763035782/su3nyob2kedbc9k7swb2.png",
     });
 
-    // 3) GENERATE PDF
     const finalPage = await browser.newPage();
     await finalPage.setContent(html, { waitUntil: "networkidle0" });
     await finalPage.emulateMediaType("print");
