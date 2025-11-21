@@ -68,6 +68,8 @@ export const createQuote = async (req, res) => {
       emailSent: false,
     });
 
+    const EMAIL_LOGO =
+      "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763372867/ft5zwscplj5kjthohc1y.png";
     try {
       await sendEmailTemplate({
         to: client.email,
@@ -75,6 +77,7 @@ export const createQuote = async (req, res) => {
         templateName: "quoteEmailTemplate",
         data: {
           client,
+          emailLogo: EMAIL_LOGO,
           pdfUrl: upload.url,
           expireDays: process.env.PDF_EXPIRE_DAYS || 7,
           notes,
