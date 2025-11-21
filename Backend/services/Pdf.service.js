@@ -1,7 +1,7 @@
 // services/Pdf.service.js
 import fs from "fs";
 import path from "path";
-import puppeteer from "puppeteer";
+import puppeteer, { executablePath } from "puppeteer";
 import ejs from "ejs";
 import { fileURLToPath } from "url";
 
