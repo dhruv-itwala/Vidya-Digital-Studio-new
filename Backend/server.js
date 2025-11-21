@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { connectDB } from "./config/db.config.js";
-import helmet from "helmet";
 import corsOptions from "./config/cors.config.js";
 import { getLocalIP } from "./config/ip.config.js";
 import quotationRoutes from "./routes/Quote.routes.js";
@@ -22,7 +21,6 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: "15mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(helmet());
 
 // Routes
 app.get(`/api/${VERSION}`, (req, res) => {
