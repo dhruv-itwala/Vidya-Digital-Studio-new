@@ -1,7 +1,8 @@
 // services/Pdf.service.js
 import fs from "fs";
 import path from "path";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import ejs from "ejs";
 import { fileURLToPath } from "url";
 
@@ -139,8 +140,10 @@ export const generateQuotePdfBuffer = async ({
     const css = fs.readFileSync(cssPath, "utf8");
 
     const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const measurementPage = await browser.newPage();

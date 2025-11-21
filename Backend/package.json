@@ -13,6 +13,7 @@
   "author": "DHRUV-ITWALA",
   "license": "ISC",
   "dependencies": {
+    "@sparticuz/chromium": "^141.0.0",
     "axios": "^1.13.2",
     "body-parser": "^2.2.0",
     "cloudinary": "^1.41.3",
@@ -26,7 +27,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
-    "puppeteer": "19.7.5"
+    "puppeteer-core": "^19.7.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
