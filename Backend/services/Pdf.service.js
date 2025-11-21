@@ -1,7 +1,7 @@
 // services/Pdf.service.js
 import fs from "fs";
 import path from "path";
-import puppeteer, { executablePath } from "puppeteer";
+import puppeteer from "puppeteer";
 import ejs from "ejs";
 import { fileURLToPath } from "url";
 
@@ -139,16 +139,12 @@ export const generateQuotePdfBuffer = async ({
     const css = fs.readFileSync(cssPath, "utf8");
 
     const browser = await puppeteer.launch({
-      headless: "new",
-      executablePath: executablePath(),
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-gpu",
         "--disable-dev-shm-usage",
-        "--disable-web-security",
-        "--disable-features=IsolateOrigins",
-        "--disable-site-isolation-trials",
       ],
     });
 
