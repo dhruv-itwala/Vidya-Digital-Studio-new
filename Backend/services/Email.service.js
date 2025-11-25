@@ -52,7 +52,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const FROM_EMAIL = process.env.FROM_EMAIL || "contact@vidyadigitalstudio.com";
-
+const SENDER_INBOX =
+  process.env.SENDER_INBOX || "contact@vidyadigitalstudio.com";
 /* -------------------- Load EJS Email Template -------------------- */
 async function renderEmailTemplate(templateName, data = {}) {
   const templatePath = path.join(__dirname, `../templates/${templateName}.ejs`);
@@ -66,6 +67,7 @@ export async function sendEmailTemplate({ to, subject, templateName, data }) {
   const response = await resend.emails.send({
     from: FROM_EMAIL,
     to,
+    bcc: SENDER_INBOX,
     subject,
     html,
   });
