@@ -1,24 +1,101 @@
 .wrapper {
   width: 100%;
-  max-width: 1200px;
-  background: white;
-  margin: -120px auto 20px auto;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  max-width: 1100px;
+  background: #ffffff;
+  margin: -120px auto 32px auto;
+  padding: 28px 28px 32px;
+  border-radius: 20px;
+  box-sizing: border-box;
 }
 
-.title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 20px;
+/* ---------- Stepper ---------- */
+
+.stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 24px;
 }
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.stepItemActive {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.stepCircle {
+  width: 26px;
+  height: 26px;
+
+  border-radius: 25px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #949494;
+}
+
+.stepItemActive .stepCircle {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.stepLabel {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ---------- Shared Step Card ---------- */
+
+.stepContent {
+  animation: fadeInUp 0.25s ease-out;
+}
+
+.stepCard {
+  border-radius: 18px;
+  padding: 24px 22px 22px;
+  background: radial-gradient(circle at top left, #f9fafb, #ffffff);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+}
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.subTitle {
+  font-size: 14px;
+  color: #949494;
+  margin-bottom: 18px;
+}
+
+/* ---------- Form Grid (step 1) ---------- */
 
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
-  margin-bottom: 25px;
+  margin-bottom: 18px;
 }
 
 .field {
@@ -33,7 +110,7 @@
 }
 
 label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   margin-bottom: 6px;
 }
@@ -41,91 +118,495 @@ label {
 .input,
 .select,
 .textarea {
-  padding: 12px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-  font-size: 15px;
-
-  /* responsive width */
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  background-color: #f9fafb;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease, transform 0.05s ease;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Responsive dropdown arrow */
-.select {
-  appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'><polyline points='20,50 70,90 120,50' stroke='%23666' stroke-width='18' fill='none' stroke-linecap='round'/></svg>");
-  background-repeat: no-repeat;
-  background-size: 14px;
-  background-position: right 14px center;
-  padding-right: 40px;
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--color-primary);
+  /* box-shadow: 0 0 0 1px rgb(34, 137, 29); */
+  background-color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .textarea {
-  min-height: 100px;
+  min-height: 90px;
   resize: vertical;
 }
 
 .inputError {
-  border: 1px solid #ff4d4d !important;
+  border-color: #f97373 !important;
 }
 
 .errorText {
-  color: #ff4d4d;
+  color: #ef4444;
   font-size: 12px;
   margin-top: 4px;
 }
 
-/* ======================== RESPONSIVE ======================== */
+/* ---------- Category Cards (step 2) ---------- */
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.categoryCard {
+  border-radius: 16px;
+  padding: 14px 14px 14px 14px;
+  border: 1px solid rgba(209, 213, 219, 0.85);
+  background: linear-gradient(135deg, #f9fafb, #ffffff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    border-color 0.15s ease, background 0.15s ease;
+}
+
+.categoryCard:hover {
+  transform: translateY(-2px);
+  /* box-shadow: 0 14px 28px rgba(70, 229, 110, 0.18); */
+}
+
+.categoryCardSelected {
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, #eef2ff, #ffffff);
+  /* box-shadow: 0 18px 35px rgba(70, 229, 110, 0.18); */
+}
+
+.categoryCardDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.categoryIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 0 0, #e0f2fe, #e5e7eb);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.categoryText {
+  flex: 1;
+  text-align: left;
+}
+
+.categoryTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.categorySubtitle {
+  font-size: 12px;
+  color: #949494;
+}
+
+.categoryBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+/* Info boxes */
+
+.infoBox,
+.infoBoxWarning {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.infoBox {
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.infoBoxWarning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fed7aa;
+}
+
+.infoBoxWarning span {
+  font-weight: 600;
+}
+
+/* ---------- Services (step 3..) ---------- */
+
+.serviceList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.serviceCard {
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 12px 14px 10px;
+  background: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+.serviceCardSelected {
+  border-color: var(--color-primary);
+  /* box-shadow: 0 12px 28px rgba(70, 229, 110, 0.18); */
+  transform: translateY(-1px);
+}
+
+.serviceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.serviceCheckboxWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.serviceCheckboxWrap input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.serviceName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.servicePrice {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.serviceUnit {
+  font-size: 12px;
+  color: #949494;
+}
+
+.serviceDesc {
+  font-size: 12px;
+  color: #949494;
+  margin-bottom: 8px;
+}
+
+.serviceDescList {
+  padding-left: 20px; /* indent for bullet list */
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.serviceDescList li {
+  font-size: 12px;
+  color: #949494;
+  margin-bottom: 6px; /* space between bullets */
+  line-height: 1.1; /* better readability */
+}
+
+.serviceControlsRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.optionField,
+.qtyField,
+.totalField {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.optionLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+
+.qtyControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 2px;
+  background-color: #f9fafb;
+}
+
+.qtyButton {
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qtyButton:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.qtyButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qtyInput {
+  width: 52px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  outline: none;
+}
+
+.qtyInput::-webkit-outer-spin-button,
+.qtyInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.qtyInput[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.totalValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ---------- Buttons / Nav ---------- */
+
+.navRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.primaryBtn,
+.ghostBtn {
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.primaryBtn {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.ghostBtn {
+  background: transparent;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.ghostBtn:hover {
+  background: #f3f4f6;
+}
+
+/* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
+  .wrapper {
+    width: 95%;
+    margin: -60px 12px 18px;
+    padding: 18px 16px 22px;
+  }
+
+  .stepCircle {
+    width: 35px;
+    height: 35px;
+  }
+
   .formGrid {
-    grid-template-columns: 1fr; /* stack fields */
-    gap: 16px;
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .fieldFull {
-    grid-column: span 1; /* also full width */
+    grid-column: span 1;
   }
 
-  .wrapper {
-    width: auto;
-    padding: 22px;
-    margin: -60px 12px 12px 12px;
+  .stepper {
+    gap: 10px;
+    row-gap: 6px;
   }
 
-  .title {
-    font-size: 20px;
+  .stepLabel {
+    display: none;
   }
 
-  .select {
-    background-position: right 12px center;
-    padding-right: 36px;
+  .serviceControlsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .stepCard {
+    padding: 18px 14px 16px;
   }
 }
 
 @media (max-width: 600px) {
-  .wrapper {
-    width: auto;
-    padding: 18px;
-    margin: -60px 12px 12px 12px;
-  }
-
   .title {
-    font-size: 18px;
-    margin-bottom: 14px;
+    font-size: 19px;
   }
 
-  .input,
-  .select,
-  .textarea {
-    font-size: 14px;
-    padding: 10px 12px;
+  .subTitle {
+    font-size: 13px;
   }
 
-  .select {
-    background-size: 12px;
-    background-position: right 10px center;
-    padding-right: 32px;
+  .categoryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .primaryBtn,
+  .ghostBtn {
+    width: 100%;
+  }
+
+  .navRow {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Stepper: horizontal scroll on mobile --- */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 0 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stepper::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Form grid (step 1) --- */
+/* .formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+} */
+
+@media (max-width: 600px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .categoryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .categoryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Service controls row (qty, options, total) --- */
+/* .serviceControlsRow {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+} */
+
+@media (max-width: 600px) {
+  .serviceControlsRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* .tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+} */
+
+@media (max-width: 480px) {
+  .navRow {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .primaryBtn,
+  .ghostBtn {
+    width: 100%;
+    text-align: center;
   }
 }

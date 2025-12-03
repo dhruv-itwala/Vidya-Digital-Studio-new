@@ -17,6 +17,8 @@ chromium.setGraphicsMode = false; // skip GPU rasterization
  * Paginate rows by measuring heights
  */
 async function paginateRowsByHeight(page, items, css) {
+  console.time("PDF | paginateRowsByHeight");
+
   await page.setViewport({
     width: 794,
     height: 1122,
@@ -78,12 +80,15 @@ ul { margin:0; padding-left:16px; }
 </body>
 </html>`;
 
-  // ⚡ fastest load
+  console.time("PDF | paginateRowsByHeight | setContent");
   await page.setContent(tempHTML, { waitUntil: "domcontentloaded" });
+  console.timeEnd("PDF | paginateRowsByHeight | setContent");
 
+  console.time("PDF | paginateRowsByHeight | measureRows");
   const rowHeights = await page.evaluate(() =>
     Array.from(document.querySelectorAll("tr")).map((tr) => tr.offsetHeight)
   );
+  console.timeEnd("PDF | paginateRowsByHeight | measureRows");
 
   const MAX_FIRST = 460;
   const MAX_NEXT = 560;
@@ -108,6 +113,10 @@ ul { margin:0; padding-left:16px; }
   });
 
   if (current.length) pages.push(current);
+
+  console.timeEnd("PDF | paginateRowsByHeight");
+  console.log("PDF | paginateRowsByHeight | pages:", pages.length);
+
   return pages;
 }
 
@@ -128,36 +137,20 @@ export const generateQuotePdfBuffer = async ({
   isAdmin,
   isApproved,
 }) => {
+  console.time("PDF | TOTAL");
+  console.log("PDF | items:", items.length, "| notes:", notes.length);
+
   try {
+    console.time("PDF | readFiles");
     const templatePath = path.join(__dirname, "../templates/quoteTemplate.ejs");
     const cssPath = path.join(__dirname, "../templates/pdf-styles.css");
 
     const css = fs.readFileSync(cssPath, "utf8");
+    console.timeEnd("PDF | readFiles");
 
-    // 🚀 MAXIMUM SPEED LAUNCH CONFIG (no compromise in output)
-    // const browser = await puppeteer.launch({
-    //   args: [
-    //     ...chromium.args,
-    //     "--disable-webgl",
-    //     "--disable-extensions",
-    //     "--disable-dev-shm-usage",
-    //     "--disable-setuid-sandbox",
-    //     "--disable-gpu",
-    //     "--no-sandbox",
-    //     "--no-zygote",
-    //     "--single-process",
-    //     "--ignore-gpu-blacklist",
-    //     "--disable-software-rasterizer",
-    //     "--font-render-hinting=none", // boost performance slightly
-    //     "--disable-features=IsolateOrigins,site-per-process",
-    //   ],
-    //   defaultViewport: { width: 794, height: 1122 },
-    //   executablePath: await chromium.executablePath(),
-    //   headless: chromium.headless,
-    // });
+    console.time("PDF | launchBrowser");
 
     let browser;
-
     if (process.platform === "win32") {
       // Running locally on Windows → use normal Puppeteer
       const localPuppeteer = await import("puppeteer");
@@ -186,10 +179,13 @@ export const generateQuotePdfBuffer = async ({
         headless: chromium.headless,
       });
     }
+    console.timeEnd("PDF | launchBrowser");
 
+    console.time("PDF | pagination");
     const measurementPage = await browser.newPage();
     const pages = await paginateRowsByHeight(measurementPage, items, css);
     await measurementPage.close();
+    console.timeEnd("PDF | pagination");
 
     const subtotal = items.reduce((t, i) => t + (Number(i.total) || 0), 0);
 
@@ -206,6 +202,7 @@ export const generateQuotePdfBuffer = async ({
       ? [...(Array.isArray(notes) ? notes : [])]
       : [...defaultNotes, ...(Array.isArray(notes) ? notes : [])];
 
+    console.time("PDF | EJS render");
     const html = await ejs.renderFile(templatePath, {
       client,
       items,
@@ -223,23 +220,29 @@ export const generateQuotePdfBuffer = async ({
       watermarkUrl:
         "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763035782/su3nyob2kedbc9k7swb2.png",
     });
+    console.timeEnd("PDF | EJS render");
 
+    console.time("PDF | setContent+render");
     const page = await browser.newPage();
-
-    // ⚡ Ultra-fast content rendering
     await page.setContent(html, { waitUntil: "networkidle0" });
+    console.timeEnd("PDF | setContent+render");
 
-    // 🎯 FINAL PDF (no visual compromise)
+    console.time("PDF | page.pdf");
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
       timeout: 0,
     });
+    console.timeEnd("PDF | page.pdf");
 
+    await page.close();
     await browser.close();
+
+    console.timeEnd("PDF | TOTAL");
     return Buffer.from(pdfBuffer);
   } catch (err) {
+    console.timeEnd("PDF | TOTAL");
     console.error("PDF Generation Error:", err);
     throw err;
   }

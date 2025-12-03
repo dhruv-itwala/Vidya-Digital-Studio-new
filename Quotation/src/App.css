@@ -47,7 +47,7 @@ body::-webkit-scrollbar {
   --color-border: rgba(34, 34, 34, 0.1);
   --color-shadow: rgba(15, 92, 68, 0.2);
 
-  --color-button: var(--vibrant-orange);
+  --color-button: var(--deep-forest);
   --color-button-text: var(--soft-ivory);
   --color-button-hover: var(--vibrant-orange);
 

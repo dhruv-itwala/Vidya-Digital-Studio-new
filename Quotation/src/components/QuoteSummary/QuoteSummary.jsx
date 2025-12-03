@@ -216,7 +216,23 @@ const QuoteSummary = ({ isAdmin, resetSystem }) => {
               onChange={(e) => setValue("isApproved", e.target.checked)}
             />
             <label className={styles.checkboxLabel}>
-              I accept the terms & conditions
+              I accept the{" "}
+              <a
+                href="https://vidyadigitalstudio.com/terms-and-conditions"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Terms &amp; Conditions
+              </a>{" "}
+              and{" "}
+              <a
+                href="https://vidyadigitalstudio.com/privacy-policies"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Privacy Policy
+              </a>
+              .
             </label>
           </div>
           <p className={styles.totalText}>
