@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./businesscard.module.css";
+import styles from "./Businesscard.module.css";
 import { Images } from "../../assets/Data/images";
 import { Icon } from "@iconify/react";
 
