@@ -1,14 +1,32 @@
+// src/pages/Homepage.jsx
 import React from "react";
-import Navbar from "../components/Navbar/Navbar";
-import Footer from "../components/Footer/Footer";
-import Header from "../components/Header/Header";
-import ScrollVideo from "../components/ScrollVideo/ScrollVideo";
-import CanvasWrapper from "../components/CanvasWrapper";
+import CD from "../components/CD";
+import building from "../assets/media/Building.png";
+import ScrollSequenceBackground from "../components/ScrollSequenceBackground";
+
+const SERVICES = [
+  "CD — Content + 3D Model",
+  "Service 2",
+  "Service 3",
+  "Service 4",
+  "Service 5",
+  "Service 6",
+];
 
 const Homepage = () => {
   return (
     <>
-      <Navbar />
+      {/* Scroll-synced building background */}
+      <ScrollSequenceBackground image={building} floors={7} />
+
+      {/* MAIN PAGE CONTENT */}
+      <main style={{ position: "relative", zIndex: 5 }}>
+        {SERVICES.map((title, index) => (
+          <section key={index} className="floorSection">
+            <CD title={title} />
+          </section>
+        ))}
+      </main>
     </>
   );
 };

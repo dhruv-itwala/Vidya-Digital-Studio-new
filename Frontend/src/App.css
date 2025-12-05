@@ -11,13 +11,19 @@
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
+  background-color: transparent;
+
+  /* OPTIONAL: keep scrollbar hidden */
   scrollbar-width: none;
   -ms-overflow-style: none;
-  background-color: var(--blush-pink);
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 body::-webkit-scrollbar {
@@ -84,4 +90,31 @@ body::-webkit-scrollbar {
   min-height: 100vh;
   padding-top: 100px;
   color: var(--color-text);
+}
+
+/* ===== Scroll-driven floors ===== */
+.floorInner {
+  width: 1200px;
+  height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Center horizontally always */
+.floorSection {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .floorInner {
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+    padding: 30px 20px;
+  }
 }

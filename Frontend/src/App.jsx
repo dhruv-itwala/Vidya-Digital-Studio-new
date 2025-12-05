@@ -1,11 +1,10 @@
 import React from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+
 import CustomCursor from "./utils/Cursor/CustomCursor";
 import ScrollToTop from "./utils/ScrollToTop";
-import WhatsAppButton from "./utils/Whatsapp/WhatsAppButton";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "./App.css";
-import Footer from "./components/Footer/Footer";
+
 import Homepage from "./pages/Homepage";
 import PortfolioPage from "./pages/PortfolioPage";
 import TermsAndConditions from "./pages/TermsAndConditions";
@@ -14,45 +13,43 @@ import ContactUsPage from "./pages/ContactUsPage";
 import PageNotFound from "./pages/PageNotFound";
 import UnderMaintenancePage from "./pages/UnderMaintenancePage";
 import Navbar from "./components/Navbar/Navbar";
-import { Navigate, Route, Routes } from "react-router-dom";
-import Overlay from "./components/Overlay/Overlay";
+import Footer from "./components/Footer/Footer";
+
+import "react-toastify/dist/ReactToastify.css";
+import "./App.css";
+import TestScrollFrames from "./pages/TestScrollFrames";
 
 const App = () => {
   return (
-    <div className="app">
-      {/* Custom Utils */}
+    <>
+      {/* Core Utilities */}
       <CustomCursor />
       <ScrollToTop />
-      <Overlay />
-      {/* Navbar */}
-      {/* <Navbar /> */}
 
-      {/* Main Content */}
+      <Navbar />
+
+      {/* App Routes */}
       <Routes>
-        {/* Primary Routes */}
         <Route path="/" element={<Homepage />} />
+        <Route path="/test" element={<TestScrollFrames />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="/contact-us" element={<ContactUsPage />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/privacy-policies" element={<PrivacyPolicies />} />
 
-        {/* Custom Routes */}
-
-        {/* Service Routes */}
-        <Route path="/404" element={<PageNotFound />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
+        {/* System Pages */}
         <Route path="/maintenance" element={<UnderMaintenancePage />} />
+        <Route path="/404" element={<PageNotFound />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
 
-      {/* Footer */}
-      {/* <Footer /> */}
-
-      {/* Custom Utils */}
-      {/* <WhatsAppButton /> */}
+      <Footer />
 
       {/* Toast Notifications */}
       <ToastContainer />
-    </div>
+    </>
   );
 };
 

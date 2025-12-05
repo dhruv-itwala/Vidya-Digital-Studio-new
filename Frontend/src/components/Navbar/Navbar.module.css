@@ -1,25 +1,132 @@
-.navbar {
+.navbarWrapper {
   width: 100%;
+  background: var(--soft-ivory);
+  /* background: transparent; */
+  padding: 20px 0;
+}
+
+/* Flex layout */
+.navbar {
   display: flex;
-  justify-content: center; /* Ensures the ul stays centered */
+  width: 100%;
   align-items: center;
+  justify-content: space-between;
 }
 
-.navbar ul {
+/* Logo */
+.logo img {
+  padding: 8px;
+  height: 45px;
+  object-fit: contain;
+}
+
+/* Desktop Links */
+.links {
   display: flex;
-  gap: 2rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  gap: 40px;
 }
 
-.navbar li {
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--beige-soft);
+.links a {
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: color 0.3s ease;
+  color: var(--color-text);
 }
-.navbar li:hover {
-  color: var(--color-text-hover);
+
+.rightButtons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Buttons */
+.contactBtn {
+  background: var(--deep-forest);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.loginLink {
+  color: var(--deep-forest);
+  cursor: pointer;
+}
+
+/* Default hidden */
+.hamburger {
+  display: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 9999;
+}
+
+@media (max-width: 1024px) {
+  .links,
+  .rightButtons {
+    display: none !important;
+  }
+
+  .hamburger {
+    display: block !important;
+  }
+}
+/* ----------------- */
+/* MOBILE STYLES     */
+/* ----------------- */
+
+/* Hide desktop links on mobile */
+@media (max-width: 768px) {
+  .links,
+  .rightButtons {
+    display: none;
+  }
+
+  /* Show hamburger */
+  .hamburger {
+    display: block;
+    font-size: 26px;
+    cursor: pointer;
+    padding: 5px 10px;
+  }
+}
+
+/* Default: hide hamburger on desktop */
+.hamburger {
+  display: none;
+}
+
+/* Mobile menu dropdown */
+.mobileMenu {
+  width: 100%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 25px;
+  border-top: 1px solid #eee;
+}
+
+.mobileMenu a {
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.contactBtnMobile {
+  background: var(--deep-forest);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.loginLinkMobile {
+  color: var(--deep-forest);
+  cursor: pointer;
+  font-size: 16px;
 }
