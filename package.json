@@ -4,7 +4,9 @@
   "scripts": {
     "backend": "npm run dev --prefix Backend",
     "quotation": "npm run dev --prefix Quotation",
-    "start": "concurrently -c \"green,blue\" -n \"BACKEND,QUOTATION\" \"npm run backend\" \"npm run quotation\""
+    "frontend": "npm run dev --prefix Frontend",
+    "clear": "clear || cls",
+    "start": "npm run clear && concurrently -c \"green,blue,yellow\" -n \"BACKEND,QUOTATION,FRONTEND\" \"npm run backend\" \"npm run quotation\" \"npm run frontend\""
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
