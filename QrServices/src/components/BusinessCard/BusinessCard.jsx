@@ -49,7 +49,7 @@ const BusinessCard = () => {
             🎨 Portfolio
           </button>
 
-          <button
+          {/* <button
             className={styles.cardBtn}
             onClick={() =>
               window.open(
@@ -59,7 +59,7 @@ const BusinessCard = () => {
             }
           >
             📄 Brochure
-          </button>
+          </button> */}
 
           <button
             className={styles.cardBtn}
