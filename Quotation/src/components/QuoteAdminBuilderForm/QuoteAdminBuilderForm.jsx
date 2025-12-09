@@ -75,13 +75,12 @@ const QuoteAdminBuilderForm = () => {
           </div>
 
           <div className={styles.field}>
-            <label>Email *</label>
+            <label>Email</label>
             <input
               className={`${styles.input} ${
                 methods.formState.errors.email ? styles.inputError : ""
               }`}
               {...register("email", {
-                required: "Email is required",
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                   message: "Invalid email format",
@@ -97,13 +96,13 @@ const QuoteAdminBuilderForm = () => {
           </div>
 
           <div className={styles.field}>
-            <label>Contact *</label>
+            <label>Contact</label>
             <input
               className={`${styles.input} ${
                 methods.formState.errors.contact ? styles.inputError : ""
               }`}
               {...register("contact", {
-                required: "Phone number is required",
+                // required: "Phone number is required",
                 pattern: {
                   value: /^[0-9]{10}$/,
                   message: "Phone must be exactly 10 digits",

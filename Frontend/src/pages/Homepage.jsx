@@ -1,32 +1,34 @@
-// src/pages/Homepage.jsx
 import React from "react";
 import CD from "../components/CD";
-import building from "../assets/media/Building.png";
-import ScrollSequenceBackground from "../components/ScrollSequenceBackground";
-
-const SERVICES = [
-  "CD — Content + 3D Model",
-  "Service 2",
-  "Service 3",
-  "Service 4",
-  "Service 5",
-  "Service 6",
-];
+import { floors } from "../assets/Data/MasterData";
+import FloorSection from "../components/FloorSection/FloorSection";
 
 const Homepage = () => {
   return (
     <>
-      {/* Scroll-synced building background */}
-      <ScrollSequenceBackground image={building} floors={7} />
+      <FloorSection bg={floors.Floor1}>
+        <CD title="CD — Content + 3D Model" />
+      </FloorSection>
 
-      {/* MAIN PAGE CONTENT */}
-      <main style={{ position: "relative", zIndex: 5 }}>
-        {SERVICES.map((title, index) => (
-          <section key={index} className="floorSection">
-            <CD title={title} />
-          </section>
-        ))}
-      </main>
+      <FloorSection bg={floors.Floor2}>
+        <CD title="Service 2" />
+      </FloorSection>
+
+      <FloorSection bg={floors.Floor3}>
+        <CD title="Service 3" />
+      </FloorSection>
+
+      <FloorSection bg={floors.Floor4}>
+        <CD title="Service 4" />
+      </FloorSection>
+
+      <FloorSection bg={floors.Floor5}>
+        <CD title="Service 5" />
+      </FloorSection>
+
+      <FloorSection bg={floors.Floor6}>
+        <CD title="Service 6" />
+      </FloorSection>
     </>
   );
 };

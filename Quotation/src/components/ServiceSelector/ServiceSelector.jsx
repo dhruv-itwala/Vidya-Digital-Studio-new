@@ -330,7 +330,7 @@ const ServiceSelector = ({
             type="number"
             className={styles.input}
             placeholder="Unit Price"
-            min="0"
+            min="1"
             value={custom.unitPrice}
             onChange={(e) => updateCustom("unitPrice", Number(e.target.value))}
           />

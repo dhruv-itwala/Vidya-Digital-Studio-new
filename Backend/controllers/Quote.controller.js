@@ -30,10 +30,10 @@ export const createQuote = async (req, res) => {
       isApproved === 1 ||
       isApproved === "1";
 
-    if (!client.name || !client.email) {
+    if (!client.name) {
       return res.status(400).json({
         success: false,
-        message: "client.name and client.email required",
+        message: "client.name required",
       });
     }
 
@@ -48,6 +48,7 @@ export const createQuote = async (req, res) => {
 
     const filenameBase = `${client.name.replace(/\s+/g, "_")}_${Date.now()}`;
     const upload = await uploadBufferToCloudinary(pdfBuffer, filenameBase);
+    const pdfUrl = upload.url.replace("/upload/", "/upload/fl_attachment/");
 
     const subtotal = normalizedItems.reduce(
       (sum, i) => sum + Number(i.total || 0),
@@ -62,38 +63,40 @@ export const createQuote = async (req, res) => {
       duration,
       isAdmin: isAdminBool,
       isApproved: isApprovedBool,
-      pdfUrl: upload.url,
+      pdfUrl,
       cloudinaryPublicId: upload.public_id,
       expiresAt: upload.expires_at,
       emailSent: false,
     });
 
-    const EMAIL_LOGO =
-      "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763372867/ft5zwscplj5kjthohc1y.png";
-    try {
-      await sendEmailTemplate({
-        to: client.email,
-        subject: "Quotation from Vidya Digital Studio",
-        templateName: "quoteEmailTemplate",
-        data: {
-          client,
-          emailLogo: EMAIL_LOGO,
-          pdfUrl: upload.url,
-          expireDays: process.env.PDF_EXPIRE_DAYS || 7,
-          notes,
-          subtotal,
-        },
-      });
+    // Only send email IF email is provided
+    if (client.email && client.email.trim() !== "") {
+      const EMAIL_LOGO =
+        "https://res.cloudinary.com/dmt7dysjh/image/upload/v1763372867/ft5zwscplj5kjthohc1y.png";
+      try {
+        await sendEmailTemplate({
+          to: client.email,
+          subject: "Quotation from Vidya Digital Studio",
+          templateName: "quoteEmailTemplate",
+          data: {
+            client,
+            emailLogo: EMAIL_LOGO,
+            pdfUrl: upload.url,
+            expireDays: process.env.PDF_EXPIRE_DAYS || 7,
+            notes,
+            subtotal,
+          },
+        });
 
-      quote.emailSent = true;
-      await quote.save();
-    } catch (err) {
-      console.warn("Email sending failed:", err.message);
+        quote.emailSent = true;
+        await quote.save();
+      } catch (err) {
+        console.warn("Email sending failed:", err.message);
+      }
     }
-
     return res.json({
       success: true,
-      pdfUrl: upload.url,
+      pdfUrl,
       quoteId: quote._id,
       isAdmin: quote.isAdmin,
       isApproved: quote.isApproved,

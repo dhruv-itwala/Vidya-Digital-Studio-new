@@ -32,9 +32,9 @@ const PopupModal = ({ open, status, email, pdfUrl, onClose }) => {
           <div className={styles.centerBox}>
             <h3 className={styles.title}>Quotation Generated!</h3>
             <p className={styles.subText}>
-              Your quotation has been generated and emailed to:
+              Your quotation has been generated:
               <br />
-              <strong>{email}</strong>
+              <strong>{email && `and is mailed to ${email}`}</strong>
             </p>
 
             <a href={pdfUrl} target="_blank" className={styles.downloadBtn}>
