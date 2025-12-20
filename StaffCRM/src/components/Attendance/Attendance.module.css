@@ -1,0 +1,377 @@
+/* ===========================
+   Attendance Card (Compact)
+=========================== */
+
+.card {
+  width: 100%;
+}
+
+.cardCompact {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 12px var(--color-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ===========================
+   Header / Greeting
+=========================== */
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.greeting {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===========================
+   Timer
+=========================== */
+
+.timerSmall {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.5px;
+}
+
+/* ===========================
+   Actions
+=========================== */
+
+.actionsCompact {
+  display: flex;
+  gap: 6px;
+}
+
+.actionsCompact button {
+  flex: 1;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Primary Button */
+.primary {
+  background-color: var(--color-button);
+  color: var(--color-button-text);
+}
+
+.primary:hover {
+  background-color: var(--color-button-hover);
+}
+
+/* Secondary Button */
+.actionsCompact button:not(.primary):not(.danger) {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.actionsCompact button:not(.primary):not(.danger):hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Danger Button */
+.danger {
+  background-color: var(--color-accent);
+  color: #fff;
+}
+
+.danger:hover {
+  opacity: 0.9;
+}
+
+/* ===========================
+   Done / Goodbye State
+=========================== */
+
+.done {
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+.done h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Inline goodbye (if reused) */
+.goodbye {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+/* ===========================
+   Confirm Punch Out
+=========================== */
+
+.confirm {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.confirm p {
+  font-size: 12px;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.confirm button {
+  font-size: 12px;
+  padding: 6px 10px;
+  margin-right: 6px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.confirm button:first-of-type {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.confirm button:last-of-type {
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+/* ===========================
+   Modal Backdrop
+=========================== */
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(34, 34, 34, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* ===========================
+   Modal Container
+=========================== */
+
+.modal {
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===========================
+   Modal Title
+=========================== */
+
+.modal h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ===========================
+   Report Inputs
+=========================== */
+
+.modal input {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  outline: none;
+}
+
+.modal input:focus {
+  border-color: var(--color-primary);
+}
+
+/* ===========================
+   Add Point Button
+=========================== */
+
+.modal button {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-primary);
+  align-self: flex-start;
+}
+
+.modal button:hover {
+  color: var(--color-button-hover);
+}
+
+/* ===========================
+   Modal Actions
+=========================== */
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.modalActions button {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Cancel */
+.modalActions button:first-child {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+/* Submit */
+.modalActions button:last-child {
+  background: var(--color-primary);
+  color: var(--color-button-text);
+}
+
+.modalActions button:last-child:hover {
+  background: var(--color-button-hover);
+}
+
+/* ===========================
+   Attendence Data Table
+=========================== */
+
+.wrapper {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 16px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ===========================
+   Title
+=========================== */
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ===========================
+   Empty state
+=========================== */
+
+.empty {
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ===========================
+   Table
+=========================== */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.table th {
+  font-weight: 600;
+  background: #f9f9f9;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===========================
+   Date / Time Cells
+=========================== */
+
+.date {
+  font-weight: 500;
+}
+
+.time {
+  font-family: monospace;
+}
+
+/* ===========================
+   Breaks
+=========================== */
+
+.breakBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.breakRow {
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.running {
+  font-style: italic;
+  color: var(--color-accent);
+}
+
+/* ===========================
+   Total Minutes
+=========================== */
+
+.total {
+  font-weight: 600;
+  text-align: right;
+}

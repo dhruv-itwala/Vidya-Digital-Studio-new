@@ -1,0 +1,132 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f0e8;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: #ffffff;
+  padding: 36px;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 28px;
+  color: #222222;
+  font-size: 22px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.field label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.field input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #0f5c44;
+}
+
+.passwordBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passwordBox input {
+  flex: 1;
+}
+
+.toggle {
+  background: transparent;
+  border: none;
+  color: #0f5c44;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: #0f5c44;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn:hover:not(:disabled) {
+  background: #0c4b38;
+}
+
+.error {
+  font-size: 12px;
+  color: #ef4f6e;
+  margin-top: 4px;
+}
+
+.serverError {
+  background: #ffe6eb;
+  color: #ef4f6e;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.passwordBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordBox input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.eyeBtn:hover {
+  color: #0f5c44;
+}

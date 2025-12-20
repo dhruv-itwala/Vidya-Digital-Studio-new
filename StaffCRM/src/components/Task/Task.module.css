@@ -1,0 +1,374 @@
+/* ===== TASK CARD ===== */
+.card {
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.taskName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Meta info */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Assigned users */
+.assigned {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.user {
+  background-color: var(--color-accent-light);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Buttons */
+.edit,
+.delete {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.edit {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.delete {
+  background-color: var(--color-accent);
+  color: #fff;
+}
+/* ===== KANBAN ===== */
+.kanban {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.kanban > div {
+  min-width: 280px;
+  flex: 1;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .kanban {
+    gap: 12px;
+  }
+}
+
+.dateInputs {
+  display: flex;
+  gap: 12px;
+}
+
+.dateInputs label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  .dateInputs {
+    flex-direction: column;
+  }
+}
+
+.container {
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 700px;
+}
+
+.status {
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* ===== COMPLETED TASKS ===== */
+.container {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  overflow-x: auto; /* IMPORTANT for mobile */
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #222;
+}
+
+/* ===== TABLE ===== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px; /* prevents column crush */
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.table th {
+  background: #f4f0e8;
+  color: #333;
+  font-weight: 600;
+}
+
+.table td {
+  border-bottom: 1px solid #eee;
+  color: #444;
+}
+
+/* Task name */
+.name {
+  font-weight: 500;
+  color: #222;
+}
+
+/* Assigned users */
+.assigned {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* Priority badge */
+.priority {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.low {
+  background: #f4f0e8;
+  color: #333;
+}
+
+.medium {
+  background: #f25c05;
+  color: #fff;
+}
+
+.high {
+  background: #ef4f6e;
+  color: #fff;
+}
+
+/* Status dropdown */
+.table select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 30px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* ===== MOBILE OPTIMIZATION ===== */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+}
+
+/* ===== TASK FORM ===== */
+.form {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Inputs */
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 0.9rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(242, 92, 5, 0.15);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* User select */
+.userSelect {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userSelect select {
+  min-height: 90px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 0.85rem;
+}
+
+/* Chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  background: var(--color-accent-light);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chipRemove {
+  cursor: pointer;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.chipRemove:hover {
+  opacity: 1;
+}
+
+/* Date inputs */
+.dateInputs {
+  display: flex;
+  gap: 12px;
+}
+
+.dateInputs label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.dateInputs input {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 0.85rem;
+}
+
+/* Submit button */
+.submitButton {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.submitButton:hover {
+  background: #e34f04;
+}
+
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 600px) {
+  .form {
+    padding: 16px;
+  }
+
+  .dateInputs {
+    flex-direction: column;
+  }
+}

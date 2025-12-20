@@ -1,5 +1,5 @@
 // services/cloudinary.service.js
-import cloudinary from "../config/cloudinary.config.js";
+import cloudinary from "../../config/cloudinary.config.js";
 import fs from "fs";
 import path from "path";
 

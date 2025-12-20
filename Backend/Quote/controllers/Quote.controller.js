@@ -141,7 +141,7 @@ export const deleteQuote = async (req, res) => {
 
     if (quote.cloudinaryPublicId) {
       try {
-        const cloudinary = (await import("../config/cloudinary.config.js"))
+        const cloudinary = (await import("../../config/cloudinary.config.js"))
           .default;
         await cloudinary.uploader.destroy(quote.cloudinaryPublicId, {
           resource_type: "raw",

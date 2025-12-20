@@ -19,7 +19,6 @@ export default function Navbar() {
 
           <div className={styles.rightButtons}>
             <button className={styles.contactBtn}>Contact us</button>
-            {/* <a className={styles.loginLink}>Client Login</a> */}
           </div>
         </div>
       </div>

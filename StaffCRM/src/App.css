@@ -1,0 +1,91 @@
+/* Google Font Import */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap");
+
+/* ========== RESET ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background-color: var(--soft-ivory);
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========== COLOR SYSTEM ========== */
+:root {
+  /* Core Color Palette */
+  --deep-forest: #0f5c44;
+  --vibrant-orange: #f25c05;
+  --warm-coral-red: #ef4f6e;
+  --blush-pink: #f6c7dc;
+  --charcoal-black: #222222;
+  --soft-ivory: #f4f0e8;
+
+  /* Semantic Aliases */
+  --color-primary: var(--deep-forest);
+  --color-secondary: var(--vibrant-orange);
+  --color-accent: var(--warm-coral-red);
+  --color-accent-light: var(--blush-pink);
+  --color-background: var(--soft-ivory);
+  --color-text: var(--charcoal-black);
+  --color-text-hover: var(--vibrant-orange);
+
+  /* UI Utilities */
+  --color-border: rgba(34, 34, 34, 0.1);
+  --color-shadow: rgba(15, 92, 68, 0.2);
+
+  --color-button: var(--deep-forest);
+  --color-button-text: var(--soft-ivory);
+  --color-button-hover: var(--vibrant-orange);
+
+  --container-max-width: 1440px;
+  --container-padding: 20px;
+}
+
+/* ========== MASTER CONTAINER ========== */
+.masterContainer {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .masterContainer {
+    padding: 0 20px;
+  }
+}
+@media (min-width: 1400px) {
+  .masterContainer {
+    padding: 0 32px;
+  }
+}
+
+/* ========== APP STRUCTURE ========== */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 100px;
+  color: var(--color-text);
+}
+
+.navbar {
+  background-color: var(--soft-ivory);
+}
