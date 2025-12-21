@@ -9,7 +9,7 @@ export const createTaskService = async (user, data) => {
     ...data,
     createdBy: {
       user: user.id,
-      role: user.role,
+      role: user.role.toLowerCase(),
     },
   });
 };
@@ -73,7 +73,10 @@ export const deleteTaskService = async (taskId, user) => {
   if (!task) throw new Error("Task not found");
 
   // Employee cannot delete admin-created task
-  if (user.role === "employee" && task.createdBy.role === "admin") {
+  if (
+    (user.role === "employee" && task.createdBy.role === "admin") ||
+    (user.role === "hr" && task.createdBy.role === "admin")
+  ) {
     throw new Error("You cannot delete admin-created tasks");
   }
 

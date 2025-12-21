@@ -1,18 +1,49 @@
 import api from "./axios";
 
+const handleError = (error) => {
+  const message =
+    error?.response?.data?.message || "Something went wrong. Please try again.";
+
+  throw new Error(message);
+};
+
+// ================= EMPLOYEE =================
+
 // Submit daily report
-export const submitReportAPI = (workPoints) =>
-  api.post("/reports/submit", { workPoints });
+export const submitReportAPI = async (workPoints) => {
+  try {
+    return await api.post("/reports/submit", { workPoints });
+  } catch (error) {
+    handleError(error);
+  }
+};
 
-// Employee
-export const getMyReportsAPI = () => api.get("/reports/my");
+// Get my reports
+export const getMyReportsAPI = async () => {
+  try {
+    return await api.get("/reports/my");
+  } catch (error) {
+    handleError(error);
+  }
+};
 
-// Admin
-export const getAllReportsByDate = (date) =>
-  api.get(`/reports/all?date=${date}`);
+// ================= ADMIN =================
+
+export const getAllReportsByDate = async (date) => {
+  try {
+    return await api.get(`/reports/all?date=${date}`);
+  } catch (error) {
+    handleError(error);
+  }
+};
 
 // Download PDF
-export const downloadAllReportsByDatePDF = (date) =>
-  api.get(`/reports/download/all?date=${date}`, {
-    responseType: "blob",
-  });
+export const downloadAllReportsByDatePDF = async (date) => {
+  try {
+    return await api.get(`/reports/download/all?date=${date}`, {
+      responseType: "blob",
+    });
+  } catch (error) {
+    handleError(error);
+  }
+};

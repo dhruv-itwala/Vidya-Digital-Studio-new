@@ -3,23 +3,56 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f4f0e8;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--color-background), #ffffff);
 }
 
 .card {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   background: #ffffff;
-  padding: 36px;
-  border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  padding: 40px 32px;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px var(--color-shadow);
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* Subtle entrance animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logoWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo {
+  height: 56px;
+  object-fit: contain;
 }
 
 .title {
   text-align: center;
-  margin-bottom: 28px;
-  color: #222222;
   font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(34, 34, 34, 0.65);
+  margin-bottom: 28px;
 }
 
 .field {
@@ -29,55 +62,102 @@
 }
 
 .field label {
-  font-size: 14px;
+  font-size: 13px;
   margin-bottom: 6px;
-  color: #444;
+  color: var(--color-text);
 }
 
 .field input {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
   font-size: 14px;
+  background: #ffffff;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
 .field input:focus {
   outline: none;
-  border-color: #0f5c44;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 92, 68, 0.15);
 }
 
+/* Password */
 .passwordBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  position: relative;
 }
 
 .passwordBox input {
-  flex: 1;
+  width: 100%;
+  padding-right: 44px;
 }
 
-.toggle {
+.eyeBtn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+
   background: transparent;
   border: none;
-  color: #0f5c44;
-  font-size: 13px;
+  padding: 0;
+  margin: 0;
+
+  color: rgba(34, 34, 34, 0.6);
+  font-size: 16px;
   cursor: pointer;
+
+  outline: none;
+  box-shadow: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.toggle:hover {
-  text-decoration: underline;
+/* Remove blue hover background */
+.eyeBtn:hover {
+  background: transparent;
+  color: var(--color-primary);
 }
 
+/* Remove blue focus ring */
+.eyeBtn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Keep accessibility for keyboard users */
+.eyeBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
+/* Mobile tap highlight */
+.eyeBtn {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Button */
 .btn {
   width: 100%;
-  padding: 14px;
-  background: #0f5c44;
-  color: white;
+  padding: 15px;
+  background: var(--color-button);
+  color: var(--color-button-text);
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 10px;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  margin-top: 12px;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-button-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(242, 92, 5, 0.25);
 }
 
 .btn:disabled {
@@ -85,48 +165,34 @@
   cursor: not-allowed;
 }
 
-.btn:hover:not(:disabled) {
-  background: #0c4b38;
-}
-
+/* Errors */
 .error {
   font-size: 12px;
-  color: #ef4f6e;
+  color: var(--color-accent);
   margin-top: 4px;
 }
 
 .serverError {
-  background: #ffe6eb;
-  color: #ef4f6e;
-  padding: 10px;
-  border-radius: 6px;
+  background: rgba(239, 79, 110, 0.1);
+  color: var(--color-accent);
+  padding: 12px;
+  border-radius: 10px;
   font-size: 13px;
   margin-bottom: 14px;
 }
 
-.passwordBox {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+/* Mobile */
+@media (max-width: 480px) {
+  .card {
+    padding: 32px 24px;
+    border-radius: 16px;
+  }
 
-.passwordBox input {
-  width: 100%;
-  padding-right: 40px;
-}
+  .logo {
+    height: 48px;
+  }
 
-.eyeBtn {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.eyeBtn:hover {
-  color: #0f5c44;
+  .title {
+    font-size: 20px;
+  }
 }

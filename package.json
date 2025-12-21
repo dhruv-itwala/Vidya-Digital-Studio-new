@@ -5,6 +5,7 @@
     "backend": "npm run dev --prefix Backend",
     "quotation": "npm run dev --prefix Quotation",
     "frontend": "npm run dev --prefix Frontend",
+    "crm": "npm run dev --prefix StaffCRM",
     "clear": "clear || cls",
     "start": "npm run clear && concurrently -c \"green,blue,yellow\" -n \"BACKEND,QUOTATION,FRONTEND\" \"npm run backend\" \"npm run quotation\" \"npm run frontend\""
   },

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { createTaskAPI, updateTaskAPI } from "../../api/task.api";
 import styles from "./Task.module.css";
+import toast from "react-hot-toast";
+import { createTaskAPI, updateTaskAPI } from "../../api/task.api";
 
 export default function TaskForm({ users, onCreated, task }) {
   const [form, setForm] = useState({
@@ -12,8 +13,9 @@ export default function TaskForm({ users, onCreated, task }) {
     endDate: "",
     status: "pending",
   });
+  const [dirty, setDirty] = useState(false);
 
-  const employeeUsers = users.filter((u) => u.role === "employee");
+  const employeeUsers = users.filter((u) => u.role !== "admin");
 
   useEffect(() => {
     if (task) {
@@ -29,38 +31,44 @@ export default function TaskForm({ users, onCreated, task }) {
     }
   }, [task]);
 
-  const handleUserSelect = (e) => {
-    const selectedIds = Array.from(e.target.selectedOptions, (o) => o.value);
-    setForm({ ...form, assignedTo: selectedIds });
+  useEffect(() => {
+    window.__TASK_DIRTY__ = dirty;
+    return () => (window.__TASK_DIRTY__ = false);
+  }, [dirty]);
+
+  const updateField = (key, value) => {
+    setDirty(true);
+    setForm({ ...form, [key]: value });
   };
 
-  const removeUser = (id) => {
-    setForm({
-      ...form,
-      assignedTo: form.assignedTo.filter((userId) => userId !== id),
-    });
+  const removeUser = (id) =>
+    updateField(
+      "assignedTo",
+      form.assignedTo.filter((uid) => uid !== id)
+    );
+
+  const handleUserSelect = (e) => {
+    const selectedIds = Array.from(e.target.selectedOptions, (o) => o.value);
+    updateField("assignedTo", selectedIds);
   };
 
   const submit = async () => {
-    if (!form.name.trim()) return alert("Task name required");
-    if (form.assignedTo.length === 0) return alert("Assign at least one user");
+    if (!form.name.trim()) return toast.error("Task name required");
+    if (form.assignedTo.length === 0)
+      return toast.error("Assign at least one user");
 
-    if (task) {
-      await updateTaskAPI(task._id, form);
-    } else {
-      await createTaskAPI(form);
+    try {
+      if (task) {
+        await updateTaskAPI(task._id, form); // ✅ Use updateTaskAPI
+      } else {
+        await createTaskAPI(form); // ✅ Use createTaskAPI
+      }
+      setDirty(false);
+      onCreated();
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to submit task");
     }
-
-    onCreated();
-    setForm({
-      name: "",
-      details: "",
-      assignedTo: [],
-      priority: "medium",
-      startDate: "",
-      endDate: "",
-      status: "pending",
-    });
   };
 
   return (
@@ -68,14 +76,13 @@ export default function TaskForm({ users, onCreated, task }) {
       <input
         placeholder="Task name"
         value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        onChange={(e) => updateField("name", e.target.value)}
         className={styles.input}
       />
-
       <textarea
         placeholder="Task details"
         value={form.details}
-        onChange={(e) => setForm({ ...form, details: e.target.value })}
+        onChange={(e) => updateField("details", e.target.value)}
         className={styles.textarea}
       />
 
@@ -92,7 +99,6 @@ export default function TaskForm({ users, onCreated, task }) {
           {form.assignedTo.map((id) => {
             const user = employeeUsers.find((u) => u._id === id);
             if (!user) return null;
-
             return (
               <div key={id} className={styles.chip}>
                 {user.name}
@@ -110,26 +116,26 @@ export default function TaskForm({ users, onCreated, task }) {
 
       <div className={styles.dateInputs}>
         <label>
-          Start Date:
+          Start Date:{" "}
           <input
             type="date"
             value={form.startDate}
-            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+            onChange={(e) => updateField("startDate", e.target.value)}
           />
         </label>
         <label>
-          End Date:
+          End Date:{" "}
           <input
             type="date"
             value={form.endDate}
-            onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+            onChange={(e) => updateField("endDate", e.target.value)}
           />
         </label>
       </div>
 
       <select
         value={form.priority}
-        onChange={(e) => setForm({ ...form, priority: e.target.value })}
+        onChange={(e) => updateField("priority", e.target.value)}
         className={styles.select}
       >
         <option value="low">Low</option>
@@ -139,7 +145,7 @@ export default function TaskForm({ users, onCreated, task }) {
 
       <select
         value={form.status}
-        onChange={(e) => setForm({ ...form, status: e.target.value })}
+        onChange={(e) => updateField("status", e.target.value)}
         className={styles.select}
       >
         <option value="pending">Pending</option>

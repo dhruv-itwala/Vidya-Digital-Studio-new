@@ -12,9 +12,10 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = async () => {
     try {
       const res = await getMyProfileAPI();
-      setUser(res.data);
+      // normalize role to lowercase
+      setUser({ ...res.data, role: res.data.role.toLowerCase() });
     } catch (err) {
-      logout();
+      logout(); // invalid token
     } finally {
       setLoading(false);
     }
@@ -26,7 +27,7 @@ export const AuthProvider = ({ children }) => {
       setAllEmployees(res.data);
     } catch (err) {
       console.error("Failed to fetch users", err);
-      return [];
+      setAllEmployees([]);
     }
   };
 
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = ({ token }) => {
+  const login = ({ token, role }) => {
     localStorage.setItem("token", token);
     setToken(token);
     setLoading(true);
@@ -59,7 +60,7 @@ export const AuthProvider = ({ children }) => {
         allEmployees,
         token,
         loading,
-        isAuthenticated: !!token,
+        isAuthenticated: !!user,
         login,
         logout,
       }}

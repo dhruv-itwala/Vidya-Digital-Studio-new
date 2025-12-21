@@ -1,64 +1,76 @@
-import {
-  punchInService,
-  breakStartService,
-  breakEndService,
-  punchOutService,
-  getMyAttendanceService,
-  getAllAttendanceService,
-} from "../services/attendance.service.js";
-import { downloadAttendancePDF } from "../services/attendancePdf.service.js";
+import * as service from "../services/attendance.service.js";
 
 export const punchIn = async (req, res) => {
   try {
-    const data = await punchInService(req.user.id);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-export const breakStart = async (req, res) => {
-  try {
-    const data = await breakStartService(req.user.id);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-export const breakEnd = async (req, res) => {
-  try {
-    const data = await breakEndService(req.user.id);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.json(await service.punchInService(req.user.id));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
   }
 };
 
 export const punchOut = async (req, res) => {
   try {
-    const data = await punchOutService(req.user.id);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.json(await service.punchOutService(req.user.id));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+export const breakIn = async (req, res) => {
+  try {
+    res.json(await service.breakInService(req.user.id));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+export const breakOut = async (req, res) => {
+  try {
+    res.json(await service.breakOutService(req.user.id));
+  } catch (e) {
+    res.status(400).json({ message: e.message });
   }
 };
 
 export const myAttendance = async (req, res) => {
-  const data = await getMyAttendanceService(req.user.id);
-  res.json(data);
-};
-
-export const allAttendance = async (req, res) => {
-  const { from, to } = req.query;
-  const data = await getAllAttendanceService(from, to);
-  res.json(data);
-};
-
-export const downloadPDF = async (req, res) => {
   try {
-    await downloadAttendancePDF(req, res);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const { from, to } = req.query;
+
+    const data = await service.getMyAttendanceService(req.user.id, from, to);
+
+    res.json(data);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+export const dayAttendance = async (req, res) => {
+  res.json(await service.getDayAttendanceService(req.query.date));
+};
+
+export const markAttendanceStatus = async (req, res) => {
+  try {
+    const { userId, date, status } = req.body;
+    const attendance = await service.markAttendanceStatusService(
+      userId,
+      date,
+      status
+    );
+    res.json({ message: "Attendance updated", attendance });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+/* ================= HR: GET ALL EMPLOYEES ATTENDANCE ================= */
+export const getAllEmployeesAttendance = async (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) throw new Error("Date is required");
+
+    const data = await service.getAllEmployeesAttendanceService(date);
+    res.json(data);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
   }
 };

@@ -18,6 +18,8 @@ import seedRoutes from "./Users/routes/seed.routes.js";
 import attendenceRoutes from "./Attendance/routes/attendance.routes.js";
 import reportRoutes from "./Report/routes/report.routes.js";
 import taskRoutes from "./Tasks/routes/task.routes.js";
+import holidayRoutes from "./Holidays/routes/holiday.routes.js";
+import leaveRoutes from "./Leaves/routes/leave.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -54,6 +56,12 @@ app.use(`/api/${VERSION}/seed`, seedRoutes);
 
 // Attendence Routes
 app.use(`/api/${VERSION}/attendance`, attendenceRoutes);
+
+// Holiday Routes
+app.use(`/api/${VERSION}/holiday`, holidayRoutes);
+
+//Leave Routes
+app.use(`/api/${VERSION}/leave`, leaveRoutes);
 
 // Report Routes
 app.use(`/api/${VERSION}/reports`, reportRoutes);

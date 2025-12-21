@@ -1,27 +1,25 @@
 import express from "express";
-import {
-  punchIn,
-  breakStart,
-  breakEnd,
-  punchOut,
-  myAttendance,
-  allAttendance,
-  downloadPDF,
-} from "../controllers/attendance.controller.js";
+import * as ctrl from "../controllers/attendance.controller.js";
 import { protect } from "../../middleware/auth.middleware.js";
 import { roleCheck } from "../../middleware/role.middleware.js";
 
-const attendenceRoutes = express.Router();
+const attendanceRoutes = express.Router();
+attendanceRoutes.use(protect);
 
-attendenceRoutes.use(protect);
+// Employee
+attendanceRoutes.post("/punch-in", ctrl.punchIn);
+attendanceRoutes.post("/punch-out", ctrl.punchOut);
+attendanceRoutes.post("/break-in", ctrl.breakIn);
+attendanceRoutes.post("/break-out", ctrl.breakOut);
 
-attendenceRoutes.post("/punch-in", punchIn);
-attendenceRoutes.post("/break-start", breakStart);
-attendenceRoutes.post("/break-end", breakEnd);
-attendenceRoutes.post("/punch-out", punchOut);
+attendanceRoutes.get("/my", ctrl.myAttendance);
 
-attendenceRoutes.get("/my", myAttendance);
-attendenceRoutes.get("/all", roleCheck("admin"), allAttendance);
-attendenceRoutes.get("/download", roleCheck("admin"), downloadPDF);
+// HR: mark attendance
+// HR: get all employees attendance
+attendanceRoutes.get("/all", roleCheck("HR"), ctrl.getAllEmployeesAttendance);
+attendanceRoutes.post("/mark", roleCheck("HR"), ctrl.markAttendanceStatus);
 
-export default attendenceRoutes;
+// Admin
+attendanceRoutes.get("/day", roleCheck("admin"), ctrl.dayAttendance);
+
+export default attendanceRoutes;

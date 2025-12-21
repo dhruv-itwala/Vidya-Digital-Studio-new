@@ -44,7 +44,7 @@ const taskSchema = new mongoose.Schema(
       },
       role: {
         type: String,
-        enum: ["admin", "employee"],
+        enum: ["admin", "employee", "hr"],
         required: true,
       },
     },

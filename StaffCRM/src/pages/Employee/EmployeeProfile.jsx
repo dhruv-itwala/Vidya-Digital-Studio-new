@@ -1,10 +1,9 @@
-import Attendance from "../../components/Attendance/Attendance";
 import { useAuth } from "../../context/AuthContext";
 import { getInitials } from "../../utils/name.util";
 
-import styles from "./Profile.module.css";
+import styles from "./EmployeeProfile.module.css";
 
-export default function Profile() {
+export default function EmployeeProfile() {
   const { user, loading } = useAuth();
 
   if (!user) return null;
@@ -73,7 +72,6 @@ export default function Profile() {
           <p className={styles.address}>{user.address || "-"}</p>
         </div>
       </div>
-      <Attendance mode="data" />
     </div>
   );
 }

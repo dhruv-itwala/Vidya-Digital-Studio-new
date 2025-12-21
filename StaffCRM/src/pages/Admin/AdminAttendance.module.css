@@ -1,49 +1,52 @@
 .container {
   width: 100%;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  padding: 20px 0;
 }
 
-h2 {
+.title {
   text-align: center;
-  color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  color: var(--color-text);
 }
 
-h3 {
-  color: #555;
-  margin-bottom: 10px;
+/* Card */
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px var(--color-shadow);
 }
 
-.dateInputs {
+.cardHeader {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
+.card h3 {
+  color: var(--color-text);
+}
+
+/* Inputs */
 input[type="date"] {
-  padding: 6px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  font-size: 14px;
+  background: #ffffff;
 }
 
-button {
-  padding: 8px 16px;
-  background-color: #007bff;
-  border: none;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+input[type="date"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 92, 68, 0.15);
 }
 
-button:hover {
-  background-color: #0056b3;
-}
-
+/* Table */
 .tableContainer {
   overflow-x: auto;
 }
@@ -52,35 +55,107 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  background-color: #fff;
 }
 
 thead {
-  background-color: #007bff;
-  color: #fff;
+  background: var(--color-primary);
+  color: #ffffff;
 }
 
 th,
 td {
-  padding: 10px;
-  text-align: left;
-  border: 1px solid #ddd;
+  padding: 12px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--color-border);
 }
 
-tbody tr:nth-child(even) {
-  background-color: #f2f2f2;
+tbody tr:hover {
+  background: rgba(15, 92, 68, 0.05);
 }
 
+.empty {
+  text-align: center;
+  padding: 20px;
+  color: rgba(34, 34, 34, 0.6);
+}
+
+/* Status */
 .statusPresent {
-  color: green;
-  font-weight: bold;
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .statusAbsent {
-  color: red;
-  font-weight: bold;
+  color: var(--color-accent);
+  font-weight: 600;
 }
 
-.downloadSection {
-  margin-top: 30px;
+/* Download */
+.downloadRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Button */
+.primaryBtn {
+  padding: 12px 18px;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: var(--color-button-hover);
+  transform: translateY(-1px);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading */
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: rgba(34, 34, 34, 0.6);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+.statuspresent {
+  color: green;
+  font-weight: 600;
+}
+
+.statusabsent {
+  color: red;
+  font-weight: 600;
+}
+
+.statushalfday {
+  color: orange;
+  font-weight: 600;
+}
+
+.statusleave {
+  color: blue;
+  font-weight: 600;
+}
+
+.statusholiday {
+  color: purple;
+  font-weight: 600;
 }

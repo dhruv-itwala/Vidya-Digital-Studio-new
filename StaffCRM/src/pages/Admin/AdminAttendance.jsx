@@ -1,98 +1,85 @@
-import { useState, useEffect } from "react";
-import {
-  downloadAttendancePDF,
-  getAllAttendanceAPI,
-} from "../../api/attendance.api";
+import { useEffect, useState } from "react";
+import { getDayAttendanceAPI } from "../../api/attendance.api";
 import styles from "./AdminAttendance.module.css";
 
 export default function AdminAttendance() {
-  const [singleDate, setSingleDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [attendanceList, setAttendanceList] = useState([]);
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const today = new Date().toISOString().split("T")[0];
 
-  useEffect(() => {
-    const fetchAttendance = async () => {
-      try {
-        const res = await getAllAttendanceAPI(singleDate);
-        setAttendanceList(res.data);
-      } catch (err) {
-        console.error("Failed to fetch attendance:", err);
-      }
-    };
+  const [date, setDate] = useState(today);
+  const [attendance, setAttendance] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-    fetchAttendance();
-  }, [singleDate]);
-
-  const downloadPDF = async () => {
+  /* ================= FETCH ================= */
+  const fetchAttendance = async () => {
     try {
-      const res = await downloadAttendancePDF(from, to);
-      const blob = new Blob([res.data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      window.open(url);
+      setLoading(true);
+      const res = await getDayAttendanceAPI(date);
+      setAttendance(res.data || []);
     } catch (err) {
-      console.error("Failed to download PDF:", err);
+      console.error("Failed to fetch attendance", err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAttendance();
+  }, [date]);
 
   return (
     <div className="masterContainer">
       <div className={styles.container}>
-        <h2>Attendance Report</h2>
+        <h2 className={styles.title}>Daily Attendance</h2>
 
-        {/* Single Day Attendance */}
-        <div>
-          <h3>Present Employees</h3>
-          <div className={styles.dateInputs}>
+        {/* DATE FILTER */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h3>Select Date</h3>
             <input
               type="date"
-              value={singleDate}
-              onChange={(e) => setSingleDate(e.target.value)}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
+
+          {/* TABLE */}
           <div className={styles.tableContainer}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Employee Name</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attendanceList.map((emp, index) => (
-                  <tr key={index}>
-                    <td>{emp.user?.name || "Unknown"}</td>
-                    <td
-                      className={
-                        emp.punchIn ? styles.statusPresent : styles.statusAbsent
-                      }
-                    >
-                      {emp.punchIn ? "Present" : "Absent"}
-                    </td>
+            {loading ? (
+              <p className={styles.loading}>Loading...</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* PDF Download */}
-        <div className={styles.downloadSection}>
-          <h3>Download Attendance Sheet</h3>
-          <div className={styles.dateInputs}>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-            />
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-            />
-            <button onClick={downloadPDF}>Download PDF</button>
+                </thead>
+                <tbody>
+                  {attendance.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className={styles.empty}>
+                        No attendance found
+                      </td>
+                    </tr>
+                  ) : (
+                    attendance.map((a) => (
+                      <tr key={a._id}>
+                        <td>{a.user?.name || "—"}</td>
+                        <td
+                          className={
+                            styles[
+                              `status${a.status.toLowerCase().replace("_", "")}`
+                            ]
+                          }
+                        >
+                          {a.status}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

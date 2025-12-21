@@ -1,274 +1,260 @@
-/* ===== TASK CARD ===== */
+/* ================= ROOT ================= */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: #020617;
+}
+
+/* ================= CARD ================= */
 .card {
-  background-color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
 }
 
 .taskName {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+  color: #020617;
 }
 
-/* Meta info */
+/* ================= STATUS BADGE ================= */
+.status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.pending {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.started {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.hold {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.complete {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ================= DUE STATUS ================= */
+.due {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 6px 0;
+  display: inline-block;
+}
+
+.overdue {
+  color: #dc2626;
+}
+
+.today {
+  color: #f59e0b;
+}
+
+.upcoming {
+  color: #16a34a;
+}
+
+/* ================= DETAILS ================= */
+.details {
+  font-size: 13px;
+  color: #475569;
+  margin: 8px 0;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: 0.85rem;
-  color: #666;
+  gap: 10px;
+  font-size: 12px;
+  color: #475569;
 }
 
-/* Assigned users */
+.meta strong {
+  color: #020617;
+}
+
+/* ================= USERS ================= */
 .assigned {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
+  font-size: 12px;
+  margin-top: 6px;
+  color: #475569;
 }
 
 .user {
-  background-color: var(--color-accent-light);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #020617;
 }
 
-/* Actions */
+/* ================= ACTIONS ================= */
 .actions {
+  margin-top: 10px;
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
   gap: 10px;
+}
+
+.actions select {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
 }
 
 .actionButtons {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
-/* Buttons */
 .edit,
 .delete {
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
   border: none;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .edit {
-  background-color: #4caf50;
-  color: #fff;
+  background: #e0e7ff;
+  color: #3730a3;
 }
 
 .delete {
-  background-color: var(--color-accent);
-  color: #fff;
+  background: #fee2e2;
+  color: #991b1b;
 }
-/* ===== KANBAN ===== */
+
+/* ================= KANBAN ================= */
 .kanban {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   overflow-x: auto;
-  padding-bottom: 8px;
 }
 
-.kanban > div {
-  min-width: 280px;
-  flex: 1;
+.kanban h4 {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .kanban {
-    gap: 12px;
-  }
-}
-
-.dateInputs {
-  display: flex;
-  gap: 12px;
-}
-
-.dateInputs label {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  font-size: 0.85rem;
-}
-
-@media (max-width: 600px) {
-  .dateInputs {
     flex-direction: column;
   }
 }
 
-.container {
-  overflow-x: auto;
-}
-
-.table {
-  min-width: 700px;
-}
-
-.status {
-  white-space: nowrap;
-  align-self: flex-start;
-}
-
-/* ===== COMPLETED TASKS ===== */
-.container {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  overflow-x: auto; /* IMPORTANT for mobile */
-}
-
-.title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #222;
-}
-
-/* ===== TABLE ===== */
+/* ================= TABLE ================= */
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px; /* prevents column crush */
-}
-
-.table th,
-.table td {
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 0.9rem;
-  white-space: nowrap;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .table th {
-  background: #f4f0e8;
-  color: #333;
-  font-weight: 600;
+  background: #f8fafc;
+  font-size: 12px;
+  text-align: left;
+  padding: 10px;
+  color: #475569;
 }
 
 .table td {
-  border-bottom: 1px solid #eee;
-  color: #444;
+  padding: 10px;
+  font-size: 13px;
+  border-top: 1px solid #e5e7eb;
 }
 
-/* Task name */
-.name {
-  font-weight: 500;
-  color: #222;
+.empty {
+  text-align: center;
+  font-size: 13px;
+  padding: 20px;
+  color: #64748b;
 }
 
-/* Assigned users */
-.assigned {
-  font-size: 0.85rem;
-  color: #555;
-}
-
-/* Priority badge */
+/* ================= PRIORITY ================= */
 .priority {
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: inline-block;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
 }
 
 .low {
-  background: #f4f0e8;
-  color: #333;
+  background: #ecfeff;
+  color: #0f766e;
 }
 
 .medium {
-  background: #f25c05;
-  color: #fff;
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .high {
-  background: #ef4f6e;
-  color: #fff;
+  background: #fee2e2;
+  color: #991b1b;
 }
 
-/* Status dropdown */
-.table select {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-/* Empty state */
-.empty {
-  text-align: center;
-  padding: 30px;
-  color: #888;
-  font-size: 0.9rem;
-}
-
-/* ===== MOBILE OPTIMIZATION ===== */
-@media (max-width: 768px) {
-  .container {
-    padding: 16px;
-  }
-
-  .title {
-    font-size: 1.1rem;
-  }
-}
-
-/* ===== TASK FORM ===== */
+/* ================= FORM ================= */
 .form {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 520px;
-  margin: 0 auto;
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  max-width: 500px;
 }
 
-/* Inputs */
 .input,
 .textarea,
 .select {
   width: 100%;
   padding: 10px 12px;
+  margin-bottom: 10px;
   border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 0.9rem;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.input:focus,
-.textarea:focus,
-.select:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(242, 92, 5, 0.15);
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
 }
 
 .textarea {
@@ -276,96 +262,79 @@
   min-height: 80px;
 }
 
-/* User select */
-.userSelect {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .userSelect select {
+  width: 100%;
   min-height: 90px;
-  padding: 8px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 0.85rem;
 }
 
-/* Chips */
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-top: 6px;
 }
 
 .chip {
-  background: var(--color-accent-light);
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .chipRemove {
+  margin-left: 6px;
   cursor: pointer;
-  font-weight: 600;
-  opacity: 0.7;
 }
 
-.chipRemove:hover {
-  opacity: 1;
-}
-
-/* Date inputs */
 .dateInputs {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .dateInputs label {
+  font-size: 12px;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  font-size: 0.75rem;
-  color: #555;
 }
 
-.dateInputs input {
-  margin-top: 4px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 0.85rem;
-}
-
-/* Submit button */
+/* ================= SUBMIT ================= */
 .submitButton {
-  margin-top: 8px;
+  width: 100%;
   padding: 12px;
-  border-radius: 12px;
+  background: #020617;
+  color: white;
+  border-radius: 10px;
   border: none;
-  background: var(--color-accent);
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .submitButton:hover {
-  background: #e34f04;
+  background: #020617;
 }
 
-.submitButton:active {
-  transform: scale(0.98);
+/* ================= STATES ================= */
+.loading {
+  font-size: 14px;
+  text-align: center;
+  color: #64748b;
 }
 
-/* ===== MOBILE ===== */
-@media (max-width: 600px) {
-  .form {
-    padding: 16px;
+.error {
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 640px) {
+  .meta {
+    flex-direction: column;
+  }
+
+  .actions {
+    flex-direction: column;
   }
 
   .dateInputs {

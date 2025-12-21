@@ -7,23 +7,15 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
   const { user } = useAuth();
   const dueStatus = getDueStatus(task.endDate);
 
-  // Only admin or task creator can delete/edit
-  const canDelete = user.role === "admin" || task.createdBy.user === user._id;
-  const canEdit = canDelete;
-  const formattedStart = task.startDate
-    ? new Date(task.startDate).toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
-    : "-";
+  // Everyone can edit
+  const canEdit = true;
+  const canDelete = true;
 
+  const formattedStart = task.startDate
+    ? new Date(task.startDate).toLocaleDateString("en-IN")
+    : "-";
   const formattedEnd = task.endDate
-    ? new Date(task.endDate).toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+    ? new Date(task.endDate).toLocaleDateString("en-IN")
     : "-";
 
   return (
@@ -35,14 +27,9 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
 
       {dueStatus && (
         <span className={`${styles.due} ${styles[dueStatus]}`}>
-          {dueStatus === "overdue"
-            ? "Overdue"
-            : dueStatus === "today"
-            ? "Due Today"
-            : "Upcoming"}
+          {dueStatus}
         </span>
       )}
-
       <p className={styles.details}>{task.details}</p>
 
       <div className={styles.meta}>
@@ -58,12 +45,7 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
       </div>
 
       <div className={styles.assigned}>
-        Created by:
-        <span className={styles.user}>{task.createdBy.user.name}</span>
-      </div>
-
-      <div className={styles.assigned}>
-        Assigned to:
+        Assigned to:{" "}
         {task.assignedTo.map((u) => (
           <span key={u._id} className={styles.user}>
             {u.name}

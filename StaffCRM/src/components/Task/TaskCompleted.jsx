@@ -4,27 +4,41 @@ import styles from "./Task.module.css";
 
 export default function TaskCompleted() {
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     load();
   }, []);
 
   const load = async () => {
-    const res = await getMyTasksAPI();
+    try {
+      setLoading(true);
+      const res = await getMyTasksAPI();
 
-    // Only old / completed related tasks
-    const completedTasks = res.data.filter(
-      (t) => t.status === "complete" || t.status === "hold"
-    );
+      const completedTasks = res.data.filter(
+        (t) => t.status === "complete" || t.status === "hold"
+      );
 
-    setTasks(completedTasks);
+      setTasks(completedTasks);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const changeStatus = async (id, status) => {
-    await updateTaskStatusAPI(id, status);
-    load();
+    try {
+      await updateTaskStatusAPI(id, status);
+      load();
+    } catch (e) {
+      alert(e.message);
+    }
   };
 
+  if (loading) return <p className={styles.loading}>Loading tasks…</p>;
+  if (error) return <p className={styles.error}>{error}</p>;
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Completed & Past Tasks</h2>

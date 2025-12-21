@@ -59,6 +59,7 @@ export default function AdminNavbar() {
                 <button onClick={() => goTo("/admin/attendance")}>
                   Attendance
                 </button>
+                <button onClick={() => goTo("/admin/leaves")}>Leaves</button>
                 <button onClick={() => goTo("/admin/reports")}>Reports</button>
 
                 <hr />

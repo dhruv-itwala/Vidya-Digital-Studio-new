@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { loginAPI } from "../../api/auth.api";
 import { useAuth } from "../../context/AuthContext";
+import { Images } from "../../assets/Data/images";
 import styles from "./Login.module.css";
 
 export default function Login() {
@@ -22,8 +23,16 @@ export default function Login() {
     try {
       setServerError("");
       const res = await loginAPI(data);
+
+      // set user/token in AuthContext
       login(res.data);
-      navigate("/");
+
+      // redirect based on role
+      const role = res.data.role.toLowerCase();
+      if (role === "admin") navigate("/admin/dashboard");
+      else if (role === "employee" || role === "hr")
+        navigate("/employee/dashboard");
+      else navigate("/login");
     } catch (err) {
       setServerError(
         err.response?.data?.message || "Invalid email or password"
@@ -34,7 +43,13 @@ export default function Login() {
   return (
     <div className={styles.page}>
       <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>
-        <h2 className={styles.title}>CRM Login</h2>
+        {/* Logo */}
+        <div className={styles.logoWrapper}>
+          <img src={Images.login_logo} alt="CRM Logo" className={styles.logo} />
+        </div>
+
+        <h2 className={styles.title}>Welcome Back</h2>
+        <p className={styles.subtitle}>Login to your CRM dashboard</p>
 
         {/* Email */}
         <div className={styles.field}>

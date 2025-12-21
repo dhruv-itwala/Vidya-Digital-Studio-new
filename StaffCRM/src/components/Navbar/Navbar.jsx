@@ -47,8 +47,19 @@ export default function Navbar() {
                 <button onClick={() => navigate("/employee/dashboard")}>
                   Dashboard
                 </button>
+                <button onClick={() => navigate("/employee/attendance")}>
+                  Attendance
+                </button>
+                {user && user.role.toLowerCase() === "hr" && (
+                  <button onClick={() => navigate("/employee/hrHoliday")}>
+                    Holidays
+                  </button>
+                )}
                 <button onClick={() => navigate("/employee/profile")}>
                   Profile
+                </button>
+                <button onClick={() => navigate("/employee/leaves")}>
+                  Leaves
                 </button>
                 <button className={styles.logout} onClick={handleLogout}>
                   Logout

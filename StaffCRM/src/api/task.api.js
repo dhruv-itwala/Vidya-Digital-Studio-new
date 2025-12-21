@@ -1,20 +1,59 @@
 import api from "./axios";
 
-// Employee
-export const getMyTasksAPI = () => api.get("/tasks/my");
+const handleError = (error) => {
+  const message =
+    error?.response?.data?.message || "Something went wrong. Please try again.";
 
-// Admin
-export const getAllTasksAPI = () => api.get("/tasks/all");
+  throw new Error(message);
+};
 
-// Create
-export const createTaskAPI = (data) => api.post("/tasks", data);
+// ================= EMPLOYEE =================
+export const getMyTasksAPI = async () => {
+  try {
+    return await api.get("/tasks/my");
+  } catch (error) {
+    handleError(error);
+  }
+};
 
-// Update status
-export const updateTaskStatusAPI = (id, status) =>
-  api.patch(`/tasks/${id}/status`, { status });
+// ================= ADMIN =================
+export const getAllTasksAPI = async () => {
+  try {
+    return await api.get("/tasks/all");
+  } catch (error) {
+    handleError(error);
+  }
+};
 
-// Update task (any field)
-export const updateTaskAPI = (id, data) => api.patch(`/tasks/${id}`, data);
+// ================= CRUD =================
+export const createTaskAPI = async (data) => {
+  try {
+    return await api.post("/tasks", data);
+  } catch (error) {
+    handleError(error);
+  }
+};
 
-// Delete
-export const deleteTaskAPI = (id) => api.delete(`/tasks/${id}`);
+export const updateTaskStatusAPI = async (id, status) => {
+  try {
+    return await api.patch(`/tasks/${id}/status`, { status });
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const updateTaskAPI = async (id, data) => {
+  try {
+    return await api.patch(`/tasks/${id}`, data);
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const deleteTaskAPI = async (id) => {
+  try {
+    return await api.delete(`/tasks/${id}`);
+  } catch (error) {
+    handleError(error);
+  }
+};
