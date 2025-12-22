@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import HRNavbar from "../components/Navbar/HrNavbar";
+import HRNavbar from "../components/Navbar/HRNavbar";
 
 export default function HRLayout() {
   return (
