@@ -51,6 +51,21 @@ export const getMyAttendanceAPI = async (params) => {
   }
 };
 
+const getTodayDate = () => {
+  const now = new Date();
+  const istOffset = 5.5 * 60; // IST is UTC+5:30 in minutes
+  const istTime = new Date(now.getTime() + istOffset * 60 * 1000);
+  return istTime.toISOString().split("T")[0];
+};
+
+export const getMyAttendanceByDateAPI = async (date = getTodayDate()) => {
+  try {
+    return await api.get(`/attendance/my/date?date=${date}`);
+  } catch (error) {
+    handleError(error);
+  }
+};
+
 // ================= ADMIN / HR =================
 export const getDayAttendanceAPI = async (date) => {
   try {

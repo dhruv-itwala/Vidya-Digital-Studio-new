@@ -12,9 +12,9 @@ router.get("/my", ctrl.myLeaves);
 router.post("/:id/cancel", ctrl.cancelLeave);
 router.get("/summary", ctrl.leaveSummary);
 
-// Admin
-router.get("/all", roleCheck("admin"), ctrl.allLeaves);
-router.post("/:id/approve", roleCheck("admin"), ctrl.approveLeave);
-router.post("/:id/decline", roleCheck("admin"), ctrl.declineLeave);
+// Both Admin and HR can access these routes
+router.get("/all", roleCheck("admin", "HR"), ctrl.allLeaves);
+router.post("/:id/approve", roleCheck("admin", "HR"), ctrl.approveLeave);
+router.post("/:id/decline", roleCheck("admin", "HR"), ctrl.declineLeave);
 
 export default router;

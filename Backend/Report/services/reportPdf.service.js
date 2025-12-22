@@ -17,89 +17,100 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
     month: "long",
     year: "numeric",
   });
-  const fileName = `${formattedDate} Work Report.pdf`;
 
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${formattedDate} Work Report.pdf"`
+  );
 
   const doc = new PDFDocument({ margin: 50, size: "A4" });
   doc.pipe(res);
 
-  // ---------- TITLE ----------
+  /* ---------- TITLE ---------- */
   doc
-    .fontSize(22)
-    .fillColor("#333333")
-    .text("Daily Work Report", { align: "center", underline: true });
+    .fontSize(24)
+    .fillColor("#1F2937")
+    .text("Daily Work Report", { align: "center" });
 
-  doc.moveDown(0.5);
   doc
+    .moveDown(0.3)
     .fontSize(12)
-    .fillColor("#555555")
     .text(`Date: ${formattedDate}`, { align: "center" });
+
   doc.moveDown(1.5);
 
-  // ---------- TABLE SETUP ----------
-  const tableTop = doc.y;
-  const itemX = 50;
-  const tasksX = 250;
-  const tableWidth = 500;
-  const rowHeight = 25;
+  /* ---------- TABLE HEADER ---------- */
+  const nameX = 50;
+  const taskX = 220;
+  const tableWidth = 495;
 
-  // Draw table header background
-  doc.rect(itemX - 5, tableTop - 5, tableWidth, rowHeight).fill("#f0f0f0");
-  doc.fillColor("#000000");
+  const drawHeader = () => {
+    const y = doc.y;
+    doc.rect(45, y - 5, tableWidth, 30).fill("#E5E7EB");
 
-  // Draw headers
-  doc
-    .fontSize(12)
-    .font("Helvetica-Bold")
-    .text("Name", itemX, tableTop, { width: 180, align: "left" })
-    .text("Tasks Completed", tasksX, tableTop, { width: 300, align: "left" });
+    doc
+      .fillColor("#111827")
+      .font("Helvetica-Bold")
+      .fontSize(13)
+      .text("Employee Name", nameX, y, { width: 160 })
+      .text("Tasks Completed", taskX, y);
 
-  // Draw horizontal line under header
-  doc
-    .moveTo(itemX - 5, tableTop + rowHeight - 5)
-    .lineTo(itemX - 5 + tableWidth, tableTop + rowHeight - 5)
-    .strokeColor("#aaaaaa")
-    .stroke();
+    doc.moveDown(1.5);
+  };
 
-  let i = 0;
-  reports.forEach((report) => {
-    const y = tableTop + rowHeight + i * rowHeight;
+  drawHeader();
 
-    // Alternating row color
-    if (i % 2 === 0) {
-      doc.rect(itemX - 5, y - 5, tableWidth, rowHeight).fill("#f9f9f9");
-      doc.fillColor("#000000");
+  /* ---------- TABLE ROWS ---------- */
+  reports.forEach((report, index) => {
+    const startY = doc.y;
+
+    // Page break check
+    if (startY > 700) {
+      doc.addPage();
+      drawHeader();
     }
 
-    // Name column
-    doc.fontSize(11).font("Helvetica").text(report.user.name, itemX, y, {
-      width: 180,
-      align: "left",
-    });
-
-    // Tasks column
-    doc.text(report.workPoints.join(", "), tasksX, y, {
-      width: 300,
-      align: "left",
-    });
-
-    // Horizontal line after row
+    // Background block
     doc
-      .moveTo(itemX - 5, y + rowHeight - 5)
-      .lineTo(itemX - 5 + tableWidth, y + rowHeight - 5)
-      .strokeColor("#e0e0e0")
+      .rect(45, startY - 5, tableWidth, 10)
+      .fill(index % 2 === 0 ? "#F9FAFB" : "#FFFFFF");
+
+    doc.fillColor("#111827").font("Helvetica").fontSize(12);
+
+    // Name
+    doc.text(report.user.name, nameX, startY, {
+      width: 160,
+    });
+
+    // Tasks (bullet list)
+    let taskY = startY;
+    report.workPoints.forEach((task) => {
+      doc.fontSize(11).fillColor("#374151").text(`• ${task}`, taskX, taskY, {
+        width: 300,
+        lineGap: 3,
+      });
+      taskY = doc.y;
+    });
+
+    // Calculate row height
+    const rowHeight = Math.max(taskY - startY, 25);
+
+    // Row divider
+    doc
+      .moveTo(45, startY + rowHeight + 5)
+      .lineTo(45 + tableWidth, startY + rowHeight + 5)
+      .strokeColor("#E5E7EB")
       .stroke();
 
-    i++;
+    doc.y = startY + rowHeight + 15;
   });
 
-  // ---------- FOOTER ----------
-  doc.moveDown(2);
+  /* ---------- FOOTER ---------- */
   doc
+    .moveDown(1)
     .fontSize(10)
-    .fillColor("#999999")
+    .fillColor("#6B7280")
     .text(`Total Reports: ${reports.length}`, { align: "right" });
 
   doc.end();

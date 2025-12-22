@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMyTasksAPI, updateTaskStatusAPI } from "../../api/task.api";
+import { getAllTasksAPI, updateTaskStatusAPI } from "../../api/task.api";
 import styles from "./Task.module.css";
 
 export default function TaskCompleted() {
@@ -14,11 +14,12 @@ export default function TaskCompleted() {
   const load = async () => {
     try {
       setLoading(true);
-      const res = await getMyTasksAPI();
-
+      const res = await getAllTasksAPI();
+      console.log(res.data);
       const completedTasks = res.data.filter(
         (t) => t.status === "complete" || t.status === "hold"
       );
+      res.data.forEach((t) => console.log(t.status));
 
       setTasks(completedTasks);
     } catch (e) {

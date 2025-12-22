@@ -5,6 +5,7 @@ import {
   allReports,
   updateReport,
   downloadReportsByDate,
+  getMyReportsByDate,
 } from "../controllers/report.controller.js";
 import { roleCheck } from "../../middleware/role.middleware.js";
 import { protect } from "../../middleware/auth.middleware.js";
@@ -16,6 +17,8 @@ reportRoutes.use(protect);
 reportRoutes.post("/submit", submitReport);
 reportRoutes.put("/update/:id", updateReport);
 reportRoutes.get("/my", myReports);
+reportRoutes.get("/my/date", getMyReportsByDate);
+
 // Admin only: download all reports for a date
 reportRoutes.get("/download/all", roleCheck("admin"), downloadReportsByDate);
 // Admin only

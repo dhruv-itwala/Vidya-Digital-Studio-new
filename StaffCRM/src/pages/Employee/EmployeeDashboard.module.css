@@ -1,0 +1,22 @@
+.container {
+  width: 100%;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.topRow {
+  height: 270px;
+  width: 100%;
+  display: flex;
+  gap: 20px;
+}
+
+.infoText {
+  color: #d9534f;
+  font-weight: 500;
+  margin: 10px 0;
+}

@@ -18,10 +18,32 @@ export const submitReportAPI = async (workPoints) => {
   }
 };
 
-// Get my reports
-export const getMyReportsAPI = async () => {
+// Update report
+export const updateReportAPI = async (id, workPoints) => {
+  try {
+    return await api.put(`/reports/update/${id}`, { workPoints });
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+// Get my all reports
+export const getMyAllReportsAPI = async () => {
   try {
     return await api.get("/reports/my");
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+// Get my reports by date
+const getTodayDate = () => {
+  return new Date().toISOString().split("T")[0];
+};
+
+export const getMyReportsByDateAPI = async (date = getTodayDate()) => {
+  try {
+    return await api.get(`/reports/my/date?date=${date}`);
   } catch (error) {
     handleError(error);
   }

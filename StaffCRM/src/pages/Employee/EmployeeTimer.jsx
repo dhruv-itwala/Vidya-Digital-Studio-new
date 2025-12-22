@@ -10,7 +10,7 @@ import styles from "./EmployeeTimer.module.css";
 
 const WORK_TARGET_SECONDS = 8 * 60 * 60; // 8 hours
 
-export default function EmployeeTimer() {
+export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
   const [seconds, setSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [onBreak, setOnBreak] = useState(false);
@@ -24,19 +24,16 @@ export default function EmployeeTimer() {
   });
 
   const getMessage = (type) => {
-    const name = "Hey 👋"; // replace with actual user name if available
-
+    const name = "Hey 👋";
     const messages = {
-      punchIn: `${name}! Hope you have a great day 🚀 You're officially working now.`,
-      breakIn: `☕ Enjoy your break! You’ve earned it.`,
-      breakOut: `Welcome back! 💪 Let’s finish strong.`,
-      punchOut: `Great work today! 🌟 Don’t forget to submit your report.`,
+      punchIn: `${name}! Have a great day 🚀`,
+      breakIn: `☕ Enjoy your break!`,
+      breakOut: `Welcome back! 💪`,
+      punchOut: `Great work today! 🌟`,
     };
-
     return messages[type] || "";
   };
 
-  /* ================= DERIVE STATE ================= */
   const deriveTimerState = (attendance) => {
     let totalSeconds = (attendance.totalMinutes || 0) * 60;
     let running = false;
@@ -59,11 +56,9 @@ export default function EmployeeTimer() {
     return { totalSeconds, running, breakActive };
   };
 
-  /* ================= FETCH ================= */
   const syncFromServer = async (force = false) => {
     try {
       const res = await getMyAttendanceAPI({ from: today, to: today });
-
       if (!res.data?.length) {
         if (force) setSeconds(0);
         setIsRunning(false);
@@ -75,10 +70,7 @@ export default function EmployeeTimer() {
         res.data[0]
       );
 
-      // 🔒 Only overwrite seconds on FIRST LOAD or FORCED SYNC
-      if (force) {
-        setSeconds(totalSeconds);
-      }
+      if (force) setSeconds(totalSeconds);
 
       setIsRunning(running);
       setOnBreak(breakActive);
@@ -87,7 +79,6 @@ export default function EmployeeTimer() {
     }
   };
 
-  /* ================= TIMER ================= */
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -99,20 +90,29 @@ export default function EmployeeTimer() {
   }, [isRunning]);
 
   useEffect(() => {
-    syncFromServer(true); // ⬅️ force initial sync
+    syncFromServer(true);
     const poll = setInterval(() => syncFromServer(false), 30000);
     return () => clearInterval(poll);
   }, []);
 
-  /* ================= ACTION ================= */
   const handleAction = async (api, type) => {
+    if (
+      type === "punchOut" &&
+      onPunchOutAttempt &&
+      !(await onPunchOutAttempt())
+    ) {
+      setMessage("⚠️ Submit your report before punching out.");
+      setTimeout(() => setMessage(""), 4000);
+      return;
+    }
+
     try {
       setLoading(true);
       await api();
-
       await syncFromServer(false);
-
       setMessage(getMessage(type));
+
+      if (type === "punchIn" && onPunchIn) onPunchIn();
     } catch (e) {
       setMessage(e.message || "Action failed");
     } finally {
@@ -121,7 +121,6 @@ export default function EmployeeTimer() {
     }
   };
 
-  /* ================= HELPERS ================= */
   const format = () => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -134,14 +133,12 @@ export default function EmployeeTimer() {
 
   const progress = Math.min((seconds / WORK_TARGET_SECONDS) * 100, 100);
 
-  const progressState =
-    seconds >= WORK_TARGET_SECONDS
-      ? styles.overtime
-      : progress > 85
-      ? styles.warning
-      : styles.normal;
+  const radius = 70;
+  const stroke = 8;
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  /* ================= BUTTON STATES ================= */
   const canPunchIn = !isRunning && !onBreak;
   const canPunchOut = isRunning;
   const canBreakIn = isRunning && !onBreak;
@@ -151,36 +148,47 @@ export default function EmployeeTimer() {
     <div className={styles.card}>
       <h3 className={styles.title}>Today’s Work Progress</h3>
 
-      {/* TIMER */}
-      <div className={styles.timer}>{format()}</div>
-
-      {/* PROGRESS BAR */}
-      <div className={styles.progressWrapper}>
-        <div className={styles.progressTrack}>
-          <div
-            className={`${styles.progressFill} ${progressState}`}
-            style={{ width: `${progress}%` }}
+      <div className={styles.circularProgressWrapper}>
+        <svg height={radius * 2} width={radius * 2}>
+          <circle
+            stroke="#e6e6e6"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
           />
-        </div>
-        <div className={styles.progressMeta}>
-          <span>0h</span>
-          <span>8h</span>
-        </div>
+          <circle
+            stroke="#4caf50"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={circumference + " " + circumference}
+            style={{ strokeDashoffset, transition: "stroke-dashoffset 0.5s" }}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <text
+            x="50%"
+            y="50%"
+            dominantBaseline="middle"
+            textAnchor="middle"
+            fontSize="18"
+            fontWeight="bold"
+            fill="#333"
+          >
+            {format()}
+          </text>
+        </svg>
       </div>
 
-      {/* STATUS */}
       <div className={styles.status}>
-        {onBreak
-          ? "☕ On Break"
-          : isRunning
-          ? "🟢 Working"
-          : seconds >= WORK_TARGET_SECONDS
-          ? "✅ Target Completed"
-          : "⚪ Not Working"}
+        {onBreak ? "☕ On Break" : isRunning ? "🟢 Working" : "⚪ Not Working"}
       </div>
+
       {message && <div className={styles.message}>{message}</div>}
 
-      {/* ACTIONS */}
       <div className={styles.actions}>
         <button
           disabled={!canPunchIn || loading}
@@ -188,21 +196,18 @@ export default function EmployeeTimer() {
         >
           Punch In
         </button>
-
         <button
           disabled={!canPunchOut || loading}
           onClick={() => handleAction(punchOutAPI, "punchOut")}
         >
           Punch Out
         </button>
-
         <button
           disabled={!canBreakIn || loading}
           onClick={() => handleAction(breakInAPI, "breakIn")}
         >
           Break In
         </button>
-
         <button
           disabled={!canBreakOut || loading}
           onClick={() => handleAction(breakOutAPI, "breakOut")}

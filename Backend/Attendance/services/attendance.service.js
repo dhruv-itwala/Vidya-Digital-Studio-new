@@ -144,7 +144,7 @@ export const getAllEmployeesAttendanceService = async (date) => {
 
   // Get all users with role employee
   const employees = await userModel
-    .find({ role: { $ne: "HR" } })
+    .find({ role: { $ne: "admin" } })
     .select("_id name email");
 
   // Get attendance for the day
@@ -169,4 +169,17 @@ export const getAllEmployeesAttendanceService = async (date) => {
   });
 
   return result;
+};
+
+// get user attendance by single date
+export const getUserAttendanceByDateService = async (userId, date) => {
+  // Convert input date to start/end of day in IST
+  const startOfDay = getISTDayStart(new Date(date)); // 2025-12-21T00:00:00+05:30
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1); // next day start
+
+  return attendanceModel.findOne({
+    user: userId,
+    date: { $gte: startOfDay, $lt: endOfDay }, // range query
+  });
 };

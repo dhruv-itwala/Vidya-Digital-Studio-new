@@ -12,7 +12,10 @@ import TaskAnalytics from "../../components/Task/TaskAnalytics";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeTasks.module.css";
 
-export default function EmployeeTasks() {
+export default function EmployeeTasks({
+  showTasks,
+  disableTasksAfterPunchOut,
+}) {
   const { allEmployees } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -21,8 +24,8 @@ export default function EmployeeTasks() {
   const [priorityFilter, setPriorityFilter] = useState("all");
 
   useEffect(() => {
-    loadTasks();
-  }, []);
+    if (showTasks) loadTasks();
+  }, [showTasks]);
 
   const loadTasks = async () => {
     try {
@@ -39,7 +42,7 @@ export default function EmployeeTasks() {
       await updateTaskStatusAPI(id, status);
       toast.success("Status updated");
       loadTasks();
-    } catch (err) {
+    } catch {
       toast.error("Failed to update status");
     }
   };
@@ -49,7 +52,7 @@ export default function EmployeeTasks() {
       await deleteTaskAPI(id);
       toast.success("Task deleted");
       loadTasks();
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete task");
     }
   };
@@ -85,11 +88,12 @@ export default function EmployeeTasks() {
     window.__TASK_DIRTY__ = false;
   };
 
+  if (!showTasks || disableTasksAfterPunchOut) return null;
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <h2 className={styles.title}>My Tasks</h2>
-
         <div className={styles.actionsRow}>
           <select
             value={statusFilter}
@@ -124,21 +128,15 @@ export default function EmployeeTasks() {
         </div>
       </header>
 
-      {/* Task analytics */}
       <TaskAnalytics tasks={tasks} />
-
-      {/* Kanban board */}
       <TaskKanban
         tasks={filteredTasks}
         onStatusChange={updateStatus}
         onDelete={removeTask}
         onEdit={startEdit}
       />
-
-      {/* Completed tasks */}
       <TaskCompleted />
 
-      {/* Task form modal */}
       {showForm && (
         <div
           className={styles.modalOverlay}
@@ -146,9 +144,8 @@ export default function EmployeeTasks() {
             if (
               !window.__TASK_DIRTY__ ||
               window.confirm("You have unsaved changes. Discard them?")
-            ) {
+            )
               closeModal();
-            }
           }}
         >
           <div

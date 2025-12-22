@@ -1,11 +1,18 @@
-import { useState } from "react";
-import { submitReportAPI } from "../../api/report.api";
+import { useEffect, useState } from "react";
+import {
+  submitReportAPI,
+  getMyReportsByDateAPI,
+  updateReportAPI,
+} from "../../api/report.api";
 import styles from "./EmployeeReport.module.css";
 
-export default function EmployeeReport() {
+export default function EmployeeReport({ onSubmitted }) {
   const [points, setPoints] = useState([""]);
+  const [reportId, setReportId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const MAX_POINTS = 3;
 
   const updatePoint = (index, value) => {
     const copy = [...points];
@@ -13,9 +20,15 @@ export default function EmployeeReport() {
     setPoints(copy);
   };
 
-  const addPoint = () => setPoints([...points, ""]);
+  const addPoint = () => {
+    if (points.length < MAX_POINTS) {
+      setPoints([...points, ""]);
+    } else {
+      setMessage(`You can add a maximum of ${MAX_POINTS} points.`);
+    }
+  };
 
-  const submitReport = async () => {
+  const submitOrUpdateReport = async () => {
     try {
       setLoading(true);
       setMessage("");
@@ -26,10 +39,15 @@ export default function EmployeeReport() {
         return;
       }
 
-      await submitReportAPI(filtered);
+      if (reportId) {
+        await updateReportAPI(reportId, filtered);
+        setMessage("✅ Report updated successfully.");
+      } else {
+        await submitReportAPI(filtered);
+        setMessage("✅ Report submitted successfully. Great work today!");
+      }
 
-      setMessage("✅ Report submitted successfully. Great work today!");
-      setPoints([""]);
+      if (onSubmitted) onSubmitted();
     } catch (e) {
       setMessage(e.message);
     } finally {
@@ -37,9 +55,36 @@ export default function EmployeeReport() {
     }
   };
 
+  useEffect(() => {
+    fetchTodayReport();
+  }, []);
+
+  const fetchTodayReport = async () => {
+    try {
+      const res = await getMyReportsByDateAPI();
+
+      /**
+       * EXPECTED RESPONSE EXAMPLE:
+       * {
+       *   _id: "...",
+       *   workPoints: ["Did task A", "Fixed bug B"]
+       * }
+       */
+
+      if (res?.data?._id) {
+        setReportId(res.data._id);
+        setPoints(res.data.workPoints.length ? res.data.workPoints : [""]);
+      }
+    } catch (e) {
+      console.error(e.message);
+    }
+  };
+
   return (
     <div className={styles.card}>
-      <h3 className={styles.title}>Daily Work Report</h3>
+      <h3 className={styles.title}>
+        {reportId ? "Update Daily Report" : "Daily Work Report"}
+      </h3>
 
       {points.map((point, i) => (
         <input
@@ -51,9 +96,11 @@ export default function EmployeeReport() {
         />
       ))}
 
-      <button className={styles.addBtn} onClick={addPoint}>
-        + Add another point
-      </button>
+      {points.length < MAX_POINTS && (
+        <button className={styles.addBtn} onClick={addPoint}>
+          + Add another point
+        </button>
+      )}
 
       {message && (
         <p
@@ -67,10 +114,10 @@ export default function EmployeeReport() {
 
       <button
         className={styles.submitBtn}
-        onClick={submitReport}
+        onClick={submitOrUpdateReport}
         disabled={loading}
       >
-        {loading ? "Submitting..." : "Submit Report"}
+        {loading ? "Saving..." : reportId ? "Update Report" : "Submit Report"}
       </button>
     </div>
   );

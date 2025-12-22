@@ -74,3 +74,20 @@ export const getAllEmployeesAttendance = async (req, res) => {
     res.status(400).json({ message: e.message });
   }
 };
+
+// ================= GET USER ATTENDANCE BY DATE =================
+export const getUserAttendanceByDate = async (req, res) => {
+  try {
+    const userId = req.user.id; // <-- From auth middleware
+    const { date } = req.query;
+    if (!date) throw new Error("date is required");
+
+    const attendance = await service.getUserAttendanceByDateService(
+      userId,
+      date
+    );
+    res.json(attendance);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};

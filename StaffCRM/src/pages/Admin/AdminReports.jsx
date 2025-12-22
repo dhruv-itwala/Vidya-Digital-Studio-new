@@ -3,6 +3,7 @@ import {
   downloadAllReportsByDatePDF,
   getAllReportsByDate,
 } from "../../api/report.api";
+import styles from "./AdminReports.module.css";
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -44,60 +45,66 @@ export default function AdminReports() {
   };
 
   return (
-    <div>
-      <h2>Work Reports</h2>
+    <div className="masterContainer">
+      <div className={styles.adminReportsContainer}>
+        <h2>Work Reports</h2>
 
-      <div style={{ marginBottom: "1rem" }}>
-        <label>
-          Select Date:{" "}
+        <div className={styles.controls}>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
+            className={styles.dateInput}
           />
-        </label>
-        <button onClick={download} style={{ marginLeft: "1rem" }}>
-          Download Reports
-        </button>
-      </div>
+          <button className={styles.downloadButton} onClick={download}>
+            Download Reports
+          </button>
+        </div>
 
-      {loading ? (
-        <p>Loading reports...</p>
-      ) : (
-        <table border="1" cellPadding="8" cellSpacing="0">
-          <thead>
-            <tr>
-              <th>Employee Name</th>
-              <th>Report Status</th>
-              <th>Work Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.length === 0 && (
+        {loading ? (
+          <p className={styles.loadingText}>Loading reports...</p>
+        ) : (
+          <table className={styles.reportsTable}>
+            <thead>
               <tr>
-                <td colSpan="3" style={{ textAlign: "center" }}>
-                  No reports found
-                </td>
+                <th>Employee Name</th>
+                <th>Report Status</th>
+                <th>Work Points</th>
               </tr>
-            )}
-            {reports.map((report) => (
-              <tr key={report._id}>
-                <td>{report.user.name}</td>
-                <td>
-                  {report.workPoints && report.workPoints.length > 0
-                    ? "Submitted"
-                    : "Pending"}
-                </td>
-                <td>
-                  {report.workPoints && report.workPoints.length > 0
-                    ? report.workPoints.join(", ")
-                    : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {reports.length === 0 && (
+                <tr>
+                  <td colSpan="3" className={styles.noReports}>
+                    No reports found
+                  </td>
+                </tr>
+              )}
+              {reports.map((report) => (
+                <tr key={report._id}>
+                  <td>{report.user.name}</td>
+                  <td>
+                    {report.workPoints && report.workPoints.length > 0
+                      ? "Submitted"
+                      : "Pending"}
+                  </td>
+                  <td>
+                    {report.workPoints && report.workPoints.length > 0 ? (
+                      <ul>
+                        {report.workPoints.map((point, index) => (
+                          <li key={index}>{point}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,10 +1,10 @@
 import { Outlet } from "react-router-dom";
-import EmployeeNavbar from "../components/Navbar/EmployeeNavbar";
+import HRNavbar from "../components/Navbar/HrNavbar";
 
 export default function EmployeeLayout() {
   return (
     <>
-      <EmployeeNavbar />
+      <HRNavbar />
       <main style={{ padding: "24px" }}>
         <Outlet />
       </main>

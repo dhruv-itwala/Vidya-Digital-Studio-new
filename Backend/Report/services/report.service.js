@@ -19,6 +19,10 @@ export const submitReportService = async (userId, workPoints) => {
   });
 };
 
+export const getMyReportsByDateService = async (userId, date) => {
+  return Report.find({ user: userId, date }).sort({ date: -1 });
+};
+
 export const getMyReportsService = async (userId) => {
   return Report.find({ user: userId }).sort({ date: -1 });
 };
@@ -53,7 +57,9 @@ export const updateReportService = async (reportId, user) => {
 };
 
 export const getAllReportsByDateService = async (date) => {
-  return Report.find({ date }) // exact string match
-    .populate("user", "name email")
-    .sort({ date: -1 });
+  return Report.find({ date }).populate("user", "name email");
+};
+
+export const getMyReportByDateService = async (userId, date) => {
+  return Report.findOne({ user: userId, date });
 };

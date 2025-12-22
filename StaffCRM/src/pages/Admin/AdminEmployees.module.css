@@ -1,0 +1,138 @@
+.container {
+  width: 100%;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+}
+
+/* Primary Button */
+.createBtn {
+  padding: 10px 18px;
+  background-color: var(--color-button);
+  color: var(--color-button-text);
+  border: none;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 16px rgba(15, 92, 68, 0.25);
+}
+
+.createBtn:hover {
+  background-color: var(--color-button-hover);
+  transform: translateY(-1px);
+}
+
+/* Table Wrapper */
+.tableWrapper {
+  background-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  padding: 0 0 20px 0;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background-color: rgba(15, 92, 68, 0.05);
+  color: var(--soft-ivory);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.table td {
+  padding: 16px;
+  font-size: 14px;
+  color: var(--color-text);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Hover row */
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(242, 92, 5, 0.05);
+}
+
+/* Status */
+.active {
+  color: var(--deep-forest);
+  font-weight: 600;
+}
+
+.inactive {
+  color: var(--warm-coral-red);
+  font-weight: 600;
+}
+
+/* Edit Button */
+.editBtn {
+  padding: 6px 14px;
+  background-color: var(--color-secondary);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.editBtn:hover {
+  background-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+  gap: 8px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--color-button);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: var(--color-button-hover);
+  transform: translateY(-1px);
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.activePage {
+  background-color: var(--color-accent);
+}

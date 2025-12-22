@@ -22,17 +22,22 @@ export default function Login() {
   const onSubmit = async (data) => {
     try {
       setServerError("");
+
       const res = await loginAPI(data);
 
-      // set user/token in AuthContext
-      login(res.data);
+      // ✅ store token
+      login({ token: res.data.token });
 
-      // redirect based on role
-      const role = res.data.role.toLowerCase();
-      if (role === "admin") navigate("/admin/dashboard");
-      else if (role === "employee" || role === "hr")
+      // ✅ get role correctly
+      const role = res.data.user.role.toLowerCase();
+
+      if (role === "admin") {
+        navigate("/admin/attendance");
+      } else if (role === "employee" || role === "hr") {
         navigate("/employee/dashboard");
-      else navigate("/login");
+      } else {
+        navigate("/login");
+      }
     } catch (err) {
       setServerError(
         err.response?.data?.message || "Invalid email or password"

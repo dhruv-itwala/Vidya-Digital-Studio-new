@@ -5,7 +5,7 @@ import { getInitials } from "../../utils/name.util";
 import { Images } from "../../assets/Data/images";
 import styles from "./Navbar.module.css";
 
-export default function Navbar() {
+export default function HRNavbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -50,17 +50,23 @@ export default function Navbar() {
                 <button onClick={() => navigate("/employee/attendance")}>
                   Attendance
                 </button>
-                {user && user.role.toLowerCase() === "hr" && (
-                  <button onClick={() => navigate("/employee/hrHoliday")}>
-                    Holidays
-                  </button>
-                )}
                 <button onClick={() => navigate("/employee/profile")}>
                   Profile
                 </button>
                 <button onClick={() => navigate("/employee/leaves")}>
                   Leaves
                 </button>
+                <hr />
+                <button onClick={() => navigate("/employee/hrHoliday")}>
+                  Holidays
+                </button>
+                <button onClick={() => navigate("/employee/hrReports")}>
+                  Reports
+                </button>
+                <button onClick={() => navigate("/employee/hrLeaveApproval")}>
+                  Leave Approvals
+                </button>
+                <hr />
                 <button className={styles.logout} onClick={handleLogout}>
                   Logout
                 </button>

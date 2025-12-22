@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getAllUsersAPI, getMyProfileAPI } from "../api/auth.api";
+import { getMyProfileAPI, getAllUsersAPI } from "../api/auth.api";
 
 const AuthContext = createContext(null);
 
@@ -12,10 +12,13 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = async () => {
     try {
       const res = await getMyProfileAPI();
-      // normalize role to lowercase
-      setUser({ ...res.data, role: res.data.role.toLowerCase() });
+      const normalizedUser = {
+        ...res.data,
+        role: res.data.role.toLowerCase(),
+      };
+      setUser(normalizedUser);
     } catch (err) {
-      logout(); // invalid token
+      logout();
     } finally {
       setLoading(false);
     }
@@ -25,8 +28,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await getAllUsersAPI();
       setAllEmployees(res.data);
-    } catch (err) {
-      console.error("Failed to fetch users", err);
+    } catch {
       setAllEmployees([]);
     }
   };
@@ -40,16 +42,19 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = ({ token, role }) => {
+  const login = ({ token, user }) => {
     localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
     setToken(token);
+    setUser(user);
     setLoading(true);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    setToken(null);
+    localStorage.removeItem("user");
     setUser(null);
+    setToken(null);
     setLoading(false);
   };
 
@@ -57,10 +62,10 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        allEmployees,
         token,
+        allEmployees,
         loading,
-        isAuthenticated: !!user,
+        isAuthenticated: !!token,
         login,
         logout,
       }}

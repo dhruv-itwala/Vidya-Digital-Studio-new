@@ -71,8 +71,6 @@ export default function EmployeeAttendance() {
                 <tr>
                   <th>Date</th>
                   <th>Status</th>
-                  <th>Punch In</th>
-                  <th>Punch Out</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,16 +93,6 @@ export default function EmployeeAttendance() {
                       >
                         {r.status}
                       </td>
-                      <td>
-                        {r.sessions[0]?.in
-                          ? new Date(r.sessions[0].in).toLocaleTimeString()
-                          : "—"}
-                      </td>
-                      <td>
-                        {r.sessions.at(-1)?.out
-                          ? new Date(r.sessions.at(-1).out).toLocaleTimeString()
-                          : "—"}
-                      </td>
                     </tr>
                   ))
                 )}
@@ -115,7 +103,7 @@ export default function EmployeeAttendance() {
       </div>
       {console.log(user)}
       {console.log(user)}
-      {user && user.role == "hr" ? <HRAttendance /> : <p>Fail</p>}
+      {user && user.role == "hr" ? <HRAttendance /> : null}
     </div>
   );
 }

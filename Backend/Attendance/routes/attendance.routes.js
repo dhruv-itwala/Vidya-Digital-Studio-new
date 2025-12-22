@@ -13,11 +13,11 @@ attendanceRoutes.post("/break-in", ctrl.breakIn);
 attendanceRoutes.post("/break-out", ctrl.breakOut);
 
 attendanceRoutes.get("/my", ctrl.myAttendance);
+attendanceRoutes.get("/my/date", ctrl.getUserAttendanceByDate);
 
 // HR: mark attendance
-// HR: get all employees attendance
-attendanceRoutes.get("/all", roleCheck("HR"), ctrl.getAllEmployeesAttendance);
-attendanceRoutes.post("/mark", roleCheck("HR"), ctrl.markAttendanceStatus);
+attendanceRoutes.get("/all", roleCheck("hr"), ctrl.getAllEmployeesAttendance);
+attendanceRoutes.post("/mark", roleCheck("hr"), ctrl.markAttendanceStatus);
 
 // Admin
 attendanceRoutes.get("/day", roleCheck("admin"), ctrl.dayAttendance);
