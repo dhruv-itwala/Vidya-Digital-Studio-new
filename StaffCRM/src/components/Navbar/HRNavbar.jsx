@@ -44,26 +44,22 @@ export default function HRNavbar() {
 
             {open && (
               <div className={styles.dropdown}>
-                <button onClick={() => navigate("/employee/dashboard")}>
+                <button onClick={() => navigate("/hr/dashboard")}>
                   Dashboard
                 </button>
-                <button onClick={() => navigate("/employee/attendance")}>
+                <button onClick={() => navigate("/hr/attendance")}>
                   Attendance
                 </button>
-                <button onClick={() => navigate("/employee/profile")}>
-                  Profile
-                </button>
-                <button onClick={() => navigate("/employee/leaves")}>
-                  Leaves
-                </button>
+                <button onClick={() => navigate("/hr/profile")}>Profile</button>
+                <button onClick={() => navigate("/hr/leaves")}>Leaves</button>
                 <hr />
-                <button onClick={() => navigate("/employee/hrHoliday")}>
+                <button onClick={() => navigate("/hr/hrHoliday")}>
                   Holidays
                 </button>
-                <button onClick={() => navigate("/employee/hrReports")}>
+                <button onClick={() => navigate("/hr/hrReports")}>
                   Reports
                 </button>
-                <button onClick={() => navigate("/employee/hrLeaveApproval")}>
+                <button onClick={() => navigate("/hr/hrLeaveApproval")}>
                   Leave Approvals
                 </button>
                 <hr />

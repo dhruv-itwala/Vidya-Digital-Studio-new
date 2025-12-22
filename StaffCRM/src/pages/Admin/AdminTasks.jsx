@@ -77,84 +77,86 @@ export default function AdminTasks() {
   };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h2 className={styles.title}>All Tasks</h2>
-        <div className={styles.actionsRow}>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="started">Started</option>
-            <option value="hold">Hold</option>
-            <option value="complete">Complete</option>
-          </select>
+    <div className="masterContainer">
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h2 className={styles.title}>All Tasks</h2>
+          <div className={styles.actionsRow}>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="started">Started</option>
+              <option value="hold">Hold</option>
+              <option value="complete">Complete</option>
+            </select>
 
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-          >
-            <option value="all">All Priority</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+            >
+              <option value="all">All Priority</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
 
-          <button
-            className={styles.primaryBtn}
+            <button
+              className={styles.primaryBtn}
+              onClick={() => {
+                setEditingTask(null);
+                setShowForm(true);
+              }}
+            >
+              + Create Task
+            </button>
+          </div>
+        </header>
+
+        <TaskAnalytics tasks={tasks} />
+
+        <TaskKanban
+          tasks={filteredTasks}
+          onStatusChange={updateStatus}
+          onDelete={removeTask}
+          onEdit={startEdit}
+        />
+
+        <TaskCompleted />
+
+        {showForm && (
+          <div
+            className={styles.modalOverlay}
             onClick={() => {
-              setEditingTask(null);
-              setShowForm(true);
+              if (
+                !window.__TASK_DIRTY__ ||
+                window.confirm("You have unsaved changes. Discard them?")
+              )
+                closeModal();
             }}
           >
-            + Create Task
-          </button>
-        </div>
-      </header>
-
-      <TaskAnalytics tasks={tasks} />
-
-      <TaskKanban
-        tasks={filteredTasks}
-        onStatusChange={updateStatus}
-        onDelete={removeTask}
-        onEdit={startEdit}
-      />
-
-      <TaskCompleted />
-
-      {showForm && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => {
-            if (
-              !window.__TASK_DIRTY__ ||
-              window.confirm("You have unsaved changes. Discard them?")
-            )
-              closeModal();
-          }}
-        >
-          <div
-            className={styles.modalContent}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button className={styles.modalClose} onClick={closeModal}>
-              ×
-            </button>
-            <TaskForm
-              users={allEmployees}
-              task={editingTask}
-              onCreated={() => {
-                toast.success(editingTask ? "Task updated" : "Task created");
-                closeModal();
-                loadTasks();
-              }}
-            />
+            <div
+              className={styles.modalContent}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button className={styles.modalClose} onClick={closeModal}>
+                ×
+              </button>
+              <TaskForm
+                users={allEmployees}
+                task={editingTask}
+                onCreated={() => {
+                  toast.success(editingTask ? "Task updated" : "Task created");
+                  closeModal();
+                  loadTasks();
+                }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

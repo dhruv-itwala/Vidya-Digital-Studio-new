@@ -22,8 +22,9 @@ import { Toaster } from "react-hot-toast";
 import "./App.css";
 import NavigateBasedOnRole from "./routes/NavigateBasedOnRole";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import HRReports from "./pages/Hr/HRReports";
-import HRLeaveApproval from "./pages/Hr/HRLeaveApproval";
+import HRReports from "./pages/HR/HRReports";
+import HRLeaveApproval from "./pages/HR/HRLeaveApproval";
+import HRLayout from "./layouts/HRLayout";
 export default function App() {
   return (
     <>
@@ -63,7 +64,7 @@ export default function App() {
         <Route
           path="/employee"
           element={
-            <ProtectedRoute allowedRoles={["employee", "hr"]}>
+            <ProtectedRoute allowedRoles={["employee"]}>
               <EmployeeLayout />
             </ProtectedRoute>
           }
@@ -74,27 +75,26 @@ export default function App() {
           <Route path="profile" element={<EmployeeProfile />} />
           <Route path="leaves" element={<EmployeeLeaves />} />
           <Route path="tasks" element={<EmployeeTasks />} />
+        </Route>
 
-          {/* HR-specific routes */}
-          <Route
-            path="leaves-approval"
-            element={
-              <ProtectedRoute allowedRoles={["hr"]}>
-                <HRLeaveApproval />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="reports"
-            element={
-              <ProtectedRoute allowedRoles={["hr"]}>
-                <HRReports />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="hrHoliday" element={<HRHoliday />} />
-          <Route path="hrReports" element={<HRReports />} />
-          <Route path="hrLeaveApproval" element={<HRLeaveApproval />} />
+        <Route
+          path="/hr"
+          element={
+            <ProtectedRoute allowedRoles={["hr"]}>
+              <HRLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<EmployeeDashboard />} />
+          <Route path="attendance" element={<EmployeeAttendance />} />
+          <Route path="profile" element={<EmployeeProfile />} />
+          <Route path="leaves" element={<EmployeeLeaves />} />
+          <Route path="tasks" element={<EmployeeTasks />} />
+
+          <Route path="leaves-approval" element={<HRLeaveApproval />} />
+          <Route path="reports" element={<HRReports />} />
+          <Route path="holiday" element={<HRHoliday />} />
         </Route>
 
         {/* FALLBACK */}

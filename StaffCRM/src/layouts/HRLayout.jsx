@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import HRNavbar from "../components/Navbar/HrNavbar";
 
-export default function EmployeeLayout() {
+export default function HRLayout() {
   return (
     <>
       <HRNavbar />

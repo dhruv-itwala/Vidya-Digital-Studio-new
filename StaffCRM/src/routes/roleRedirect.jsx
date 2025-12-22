@@ -3,8 +3,9 @@ export const roleRedirect = (role) => {
     case "admin":
       return "/admin/dashboard";
     case "employee":
-    case "hr":
       return "/employee/dashboard";
+    case "hr":
+      return "/hr/dashboard";
     default:
       return "/login";
   }
