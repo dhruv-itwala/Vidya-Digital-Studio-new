@@ -1,63 +1,57 @@
 import { useState } from "react";
 import { createUserAPI, updateUserAPI } from "../../api/admin.api";
+import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeModal.module.css";
 
 export default function EmployeeModal({ user, onClose, onSaved }) {
-  const isEdit = !!user._id;
+  const { user: loggedInUser } = useAuth();
+  const isEdit = Boolean(user._id);
 
   const [form, setForm] = useState({
     name: user.name || "",
     email: user.email || "",
-    designation: user.designation || "",
     password: "",
-    role: user.role || "employee",
-    isActive: user.isActive ?? true,
-    joiningDate: user.joiningDate ? user.joiningDate.slice(0, 10) : "",
-    dateOfBirth: user.dateOfBirth ? user.dateOfBirth.slice(0, 10) : "",
+    designation: user.designation || "",
+    joiningDate: user.joiningDate?.slice(0, 10) || "",
+    dateOfBirth: user.dateOfBirth?.slice(0, 10) || "",
     contactNo: user.contactNo || "",
     gender: user.gender || "",
     address: user.address || "",
     personalEmail: user.personalEmail || "",
+    role: user.role || "employee",
+    isActive: user.isActive ?? true,
   });
 
-  const handleChange = (key, value) => {
-    setForm({ ...form, [key]: value });
-  };
+  const handleChange = (key, value) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
   const submit = async () => {
     try {
-      if (isEdit) {
-        const { password, ...updateData } = form;
-        await updateUserAPI(user._id, updateData);
-      } else {
-        await createUserAPI(form);
-      }
+      const payload = { ...form };
+      if (!payload.password) delete payload.password;
+
+      isEdit
+        ? await updateUserAPI(user._id, payload)
+        : await createUserAPI(payload);
+
       onSaved();
     } catch (err) {
       alert(err.response?.data?.message || err.message);
     }
   };
 
+  const roleOptions =
+    loggedInUser.role === "admin"
+      ? ["employee", "hr", "admin"]
+      : ["employee", "hr"];
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        <div className={styles.actions}>
-          <h2 className={styles.modalTitle}>
-            {isEdit ? "Edit Employee" : "Create Employee"}
-          </h2>
-          <div className={styles.buttonGroup}>
-            <button type="submit" className={styles.saveBtn}>
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className={styles.cancelBtn}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <h2 className={styles.modalTitle}>
+          {isEdit ? "Edit Employee" : "Create Employee"}
+        </h2>
+
         <form
           className={styles.form}
           onSubmit={(e) => {
@@ -65,14 +59,15 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
             submit();
           }}
         >
+          {/* Name + Email */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>
               <label>Full Name</label>
               <input
                 type="text"
+                placeholder="Jethalal Gada"
                 value={form.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Jethalal Gada"
                 required
               />
             </div>
@@ -81,60 +76,42 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
               <label>Work Email</label>
               <input
                 type="email"
+                placeholder="jetlalal@vidyadigitalstudio.in"
                 value={form.email}
                 disabled={isEdit}
                 onChange={(e) => handleChange("email", e.target.value)}
-                placeholder="jethalal@vidyadigitalstudio.in"
                 required
               />
             </div>
           </div>
 
+          {/* Designation + Password */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>
               <label>Designation</label>
               <input
                 type="text"
+                placeholder="Owner"
                 value={form.designation}
                 onChange={(e) => handleChange("designation", e.target.value)}
-                placeholder="Sales Manager"
               />
             </div>
 
             <div className={styles.inputGroup}>
               <label>Password</label>
               <input
-                type="text"
+                type="password"
                 value={form.password}
+                placeholder={
+                  isEdit ? "Leave blank to keep password" : "Create password"
+                }
                 onChange={(e) => handleChange("password", e.target.value)}
-                placeholder="••••••••"
-                required
+                required={!isEdit}
               />
             </div>
           </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.inputGroup}>
-              <label>Personal Email</label>
-              <input
-                type="email"
-                value={form.personalEmail}
-                onChange={(e) => handleChange("personalEmail", e.target.value)}
-                placeholder="jethalal.gadaelectronics@gmail.com"
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label>Contact Number</label>
-              <input
-                type="tel"
-                value={form.contactNo}
-                onChange={(e) => handleChange("contactNo", e.target.value)}
-                placeholder="98765 43210"
-              />
-            </div>
-          </div>
-
+          {/* Joining Date + DOB */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>
               <label>Joining Date</label>
@@ -142,6 +119,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 type="date"
                 value={form.joiningDate}
                 onChange={(e) => handleChange("joiningDate", e.target.value)}
+                required
               />
             </div>
 
@@ -151,10 +129,36 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 type="date"
                 value={form.dateOfBirth}
                 onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+                required
               />
             </div>
           </div>
 
+          {/* Contact + Personal Email */}
+          <div className={styles.formRow}>
+            <div className={styles.inputGroup}>
+              <label>Contact Number</label>
+              <input
+                type="tel"
+                placeholder="9876543210"
+                value={form.contactNo}
+                onChange={(e) => handleChange("contactNo", e.target.value)}
+                required
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label>Personal Email</label>
+              <input
+                type="email"
+                placeholder="jethalalgada@gmail.com"
+                value={form.personalEmail}
+                onChange={(e) => handleChange("personalEmail", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Gender + Role */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>
               <label>Gender</label>
@@ -175,26 +179,30 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 value={form.role}
                 onChange={(e) => handleChange("role", e.target.value)}
               >
-                <option value="employee">Employee</option>
-                <option value="hr">HR</option>
-                <option value="admin">Admin</option>
+                {roleOptions.map((r) => (
+                  <option key={r} value={r}>
+                    {r.toUpperCase()}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
+          {/* Address */}
           <div className={styles.formRow}>
             <div className={styles.inputGroupFull}>
               <label>Address</label>
               <textarea
+                placeholder="Gokuldham Society,Powder gali East, Mumbai"
                 value={form.address}
                 onChange={(e) => handleChange("address", e.target.value)}
-                placeholder="Gada Electronics, 123, MG Road, Mumbai, Maharashtra, India"
               />
             </div>
           </div>
 
+          {/* Active */}
           <div className={styles.checkboxContainer}>
-            <label>
+            <label style={{ paddingLeft: "20px" }}>
               <input
                 type="checkbox"
                 checked={form.isActive}
@@ -202,6 +210,22 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
               />
               Active
             </label>
+          </div>
+
+          {/* Actions */}
+          <div className={styles.actions}>
+            <div className={styles.buttonGroup}>
+              <button type="submit" className={styles.saveBtn}>
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className={styles.cancelBtn}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </form>
       </div>

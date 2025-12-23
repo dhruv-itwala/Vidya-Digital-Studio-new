@@ -3,7 +3,10 @@ import EmployeeTimer from "./EmployeeTimer";
 import EmployeeReport from "./EmployeeReport";
 import EmployeeTasks from "./EmployeeTasks";
 import styles from "./EmployeeDashboard.module.css";
-import { getMyAttendanceByDateAPI } from "../../api/attendance.api";
+import {
+  getMyAttendanceByDateAPI,
+  getTodayWorkRecordAPI,
+} from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
 
 const EmployeeDashboard = () => {
@@ -16,19 +19,13 @@ const EmployeeDashboard = () => {
     try {
       setLoading(true);
 
-      /* -------------------- 1️⃣ Attendance Status -------------------- */
-      const attendanceRes = await getMyAttendanceByDateAPI();
-      const todayAttendance = attendanceRes?.data; // ✅ FIXED
+      /* -------------------- 1️⃣ Work Record -------------------- */
+      const recordRes = await getTodayWorkRecordAPI();
+      const record = recordRes?.data;
 
-      if (todayAttendance) {
-        const sessions = todayAttendance.sessions || [];
-
-        // punched in if any session exists
-        setPunchInDone(sessions.length > 0);
-
-        // punched out if last session has out time
-        const lastSession = sessions.at(-1);
-        setPunchedOut(!!lastSession?.out);
+      if (record) {
+        setPunchInDone(!!record.punchIn);
+        setPunchedOut(!!record.punchOut);
       } else {
         setPunchInDone(false);
         setPunchedOut(false);
@@ -80,11 +77,11 @@ const EmployeeDashboard = () => {
           <EmployeeReport onSubmitted={handleReportSubmitted} />
         </div>
 
-        {punchInDone && !reportSubmitted && (
+        {/* {punchInDone && !reportSubmitted && (
           <p className={styles.infoText}>
             ⚠️ You need to submit the daily report before Punch Out.
           </p>
-        )}
+        )} */}
 
         {punchInDone && (
           <EmployeeTasks

@@ -12,14 +12,13 @@ import bodyParser from "body-parser";
 // Import Routes
 import servicePricesRoute from "./ServicePrices/routes/ServicePrice.routes.js";
 import quotationRoutes from "./Quote/routes/Quote.routes.js";
-import utilsRoutes from "./utils/routes/Utils.routes.js";
-import userRoutes from "./Users/routes/user.routes.js";
-import seedRoutes from "./Users/routes/seed.routes.js";
-import attendenceRoutes from "./Attendance/routes/attendance.routes.js";
-import reportRoutes from "./Report/routes/report.routes.js";
-import taskRoutes from "./Tasks/routes/task.routes.js";
-import holidayRoutes from "./Holidays/routes/holiday.routes.js";
-import leaveRoutes from "./Leaves/routes/leave.routes.js";
+import utilsRoutes from "./utils/Utils.routes.js";
+import userRoutes from "./Users/user.routes.js";
+import attendenceRoutes from "./Attendance/attendance.routes.js";
+import reportRoutes from "./Report/report.routes.js";
+import holidayRoutes from "./Holidays/holiday.routes.js";
+import taskRoutes from "./Tasks/task.routes.js";
+import leaveRoutes from "./Leaves/leave.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -50,9 +49,6 @@ app.use(`/api/${VERSION}/quotation`, quotationRoutes);
 
 // User Routes
 app.use(`/api/${VERSION}/users`, userRoutes);
-
-// Seed Routes (Temporary)
-app.use(`/api/${VERSION}/seed`, seedRoutes);
 
 // Attendence Routes
 app.use(`/api/${VERSION}/attendance`, attendenceRoutes);

@@ -1,39 +1,47 @@
-export const getISTNow = () => {
-  return new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-  );
+export const nowUTC = () => new Date();
+
+// YYYY-MM-DD (IST) → UTC midnight
+export const parseISTDateOnly = (dateStr) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 0, 0) - 5.5 * 60 * 60 * 1000);
 };
 
-export const getISTDayStart = (date = new Date()) => {
-  const d = new Date(
-    date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+// Today IST → UTC
+export const todayISTUTC = () =>
+  parseISTDateOnly(
+    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" })
   );
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
 
-export const isWithinOfficeHours = (date) => {
-  const hour = date.getHours(); // IST hour
+export const isWithinOfficeHoursIST = (dateUTC) => {
+  const hour = Number(
+    dateUTC.toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      hour12: false,
+    })
+  );
   return hour >= 10 && hour < 19;
 };
 
-export const recalcMinutes = (attendance) => {
-  let work = 0;
-  let breaks = 0;
+export const calcWorkMinutes = (record) => {
+  if (!record.punchIn || !record.punchOut) return;
 
-  attendance.sessions.forEach((s) => {
-    if (s.in && s.out) work += s.out - s.in;
-  });
+  const total = (record.punchOut - record.punchIn) / 60000;
+  const breaks = record.breaks.reduce(
+    (sum, b) => sum + (b.out && b.in ? (b.out - b.in) / 60000 : 0),
+    0
+  );
 
-  attendance.breaks.forEach((b) => {
-    if (b.in && b.out) breaks += b.out - b.in;
-  });
-
-  attendance.totalMinutes = Math.max(Math.floor((work - breaks) / 60000), 0);
+  record.totalWorkMinutes = Math.floor(total);
+  record.totalBreakMinutes = Math.floor(breaks);
+  record.netWorkMinutes = Math.max(
+    record.totalWorkMinutes - record.totalBreakMinutes,
+    0
+  );
 };
 
-export const calcStatus = (minutes) => {
-  if (minutes >= 480) return "PRESENT"; // 8 hrs
-  if (minutes >= 240) return "HALF_DAY"; // 4 hrs
+export const suggestAttendanceStatus = (minutes) => {
+  if (minutes >= 480) return "PRESENT";
+  if (minutes >= 240) return "HALF_DAY";
   return "ABSENT";
 };

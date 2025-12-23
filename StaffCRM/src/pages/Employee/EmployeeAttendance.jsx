@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { getMyAttendanceAPI } from "../../api/attendance.api";
 import styles from "./EmployeeAttendance.module.css";
 import { useAuth } from "../../context/AuthContext";
-import HRAttendance from "./HRAttendance";
 
 export default function EmployeeAttendance() {
   const { user } = useAuth();
@@ -101,9 +100,6 @@ export default function EmployeeAttendance() {
           )}
         </div>
       </div>
-      {console.log(user)}
-      {console.log(user)}
-      {user && user.role == "hr" ? <HRAttendance /> : null}
     </div>
   );
 }

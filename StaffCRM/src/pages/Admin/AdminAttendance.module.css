@@ -159,3 +159,8 @@ tbody tr:hover {
   color: purple;
   font-weight: 600;
 }
+
+.statuswfh {
+  color: teal;
+  font-weight: 600;
+}

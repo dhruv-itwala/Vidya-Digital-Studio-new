@@ -1,0 +1,72 @@
+import bcrypt from "bcryptjs";
+import User from "./user.model.js";
+
+export const createUserService = async (data) => {
+  if (await User.findOne({ email: data.email }))
+    throw new Error("User already exists");
+
+  data.password = await bcrypt.hash(data.password, 10);
+  return User.create(data);
+};
+
+export const updateUserService = async (loggedInUser, userId, data) => {
+  const targetUser = await User.findById(userId);
+  if (!targetUser) throw new Error("User not found");
+
+  // HR cannot update Admin
+  if (loggedInUser.role === "hr" && targetUser.role === "admin") {
+    throw new Error("HR cannot modify Admin");
+  }
+
+  // Only Admin can change roles
+  if (loggedInUser.role !== "admin") {
+    delete data.role;
+  }
+
+  // Password update (same route)
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, 10);
+  }
+
+  return User.findByIdAndUpdate(userId, data, {
+    new: true,
+    runValidators: true,
+  }).select("-password");
+};
+
+export const deleteUserService = async (loggedInUser, targetUserId) => {
+  const user = await User.findById(targetUserId);
+  if (!user) throw new Error("User not found");
+
+  // HR cannot delete Admin
+  if (loggedInUser.role === "hr" && user.role === "admin") {
+    throw new Error("HR cannot delete Admin");
+  }
+
+  // Employee cannot delete anyone
+  if (loggedInUser.role === "employee") {
+    throw new Error("Access denied");
+  }
+
+  // Soft delete
+  user.isActive = false;
+  await user.save();
+};
+
+export const loginService = async (email, password) => {
+  const user = await User.findOne({ email }).select("+password");
+  if (!user) throw new Error("Invalid credentials");
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) throw new Error("Invalid credentials");
+
+  return user;
+};
+
+export const getAllUsersService = async () => {
+  return User.find().select("-password");
+};
+
+export const getProfileService = async (userId) => {
+  return User.findById(userId).select("-password");
+};

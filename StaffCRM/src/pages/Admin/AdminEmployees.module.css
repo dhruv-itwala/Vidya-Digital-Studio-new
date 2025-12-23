@@ -89,7 +89,8 @@ h2 {
 }
 
 /* Edit Button */
-.editBtn {
+.editBtn,
+.deleteBtn {
   padding: 6px 14px;
   background-color: var(--color-secondary);
   color: white;

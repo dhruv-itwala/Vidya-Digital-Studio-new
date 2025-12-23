@@ -135,7 +135,7 @@ export default function EmployeeTasks({
         onDelete={removeTask}
         onEdit={startEdit}
       />
-      <TaskCompleted />
+      {/* <TaskCompleted /> */}
 
       {showForm && (
         <div

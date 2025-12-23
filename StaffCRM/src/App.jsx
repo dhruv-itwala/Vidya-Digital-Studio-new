@@ -11,7 +11,7 @@ import AdminAttendance from "./pages/Admin/AdminAttendance";
 import AdminReports from "./pages/Admin/AdminReports";
 import AdminLeaveApproval from "./pages/Admin/AdminLeaveApproval";
 
-import HRHoliday from "./pages/Employee/HRHoliday";
+import HRHoliday from "./pages/HR/HRHoliday";
 import EmployeeTasks from "./pages/Employee/EmployeeTasks";
 import EmployeeDashboard from "./pages/Employee/EmployeeDashboard";
 import EmployeeAttendance from "./pages/Employee/EmployeeAttendance";
@@ -25,6 +25,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import HRReports from "./pages/HR/HRReports";
 import HRLeaveApproval from "./pages/HR/HRLeaveApproval";
 import HRLayout from "./layouts/HRLayout";
+import HRAttendance from "./pages/HR/HRAttendance";
 export default function App() {
   return (
     <>
@@ -52,7 +53,7 @@ export default function App() {
           }
         >
           {/* index route redirects /admin → /admin/dashboard */}
-          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route index element={<Navigate to="attendence" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="employees" element={<AdminEmployees />} />
           <Route path="leaves" element={<AdminLeaveApproval />} />
@@ -87,14 +88,14 @@ export default function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<EmployeeDashboard />} />
-          <Route path="attendance" element={<EmployeeAttendance />} />
+          <Route path="attendance" element={<HRAttendance />} />
           <Route path="profile" element={<EmployeeProfile />} />
           <Route path="leaves" element={<EmployeeLeaves />} />
           <Route path="tasks" element={<EmployeeTasks />} />
 
-          <Route path="leaves-approval" element={<HRLeaveApproval />} />
-          <Route path="reports" element={<HRReports />} />
-          <Route path="holiday" element={<HRHoliday />} />
+          <Route path="hrLeaveApproval" element={<HRLeaveApproval />} />
+          <Route path="hrReports" element={<HRReports />} />
+          <Route path="hrHoliday" element={<HRHoliday />} />
         </Route>
 
         {/* FALLBACK */}

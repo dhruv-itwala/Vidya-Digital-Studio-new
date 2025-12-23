@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import styles from "./HRReports.module.css";
 import {
   downloadAllReportsByDatePDF,
   getAllReportsByDate,
 } from "../../api/report.api";
+import toast from "react-hot-toast";
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -11,7 +13,6 @@ export default function HRReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch reports when date changes
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
@@ -37,66 +38,74 @@ export default function HRReports() {
       link.download = `${date} Work Report.pdf`;
       link.click();
       URL.revokeObjectURL(url);
+      toast.success("Report downloaded");
     } catch (err) {
       console.error(err);
-      alert("Failed to download report");
+      toast.error("Failed to download report");
     }
   };
 
   return (
-    <div>
-      <h2>Work Reports</h2>
+    <div className={`masterContainer ${styles.container}`}>
+      <h2 className={styles.title}>Work Reports</h2>
 
-      <div style={{ marginBottom: "1rem" }}>
-        <label>
-          Select Date:{" "}
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </label>
-        <button onClick={download} style={{ marginLeft: "1rem" }}>
+      <div className={styles.controls}>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className={styles.dateInput}
+        />
+
+        <button onClick={download} className={styles.downloadBtn}>
           Download Reports
         </button>
       </div>
 
       {loading ? (
-        <p>Loading reports...</p>
+        <p className={styles.loading}>Loading reports...</p>
       ) : (
-        <table border="1" cellPadding="8" cellSpacing="0">
-          <thead>
-            <tr>
-              <th>Employee Name</th>
-              <th>Report Status</th>
-              <th>Work Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.length === 0 && (
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
               <tr>
-                <td colSpan="3" style={{ textAlign: "center" }}>
-                  No reports found
-                </td>
+                <th>Employee Name</th>
+                <th>Report Status</th>
+                <th>Work Points</th>
               </tr>
-            )}
-            {reports.map((report) => (
-              <tr key={report._id}>
-                <td>{report.user.name}</td>
-                <td>
-                  {report.workPoints && report.workPoints.length > 0
-                    ? "Submitted"
-                    : "Pending"}
-                </td>
-                <td>
-                  {report.workPoints && report.workPoints.length > 0
-                    ? report.workPoints.join(", ")
-                    : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {reports.length === 0 && (
+                <tr>
+                  <td colSpan="3" className={styles.empty}>
+                    No reports found
+                  </td>
+                </tr>
+              )}
+
+              {reports.map((report) => {
+                const submitted =
+                  report.workPoints && report.workPoints.length > 0;
+
+                return (
+                  <tr key={report._id}>
+                    <td>{report.user.name}</td>
+                    <td
+                      className={
+                        submitted
+                          ? styles.statusSubmitted
+                          : styles.statusPending
+                      }
+                    >
+                      {submitted ? "Submitted" : "Pending"}
+                    </td>
+                    <td>{submitted ? report.workPoints.join(", ") : "-"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

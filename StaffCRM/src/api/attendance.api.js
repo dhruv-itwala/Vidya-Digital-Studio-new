@@ -11,6 +11,14 @@ const handleError = (error) => {
 };
 
 // ================= EMPLOYEE =================
+export const getTodayWorkRecordAPI = async () => {
+  try {
+    return await api.get("/attendance/work-record/today");
+  } catch (error) {
+    handleError(error);
+  }
+};
+
 export const punchInAPI = async () => {
   try {
     return await api.post("/attendance/punch-in");

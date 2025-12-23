@@ -1,0 +1,158 @@
+import Attendance from "./attendance.model.js";
+import WorkRecord from "./workRecord.model.js";
+import {
+  nowUTC,
+  todayISTUTC,
+  parseISTDateOnly,
+  calcWorkMinutes,
+  suggestAttendanceStatus,
+} from "./attendance.utils.js";
+import userModel from "../Users/user.model.js";
+import holidayModel from "../Holidays/holiday.model.js";
+import attendanceModel from "./attendance.model.js";
+import workRecordModel from "./workRecord.model.js";
+
+/* ========== EMPLOYEE ========== */
+
+export const getMyAttendanceService = async (userId, from, to) => {
+  const fromDate = parseISTDateOnly(from);
+  const toDate = parseISTDateOnly(to);
+
+  return attendanceModel
+    .find({ user: userId, date: { $gte: fromDate, $lte: toDate } })
+    .sort({ date: 1 });
+};
+
+export const getTodayWorkRecordService = async (userId) => {
+  return workRecordModel.findOne({
+    user: userId,
+    date: todayISTUTC(),
+  });
+};
+
+export const punchInService = async (userId) => {
+  const now = nowUTC();
+  // if (!isWithinOfficeHoursIST(now))
+  //   throw new Error("Punch in allowed between 10AM–7PM IST");
+
+  const date = todayISTUTC();
+
+  const record = await WorkRecord.findOneAndUpdate(
+    { user: userId, date },
+    { $setOnInsert: { punchIn: now } },
+    { upsert: true, new: true }
+  );
+
+  if (record.punchIn && record.punchOut) throw new Error("Already punched out");
+
+  return record;
+};
+
+export const punchOutService = async (userId) => {
+  const date = todayISTUTC();
+  const record = await WorkRecord.findOne({ user: userId, date });
+
+  if (!record || record.punchOut) throw new Error("Punch in first");
+
+  record.punchOut = nowUTC();
+  record.breaks.forEach((b) => !b.out && (b.out = record.punchOut));
+  calcWorkMinutes(record);
+
+  await record.save();
+
+  // Auto suggest attendance
+  await Attendance.findOneAndUpdate(
+    { user: userId, date },
+    {
+      status: suggestAttendanceStatus(record.netWorkMinutes),
+      source: "SYSTEM",
+    },
+    { upsert: true }
+  );
+
+  return record;
+};
+
+export const breakInService = async (userId) => {
+  const record = await WorkRecord.findOne({
+    user: userId,
+    date: todayISTUTC(),
+  });
+  if (!record || record.punchOut) throw new Error("No active session");
+
+  const last = record.breaks.at(-1);
+  if (last && !last.out) throw new Error("Already on break");
+
+  record.breaks.push({ in: nowUTC() });
+  return record.save();
+};
+
+export const breakOutService = async (userId) => {
+  const record = await WorkRecord.findOne({
+    user: userId,
+    date: todayISTUTC(),
+  });
+  const last = record?.breaks.at(-1);
+  if (!last || last.out) throw new Error("No active break");
+
+  last.out = nowUTC();
+  return record.save();
+};
+
+/* ========== HR / ADMIN ========== */
+
+export const getAllEmployeesAttendanceService = async (date) => {
+  const day = parseISTDateOnly(date);
+  const users = await userModel.find({ role: { $ne: "admin" } });
+  const records = await Attendance.find({ date: day });
+  const holiday = await holidayModel.findOne({ date: day });
+
+  return users.map((u) => {
+    const att = records.find((r) => r.user.equals(u._id));
+    return {
+      _id: u._id,
+      name: u.name,
+      email: u.email,
+      status: att ? att.status : holiday ? "HOLIDAY" : "ABSENT",
+    };
+  });
+};
+
+export const markAttendanceStatusService = async (userId, date, status) => {
+  if (
+    !["PRESENT", "HALF_DAY", "WFH", "ABSENT", "HOLIDAY", "LEAVE"].includes(
+      status
+    )
+  ) {
+    throw new Error("Invalid status");
+  }
+
+  const day = parseISTDateOnly(date);
+
+  // Find existing or create new attendance
+  const attendance = await attendanceModel.findOneAndUpdate(
+    { user: userId, date: day },
+    { status },
+    { upsert: true, new: true }
+  );
+
+  return attendance;
+};
+
+export const getUserAttendanceByDateService = async (userId, date) => {
+  // Convert input date to start/end of day in IST
+  const startOfDay = parseISTDateOnly(date); // 2025-12-21T00:00:00+05:30
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1); // next day start
+
+  return attendanceModel.findOne({
+    user: userId,
+    date: { $gte: startOfDay, $lt: endOfDay }, // range query
+  });
+};
+
+/* ================= ADMIN ================= */
+export const getDayAttendanceService = async (date) => {
+  const day = parseISTDateOnly(date);
+  return attendanceModel.find({ date: day }).populate("user", "name email");
+};

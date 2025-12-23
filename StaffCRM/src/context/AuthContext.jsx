@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getMyProfileAPI, getAllUsersAPI } from "../api/auth.api";
+import { getMyProfileAPI } from "../api/auth.api";
+import { getAllUsersAPI } from "../api/admin.api";
 
 const AuthContext = createContext(null);
 
@@ -12,19 +13,14 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = async () => {
     try {
       const res = await getMyProfileAPI();
-      const normalizedUser = {
-        ...res.data,
-        role: res.data.role.toLowerCase(),
-      };
-      setUser(normalizedUser);
-    } catch (err) {
+      setUser(res.data);
+      return res.data;
+    } catch {
       logout();
-    } finally {
-      setLoading(false);
     }
   };
 
-  const getAllUsers = async () => {
+  const fetchAllUsers = async () => {
     try {
       const res = await getAllUsersAPI();
       setAllEmployees(res.data);
@@ -34,17 +30,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (token) {
-      fetchProfile();
-      getAllUsers();
-    } else {
+    const initAuth = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      const profile = await fetchProfile();
+
+      // 🔐 Only HR/Admin should load employees
+      if (profile && (profile.role === "admin" || profile.role === "hr")) {
+        await fetchAllUsers();
+      }
+
       setLoading(false);
-    }
+    };
+
+    initAuth();
   }, [token]);
 
   const login = ({ token, user }) => {
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
     setToken(token);
     setUser(user);
     setLoading(true);
@@ -54,6 +61,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+    setAllEmployees([]);
     setToken(null);
     setLoading(false);
   };
@@ -65,9 +73,12 @@ export const AuthProvider = ({ children }) => {
         token,
         allEmployees,
         loading,
-        isAuthenticated: !!token,
+        isAuthenticated: Boolean(token),
+        isAdmin: user?.role === "admin",
+        isHR: user?.role === "hr",
         login,
         logout,
+        refetchUsers: fetchAllUsers,
       }}
     >
       {children}

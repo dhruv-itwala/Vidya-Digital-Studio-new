@@ -5,6 +5,7 @@ import {
   breakInAPI,
   breakOutAPI,
   getMyAttendanceAPI,
+  getTodayWorkRecordAPI,
 } from "../../api/attendance.api";
 import styles from "./EmployeeTimer.module.css";
 
@@ -47,7 +48,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
         breakActive = true;
       } else {
         totalSeconds += Math.floor(
-          (Date.now() - new Date(lastSession.in)) / 1000
+          (Date.now() - new Date(lastSession.in).getTime()) / 1000
         );
         running = true;
       }
@@ -56,27 +57,32 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
     return { totalSeconds, running, breakActive };
   };
 
-  const syncFromServer = async (force = false) => {
-    try {
-      const res = await getMyAttendanceAPI({ from: today, to: today });
-      if (!res.data?.length) {
-        if (force) setSeconds(0);
-        setIsRunning(false);
-        setOnBreak(false);
-        return;
-      }
-
-      const { totalSeconds, running, breakActive } = deriveTimerState(
-        res.data[0]
-      );
-
-      if (force) setSeconds(totalSeconds);
-
-      setIsRunning(running);
-      setOnBreak(breakActive);
-    } catch {
-      setMessage("Failed to sync attendance");
+  const syncFromServer = async () => {
+    const res = await getTodayWorkRecordAPI();
+    if (!res.data) {
+      setIsRunning(false);
+      setOnBreak(false);
+      setSeconds(0);
+      return;
     }
+
+    const record = res.data;
+
+    let totalSeconds = record.netWorkMinutes * 60;
+    let running = !!record.punchIn && !record.punchOut;
+
+    const lastBreak = record.breaks?.at(-1);
+    const breakActive = lastBreak && !lastBreak.out;
+
+    if (running && !breakActive) {
+      totalSeconds += Math.floor(
+        (Date.now() - new Date(record.punchIn)) / 1000
+      );
+    }
+
+    setSeconds(totalSeconds);
+    setIsRunning(running);
+    setOnBreak(breakActive);
   };
 
   useEffect(() => {
