@@ -39,8 +39,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const profile = await fetchProfile();
 
-      // 🔐 Only HR/Admin should load employees
-      if (profile && (profile.role === "admin" || profile.role === "hr")) {
+      if (profile) {
         await fetchAllUsers();
       }
 

@@ -7,7 +7,6 @@ import {
 } from "../../api/task.api";
 import TaskKanban from "../../components/Task/TaskKanban";
 import TaskForm from "../../components/Task/TaskForm";
-import TaskCompleted from "../../components/Task/TaskCompleted";
 import TaskAnalytics from "../../components/Task/TaskAnalytics";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeTasks.module.css";

@@ -5,6 +5,7 @@ import {
   cancelLeaveAPI,
 } from "../../api/leave.api";
 import styles from "./EmployeeLeaves.module.css";
+import toast from "react-hot-toast";
 
 export default function EmployeeLeaves() {
   const [fromDate, setFromDate] = useState("");
@@ -26,7 +27,7 @@ export default function EmployeeLeaves() {
 
   const applyLeave = async () => {
     if (!fromDate || !toDate) {
-      alert("Select date range");
+      toast.alert("Select date range");
       return;
     }
 
@@ -46,8 +47,9 @@ export default function EmployeeLeaves() {
       setReason("");
 
       fetchLeaves();
+      toast.success("Leave applied successfully");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to apply leave");
+      toast.error(err.response?.data?.message || "Failed to apply leave");
     } finally {
       setLoading(false);
     }
@@ -68,12 +70,10 @@ export default function EmployeeLeaves() {
   return (
     <div className="masterContainer">
       <div className={styles.container}>
-        <h2>My Leaves</h2>
+        <h2 className={styles.title}>My Leaves</h2>
 
-        {/* APPLY */}
+        {/* APPLY LEAVE FORM */}
         <div className={styles.card}>
-          <h3>Apply Leave</h3>
-
           <div className={styles.formRow}>
             <input
               type="date"
@@ -86,41 +86,43 @@ export default function EmployeeLeaves() {
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
             />
-          </div>
-
-          <div className={styles.formRow}>
             <select value={type} onChange={(e) => setType(e.target.value)}>
               <option value="CASUAL">Casual</option>
               <option value="SICK">Sick</option>
               <option value="UNPAID">Unpaid</option>
             </select>
-
-            <label className={styles.checkbox}>
+            <label className={styles.toggle}>
               <input
                 type="checkbox"
                 checked={isHalfDay}
                 onChange={(e) => setIsHalfDay(e.target.checked)}
               />
-              Half Day
+              <span className={styles.slider}></span>
+              <span className={styles.labelText}>Half Day</span>
             </label>
           </div>
 
-          <textarea
-            placeholder="Reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
+          <div className={styles.formRow}>
+            <textarea
+              placeholder="Reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </div>
 
-          <button onClick={applyLeave} disabled={loading}>
+          <button
+            className={styles.primaryBtn}
+            onClick={applyLeave}
+            disabled={loading}
+          >
             {loading ? "Applying..." : "Apply Leave"}
           </button>
         </div>
 
-        {/* HISTORY */}
+        {/* LEAVE HISTORY */}
         <div className={styles.card}>
           <h3>Leave History</h3>
-
-          <table>
+          <table className={styles.leaveTable}>
             <thead>
               <tr>
                 <th>Duration</th>
@@ -133,7 +135,9 @@ export default function EmployeeLeaves() {
             <tbody>
               {leaves.length === 0 ? (
                 <tr>
-                  <td colSpan="5">No leave records</td>
+                  <td colSpan="5" className={styles.empty}>
+                    No leave records
+                  </td>
                 </tr>
               ) : (
                 leaves.map((l) => (
@@ -141,13 +145,15 @@ export default function EmployeeLeaves() {
                     <td>
                       {formatDate(l.fromDate)} → {formatDate(l.toDate)}
                     </td>
-
                     <td>{l.type}</td>
                     <td>{l.isHalfDay ? "Yes" : "No"}</td>
                     <td className={styles[`status${l.status}`]}>{l.status}</td>
                     <td>
                       {(l.status === "PENDING" || l.status === "APPROVED") && (
-                        <button onClick={() => cancelLeave(l._id)}>
+                        <button
+                          className={styles.cancelBtn}
+                          onClick={() => cancelLeave(l._id)}
+                        >
                           Cancel
                         </button>
                       )}

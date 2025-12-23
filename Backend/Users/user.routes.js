@@ -18,13 +18,11 @@ userRoutes.post("/login", login);
 userRoutes.use(protect);
 // Profile
 userRoutes.get("/me", getProfile);
+userRoutes.get("/", getAllUsers);
 
 // HR & Admin
 userRoutes.post("/", createUser);
 userRoutes.put("/:id", updateUser);
 userRoutes.delete("/:id", deleteUser);
-
-// Admin only
-userRoutes.get("/", getAllUsers);
 
 export default userRoutes;

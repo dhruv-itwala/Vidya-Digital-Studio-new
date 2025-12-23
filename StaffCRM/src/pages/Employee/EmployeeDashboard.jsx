@@ -3,10 +3,7 @@ import EmployeeTimer from "./EmployeeTimer";
 import EmployeeReport from "./EmployeeReport";
 import EmployeeTasks from "./EmployeeTasks";
 import styles from "./EmployeeDashboard.module.css";
-import {
-  getMyAttendanceByDateAPI,
-  getTodayWorkRecordAPI,
-} from "../../api/attendance.api";
+import { getTodayWorkRecordAPI } from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
 
 const EmployeeDashboard = () => {

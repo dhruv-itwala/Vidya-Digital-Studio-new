@@ -1,22 +1,28 @@
 .container {
   width: 100%;
   margin: auto;
+  padding: 15px;
 }
 
 .title {
   margin-bottom: 20px;
+  color: var(--color-button);
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .card {
   background: #fff;
   padding: 20px;
   margin-bottom: 25px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .formRow {
   display: flex;
+  flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 15px;
 }
@@ -24,25 +30,74 @@
 input,
 select,
 textarea {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
+  flex: 1;
+  min-width: 150px;
+  padding: 10px 12px;
+  border-radius: 8px;
   border: 1px solid #ccc;
+  font-size: 0.95rem;
 }
 
 textarea {
-  resize: none;
   height: 80px;
-  margin-bottom: 15px;
+  resize: none;
+  width: 100%;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.toggle input {
+  display: none;
+}
+
+.slider {
+  width: 42px;
+  height: 22px;
+  background-color: #d1d5db;
+  border-radius: 999px;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle input:checked + .slider {
+  background-color: var(--color-button); /* primary color */
+}
+
+.toggle input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+.labelText {
+  user-select: none;
 }
 
 .primaryBtn {
-  background: #4f46e5;
-  color: white;
-  padding: 10px 18px;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  padding: 10px 20px;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
 }
 
 .primaryBtn:disabled {
@@ -50,15 +105,20 @@ textarea {
   cursor: not-allowed;
 }
 
-table {
+.primaryBtn:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.leaveTable {
   width: 100%;
   border-collapse: collapse;
 }
 
 th,
 td {
-  padding: 12px;
+  padding: 12px 10px;
   border-bottom: 1px solid #eee;
+  text-align: left;
 }
 
 .empty {
@@ -66,21 +126,22 @@ td {
   color: #888;
 }
 
+/* Cancel button */
+.cancelBtn {
+  background: #f87171;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.cancelBtn:hover {
+  background: #ef4444;
+}
+
 /* Status Colors */
-.statusPending {
-  color: orange;
-  font-weight: 600;
-}
-
-.statusApproved {
-  color: green;
-  font-weight: 600;
-}
-
-.statusDeclined {
-  color: red;
-  font-weight: 600;
-}
 .statusPENDING {
   color: orange;
   font-weight: 600;
@@ -99,4 +160,17 @@ td {
 .statusCANCELLED {
   color: gray;
   font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .formRow {
+    flex-direction: column;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+  }
 }
