@@ -87,6 +87,46 @@ textarea {
   resize: vertical;
 }
 
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.toggle input {
+  display: none;
+}
+
+.slider {
+  width: 42px;
+  height: 22px;
+  background-color: #d1d5db;
+  border-radius: 999px;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle input:checked + .slider {
+  background-color: var(--color-button); /* primary color */
+}
+
+.toggle input:checked + .slider::before {
+  transform: translateX(20px);
+}
 .checkboxContainer {
   display: flex;
   justify-content: flex-start;

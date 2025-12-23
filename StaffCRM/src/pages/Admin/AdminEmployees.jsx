@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllUsersAPI, deleteUserAPI } from "../../api/admin.api";
+import { getAllUsersAPI } from "../../api/admin.api";
 import EmployeeModal from "./EmployeeModal";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./AdminEmployees.module.css";
@@ -9,7 +9,7 @@ export default function AdminEmployees() {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const [rowsPerPage, setRowsPerPage] = useState(100);
 
   useEffect(() => {
     if (user?.role === "admin" || user?.role === "hr") {
@@ -22,17 +22,20 @@ export default function AdminEmployees() {
     setUsers(res.data);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Deactivate this employee?")) return;
-    await deleteUserAPI(id);
-    load();
-  };
-
   const indexOfLastUser = currentPage * rowsPerPage;
   const currentUsers = users.slice(
     indexOfLastUser - rowsPerPage,
     indexOfLastUser
   );
+
+  const totalPages = Math.ceil(users.length / rowsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const handleRowsChange = (e) => {
+    setRowsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page
+  };
 
   if (!user || (user.role !== "admin" && user.role !== "hr")) {
     return <p>Access denied</p>;
@@ -51,49 +54,80 @@ export default function AdminEmployees() {
           </button>
         </div>
 
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Edit</th>
-              {/* <th>Delete</th> */}
-            </tr>
-          </thead>
+        {/* Rows per page selector */}
+        {/* <div className={styles.rowsPerPage}>
+          <label>Rows per page:</label>
+          <select value={rowsPerPage} onChange={handleRowsChange}>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+          </select>
+        </div> */}
 
-          <tbody>
-            {currentUsers.map((u) => (
-              <tr key={u._id}>
-                <td>{u.name}</td>
-                <td>{u.email}</td>
-                <td>{u.role.toUpperCase()}</td>
-                <td className={u.isActive ? styles.active : styles.inactive}>
-                  {u.isActive ? "Active" : "Inactive"}
-                </td>
-                <td>
-                  <button
-                    disabled={user.role === "hr" && u.role === "admin"}
-                    onClick={() => setEditingUser(u)}
-                    className={styles.editBtn}
-                  >
-                    Edit
-                  </button>
-                </td>
-                {/* <td>
-                  <button
-                    disabled={user.role === "hr" && u.role === "admin"}
-                    className={styles.deleteBtn}
-                    onClick={() => handleDelete(u._id)}
-                  >
-                    Deactivate
-                  </button>
-                </td> */}
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Edit</th>
               </tr>
+            </thead>
+
+            <tbody>
+              {currentUsers.map((u) => (
+                <tr key={u._id}>
+                  <td>{u.name}</td>
+                  <td>{u.email}</td>
+                  <td>{u.role.toUpperCase()}</td>
+                  <td className={u.isActive ? styles.active : styles.inactive}>
+                    {u.isActive ? "Active" : "Inactive"}
+                  </td>
+                  <td>
+                    <button
+                      disabled={user.role === "hr" && u.role === "admin"}
+                      onClick={() => setEditingUser(u)}
+                      className={styles.editBtn}
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className={styles.pagination}>
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => paginate(i + 1)}
+                className={currentPage === i + 1 ? styles.activePage : ""}
+              >
+                {i + 1}
+              </button>
             ))}
-          </tbody>
-        </table>
+
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
 
         {editingUser && (
           <EmployeeModal

@@ -202,13 +202,14 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
 
           {/* Active */}
           <div className={styles.checkboxContainer}>
-            <label style={{ paddingLeft: "20px" }}>
+            <label className={styles.toggle}>
               <input
                 type="checkbox"
                 checked={form.isActive}
                 onChange={(e) => handleChange("isActive", e.target.checked)}
               />
-              Active
+              <span className={styles.slider}></span>
+              <span className={styles.labelText}>Active</span>
             </label>
           </div>
 

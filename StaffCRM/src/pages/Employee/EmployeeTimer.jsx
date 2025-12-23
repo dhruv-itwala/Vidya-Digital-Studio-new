@@ -4,7 +4,6 @@ import {
   punchOutAPI,
   breakInAPI,
   breakOutAPI,
-  getMyAttendanceAPI,
   getTodayWorkRecordAPI,
 } from "../../api/attendance.api";
 import styles from "./EmployeeTimer.module.css";
@@ -20,87 +19,58 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
 
   const intervalRef = useRef(null);
 
-  const today = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Kolkata",
-  });
-
+  /* -------------------- Messages -------------------- */
   const getMessage = (type) => {
-    const name = "Hey 👋";
     const messages = {
-      punchIn: `${name}! Have a great day 🚀`,
-      breakIn: `☕ Enjoy your break!`,
-      breakOut: `Welcome back! 💪`,
-      punchOut: `Great work today! 🌟`,
+      punchIn: "Hey 👋 Have a great day 🚀",
+      breakIn: "☕ Enjoy your break!",
+      breakOut: "Welcome back! 💪",
+      punchOut: "Great work today! 🌟",
     };
     return messages[type] || "";
   };
 
-  const deriveTimerState = (attendance) => {
-    let totalSeconds = (attendance.totalMinutes || 0) * 60;
-    let running = false;
-    let breakActive = false;
-
-    const lastSession = attendance.sessions?.at(-1);
-    const lastBreak = attendance.breaks?.at(-1);
-
-    if (lastSession && !lastSession.out) {
-      if (lastBreak && !lastBreak.out) {
-        breakActive = true;
-      } else {
-        totalSeconds += Math.floor(
-          (Date.now() - new Date(lastSession.in).getTime()) / 1000
-        );
-        running = true;
-      }
-    }
-
-    return { totalSeconds, running, breakActive };
-  };
-
+  /* -------------------- Sync From Server -------------------- */
   const syncFromServer = async () => {
     const res = await getTodayWorkRecordAPI();
-    if (!res.data) {
+    const record = res?.data;
+
+    if (!record) {
+      setSeconds(0);
       setIsRunning(false);
       setOnBreak(false);
-      setSeconds(0);
       return;
     }
-
-    const record = res.data;
-
-    let totalSeconds = record.netWorkMinutes * 60;
-    let running = !!record.punchIn && !record.punchOut;
 
     const lastBreak = record.breaks?.at(-1);
     const breakActive = lastBreak && !lastBreak.out;
 
-    if (running && !breakActive) {
-      totalSeconds += Math.floor(
-        (Date.now() - new Date(record.punchIn)) / 1000
-      );
-    }
-
-    setSeconds(totalSeconds);
-    setIsRunning(running);
+    setSeconds(record.netWorkMinutes * 60);
+    setIsRunning(!!record.punchIn && !record.punchOut && !breakActive);
     setOnBreak(breakActive);
   };
 
+  /* -------------------- Timer Interval -------------------- */
   useEffect(() => {
+    clearInterval(intervalRef.current);
+
     if (isRunning) {
-      intervalRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
-    } else {
-      clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
     }
 
     return () => clearInterval(intervalRef.current);
   }, [isRunning]);
 
+  /* -------------------- Initial Load + Polling -------------------- */
   useEffect(() => {
-    syncFromServer(true);
-    const poll = setInterval(() => syncFromServer(false), 30000);
+    syncFromServer();
+    const poll = setInterval(syncFromServer, 30000);
     return () => clearInterval(poll);
   }, []);
 
+  /* -------------------- Actions -------------------- */
   const handleAction = async (api, type) => {
     if (
       type === "punchOut" &&
@@ -115,7 +85,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
     try {
       setLoading(true);
       await api();
-      await syncFromServer(false);
+      await syncFromServer();
       setMessage(getMessage(type));
 
       if (type === "punchIn" && onPunchIn) onPunchIn();
@@ -127,7 +97,8 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
     }
   };
 
-  const format = () => {
+  /* -------------------- Helpers -------------------- */
+  const formatTime = () => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
@@ -139,12 +110,14 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
 
   const progress = Math.min((seconds / WORK_TARGET_SECONDS) * 100, 100);
 
+  /* -------------------- Circular UI -------------------- */
   const radius = 70;
   const stroke = 8;
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
+  /* -------------------- Button States -------------------- */
   const canPunchIn = !isRunning && !onBreak;
   const canPunchOut = isRunning;
   const canBreakIn = isRunning && !onBreak;
@@ -169,8 +142,11 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
             fill="transparent"
             strokeWidth={stroke}
             strokeLinecap="round"
-            strokeDasharray={circumference + " " + circumference}
-            style={{ strokeDashoffset, transition: "stroke-dashoffset 0.5s" }}
+            strokeDasharray={`${circumference} ${circumference}`}
+            style={{
+              strokeDashoffset,
+              transition: "stroke-dashoffset 0.5s",
+            }}
             r={normalizedRadius}
             cx={radius}
             cy={radius}
@@ -184,7 +160,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
             fontWeight="bold"
             fill="#333"
           >
-            {format()}
+            {formatTime()}
           </text>
         </svg>
       </div>
@@ -202,18 +178,21 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
         >
           Punch In
         </button>
+
         <button
           disabled={!canPunchOut || loading}
           onClick={() => handleAction(punchOutAPI, "punchOut")}
         >
           Punch Out
         </button>
+
         <button
           disabled={!canBreakIn || loading}
           onClick={() => handleAction(breakInAPI, "breakIn")}
         >
           Break In
         </button>
+
         <button
           disabled={!canBreakOut || loading}
           onClick={() => handleAction(breakOutAPI, "breakOut")}
