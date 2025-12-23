@@ -135,6 +135,13 @@ tbody tr:hover {
     align-items: flex-start;
   }
 }
+.filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
 .statuspresent {
   color: green;
   font-weight: 600;

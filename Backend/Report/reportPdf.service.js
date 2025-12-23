@@ -1,4 +1,4 @@
-import { getAllReportsByDateService } from "./report.service.js";
+import { getReportsWithWorkingHrsByDateService } from "./report.service.js";
 import PDFDocument from "pdfkit";
 
 export const downloadAllReportsByDatePDF = async (req, res) => {
@@ -8,7 +8,9 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
       .status(400)
       .json({ message: "Date query parameter is required" });
 
-  const reports = await getAllReportsByDateService(date);
+  // Fetch reports with working hours
+  const reports = await getReportsWithWorkingHrsByDateService(date);
+
   if (!reports || reports.length === 0)
     return res.status(404).json({ message: "No reports found for this date" });
 
@@ -18,6 +20,7 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
     year: "numeric",
   });
 
+  // Set headers for PDF download
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
@@ -42,7 +45,8 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
 
   /* ---------- TABLE HEADER ---------- */
   const nameX = 50;
-  const taskX = 220;
+  const hoursX = 220; // new column for working hours
+  const taskX = 300; // tasks start after hours column
   const tableWidth = 495;
 
   const drawHeader = () => {
@@ -54,6 +58,7 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
       .font("Helvetica-Bold")
       .fontSize(13)
       .text("Employee Name", nameX, y, { width: 160 })
+      .text("Working Hrs", hoursX, y, { width: 60 })
       .text("Tasks Completed", taskX, y);
 
     doc.moveDown(1.5);
@@ -65,38 +70,37 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
   reports.forEach((report, index) => {
     const startY = doc.y;
 
-    // Page break check
+    // Page break
     if (startY > 700) {
       doc.addPage();
       drawHeader();
     }
 
-    // Background block
+    // Background color for alternating rows
     doc
       .rect(45, startY - 5, tableWidth, 10)
       .fill(index % 2 === 0 ? "#F9FAFB" : "#FFFFFF");
 
     doc.fillColor("#111827").font("Helvetica").fontSize(12);
 
-    // Name
-    doc.text(report.user.name, nameX, startY, {
-      width: 160,
-    });
+    // Employee Name
+    doc.text(report.user.name, nameX, startY, { width: 160 });
+
+    // Working Hours
+    doc.text(`${report.workingHours} hrs`, hoursX, startY, { width: 60 });
 
     // Tasks (bullet list)
     let taskY = startY;
     report.workPoints.forEach((task) => {
       doc.fontSize(11).fillColor("#374151").text(`• ${task}`, taskX, taskY, {
-        width: 300,
+        width: 260,
         lineGap: 3,
       });
       taskY = doc.y;
     });
 
-    // Calculate row height
+    // Row height & divider
     const rowHeight = Math.max(taskY - startY, 25);
-
-    // Row divider
     doc
       .moveTo(45, startY + rowHeight + 5)
       .lineTo(45 + tableWidth, startY + rowHeight + 5)

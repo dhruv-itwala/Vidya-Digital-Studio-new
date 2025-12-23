@@ -1,3 +1,4 @@
+import workRecordModel from "../Attendance/workRecord.model.js";
 import Report from "./report.model.js";
 
 const today = () => new Date().toISOString().split("T")[0];
@@ -58,6 +59,41 @@ export const updateReportService = async (reportId, user) => {
 
 export const getAllReportsByDateService = async (date) => {
   return Report.find({ date }).populate("user", "name email");
+};
+
+export const getWorkRecordsByDateService = async (date) => {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+
+  return workRecordModel
+    .find({
+      date: { $gte: start, $lte: end },
+    })
+    .populate("user", "name email");
+};
+
+export const getReportsWithWorkingHrsByDateService = async (date) => {
+  const reports = await Report.find({ date }).populate("user", "name email");
+  const workRecords = await getWorkRecordsByDateService(date);
+
+  // Create lookup: userId → workRecord
+  const workMap = {};
+  workRecords.forEach((wr) => {
+    workMap[wr.user._id.toString()] = wr;
+  });
+
+  return reports.map((report) => {
+    const wr = workMap[report.user._id.toString()];
+
+    return {
+      ...report.toObject(),
+      workingMinutes: wr?.totalWorkMinutes || 0,
+      workingHours: wr ? (wr.totalWorkMinutes / 60).toFixed(2) : "0.00",
+    };
+  });
 };
 
 export const getMyReportByDateService = async (userId, date) => {

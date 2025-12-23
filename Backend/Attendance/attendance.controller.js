@@ -91,6 +91,22 @@ export const getAllEmployeesAttendance = async (req, res) => {
   }
 };
 
+// HR: get employee attendance by date range
+export const getAllEmployeesAttendanceByDateRange = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+
+    if (!from || !to) {
+      throw new Error("from and to are required");
+    }
+
+    const data = await service.getAllAttendanceByDateRangeService(from, to);
+    res.json(data);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
 // HR: mark / update attendance
 export const markAttendanceStatus = async (req, res) => {
   try {

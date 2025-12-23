@@ -128,6 +128,7 @@ export default function TaskForm({ users, onCreated, task }) {
           <input
             type="date"
             value={form.endDate}
+            max={form.startDate}
             onChange={(e) => updateField("endDate", e.target.value)}
           />
         </label>

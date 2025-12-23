@@ -152,6 +152,16 @@ export const getUserAttendanceByDateService = async (userId, date) => {
   });
 };
 
+export const getAllAttendanceByDateRangeService = async (from, to) => {
+  const fromDate = parseISTDateOnly(from);
+  const toDate = parseISTDateOnly(to);
+
+  return attendanceModel
+    .find({ date: { $gte: fromDate, $lte: toDate } })
+    .populate("user")
+    .sort({ date: 1 });
+};
+
 /* ================= ADMIN ================= */
 export const getDayAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);

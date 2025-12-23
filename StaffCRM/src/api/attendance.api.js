@@ -91,6 +91,16 @@ export const getAllEmployeesAttendanceAPI = async (date) => {
   }
 };
 
+export const getAllEmployeesAttendanceByDateRangeAPI = async (from, to) => {
+  try {
+    return await api.get("/attendance/all/date", {
+      params: { from, to },
+    });
+  } catch (error) {
+    handleError(error);
+  }
+};
+
 export const markAttendanceStatusAPI = async (data) => {
   try {
     return await api.post("/attendance/mark", data);
