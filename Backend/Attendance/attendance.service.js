@@ -6,6 +6,7 @@ import {
   parseISTDateOnly,
   calcWorkMinutes,
   suggestAttendanceStatus,
+  calcLiveNetSeconds,
 } from "./attendance.utils.js";
 import userModel from "../Users/user.model.js";
 import holidayModel from "../Holidays/holiday.model.js";
@@ -23,12 +24,12 @@ export const getMyAttendanceService = async (userId, from, to) => {
     .sort({ date: 1 });
 };
 
-export const getTodayWorkRecordService = async (userId) => {
-  return workRecordModel.findOne({
-    user: userId,
-    date: todayISTUTC(),
-  });
-};
+// export const getTodayWorkRecordService = async (userId) => {
+//   return workRecordModel.findOne({
+//     user: userId,
+//     date: todayISTUTC(),
+//   });
+// };
 
 export const punchInService = async (userId) => {
   const now = nowUTC();
@@ -155,4 +156,29 @@ export const getUserAttendanceByDateService = async (userId, date) => {
 export const getDayAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);
   return attendanceModel.find({ date: day }).populate("user", "name email");
+};
+
+/* ================= HELPERS ================= */
+export const getTodayWorkRecordService = async (userId) => {
+  const record = await workRecordModel.findOne({
+    user: userId,
+    date: todayISTUTC(),
+  });
+
+  if (!record) return null;
+
+  const lastBreak = record.breaks.at(-1);
+  const onBreak = lastBreak && !lastBreak.out;
+
+  return {
+    ...record.toObject(),
+
+    // 🔥 live computed values
+    liveNetSeconds: calcLiveNetSeconds(record),
+    serverNow: new Date(),
+
+    // 🔥 state flags
+    isRunning: !!record.punchIn && !record.punchOut && !onBreak,
+    onBreak,
+  };
 };

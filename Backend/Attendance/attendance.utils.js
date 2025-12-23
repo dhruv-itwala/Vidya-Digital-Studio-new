@@ -45,3 +45,19 @@ export const suggestAttendanceStatus = (minutes) => {
   if (minutes >= 240) return "HALF_DAY";
   return "ABSENT";
 };
+
+export const calcLiveNetSeconds = (record, now = new Date()) => {
+  if (!record?.punchIn) return 0;
+
+  const endTime = record.punchOut ?? now;
+
+  const totalSeconds = Math.floor((endTime - record.punchIn) / 1000);
+
+  const breakSeconds = record.breaks.reduce((sum, b) => {
+    if (!b.in) return sum;
+    const breakEnd = b.out ?? endTime;
+    return sum + Math.floor((breakEnd - b.in) / 1000);
+  }, 0);
+
+  return Math.max(totalSeconds - breakSeconds, 0);
+};

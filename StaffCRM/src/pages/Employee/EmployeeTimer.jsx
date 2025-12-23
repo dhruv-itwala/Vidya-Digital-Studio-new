@@ -20,17 +20,15 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
   const intervalRef = useRef(null);
 
   /* -------------------- Messages -------------------- */
-  const getMessage = (type) => {
-    const messages = {
+  const getMessage = (type) =>
+    ({
       punchIn: "Hey 👋 Have a great day 🚀",
       breakIn: "☕ Enjoy your break!",
       breakOut: "Welcome back! 💪",
       punchOut: "Great work today! 🌟",
-    };
-    return messages[type] || "";
-  };
+    }[type]);
 
-  /* -------------------- Sync From Server -------------------- */
+  /* -------------------- Backend Sync (ONCE) -------------------- */
   const syncFromServer = async () => {
     const res = await getTodayWorkRecordAPI();
     const record = res?.data;
@@ -42,15 +40,12 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       return;
     }
 
-    const lastBreak = record.breaks?.at(-1);
-    const breakActive = lastBreak && !lastBreak.out;
-
-    setSeconds(record.netWorkMinutes * 60);
-    setIsRunning(!!record.punchIn && !record.punchOut && !breakActive);
-    setOnBreak(breakActive);
+    setSeconds(record.liveNetSeconds); // 🔥 backend truth
+    setIsRunning(record.isRunning);
+    setOnBreak(record.onBreak);
   };
 
-  /* -------------------- Timer Interval -------------------- */
+  /* -------------------- Local Timer (UI only) -------------------- */
   useEffect(() => {
     clearInterval(intervalRef.current);
 
@@ -63,11 +58,9 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
     return () => clearInterval(intervalRef.current);
   }, [isRunning]);
 
-  /* -------------------- Initial Load + Polling -------------------- */
+  /* -------------------- Initial Load -------------------- */
   useEffect(() => {
-    syncFromServer();
-    const poll = setInterval(syncFromServer, 30000);
-    return () => clearInterval(poll);
+    syncFromServer(); // 🔥 no polling loop
   }, []);
 
   /* -------------------- Actions -------------------- */
@@ -87,8 +80,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       await api();
       await syncFromServer();
       setMessage(getMessage(type));
-
-      if (type === "punchIn" && onPunchIn) onPunchIn();
+      if (type === "punchIn") onPunchIn?.();
     } catch (e) {
       setMessage(e.message || "Action failed");
     } finally {
