@@ -274,7 +274,7 @@
 
 .chip {
   background: #e0e7ff;
-  color: #3730a3;
+  color: var(--color-primary);
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 11px;
@@ -289,6 +289,7 @@
 .dateInputs {
   display: flex;
   gap: 10px;
+  padding: 10px 0;
 }
 
 .dateInputs label {

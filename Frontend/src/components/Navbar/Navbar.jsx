@@ -9,26 +9,26 @@ export default function Navbar() {
     <div className={styles.navbarWrapper}>
       <div className="masterContainer">
         <div className={styles.navbar}>
-          {/* LEFT: Logo */}
+          {/* Logo */}
           <div className={styles.logo}>
             <img src={navbarMedia.navbar_logo} alt="VIDYA Digital Studio" />
           </div>
 
-          {/* RIGHT: Desktop Links */}
+          {/* Desktop Navigation */}
           <div className={styles.links}>
-            <a>PORTFOLIO</a>
+            <a>OUR WORK</a>
             <a>SERVICES</a>
             <a>ABOUT US</a>
-            <a>PACKAGES</a>
+            <a>BLOGS & ARTICLES</a>
+            <a>PRICING</a>
           </div>
 
-          {/* RIGHT: Desktop Buttons */}
+          {/* Contact Button */}
           <div className={styles.rightButtons}>
-            <button className={styles.contactBtn}>Contact us</button>
-            <a className={styles.loginLink}>Client Login</a>
+            <button className={styles.contactBtn}>Contact Us</button>
           </div>
 
-          {/* Hamburger Icon (Mobile) */}
+          {/* Hamburger */}
           <div
             className={styles.hamburger}
             onClick={() => setOpenMenu(!openMenu)}
@@ -38,16 +38,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* MOBILE MENU DROPDOWN */}
+      {/* Mobile Menu */}
       {openMenu && (
         <div className={styles.mobileMenu}>
-          <a>PORTFOLIO</a>
+          <a>OUR WORK</a>
           <a>SERVICES</a>
           <a>ABOUT US</a>
-          <a>PACKAGES</a>
+          <a>BLOGS & ARTICLES</a>
+          <a>PRICING</a>
 
-          <button className={styles.contactBtnMobile}>Contact us</button>
-          <button className={styles.contactBtnMobile}>Client Login</button>
+          <button className={styles.contactBtnMobile}>Contact Us</button>
         </div>
       )}
     </div>

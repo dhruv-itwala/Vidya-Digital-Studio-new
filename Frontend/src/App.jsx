@@ -18,6 +18,7 @@ import Footer from "./components/Footer/Footer";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import TestScrollFrames from "./pages/TestScrollFrames";
+import ServicePages from "./pages/ServicePages";
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
         <Route path="/" element={<Homepage />} />
         <Route path="/test" element={<TestScrollFrames />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
+        <Route path="/services" element={<ServicePages />} />
         <Route path="/contact-us" element={<ContactUsPage />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/privacy-policies" element={<PrivacyPolicies />} />

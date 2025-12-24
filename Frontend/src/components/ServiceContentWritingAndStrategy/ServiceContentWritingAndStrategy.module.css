@@ -1,0 +1,278 @@
+.page {
+  width: 100%;
+  color: var(--charcoal-black);
+  padding: 40px 20px;
+}
+
+/* ================= HERO ================= */
+.hero {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px;
+  margin-bottom: 80px;
+  background: var(--blush-pink);
+}
+
+.heroGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 70px;
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  color: var(--deep-forest);
+}
+
+.heroText {
+  max-width: 720px;
+  line-height: 1.8;
+  margin-top: 18px;
+}
+
+.heroTextMuted {
+  margin-top: 12px;
+  opacity: 0.8;
+}
+
+/* ================= GRIDS ================= */
+.sectionGrid,
+.sectionAltGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+  align-items: center;
+  margin-bottom: 100px;
+}
+
+.sectionAltGrid {
+  background: var(--soft-ivory);
+  padding: 80px;
+  border-radius: 40px;
+}
+
+/* ================= TEXT ================= */
+h2 {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  color: var(--deep-forest);
+}
+
+.pauseLabel {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  color: var(--warm-coral-red);
+}
+
+/* ================= LISTS ================= */
+.services,
+.strategyList {
+  margin: 32px 0;
+  display: grid;
+  gap: 14px;
+}
+
+.serviceItem {
+  padding: 10px 16px;
+  border-left: 3px solid var(--blush-pink);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* ================= PROCESS ================= */
+.process {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 32px;
+}
+
+.processStep {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stepCircle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--blush-pink);
+}
+
+/* ================= IMAGES ================= */
+.heroImage,
+.sideImage {
+  width: 100%;
+  max-width: 480px;
+  object-fit: contain;
+  margin: 0 auto;
+  border-radius: 16px;
+}
+
+/* ================= INVITE ================= */
+.invite {
+  min-height: 70vh;
+  margin-top: 120px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 40px;
+}
+
+.inviteOverlay {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  .heroGrid,
+  .sectionGrid,
+  .sectionAltGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .heroImage,
+  .sideImage {
+    max-width: 100%;
+  }
+}
+
+/* Invitation Section */
+
+.inviteContainer {
+  position: relative;
+  min-height: 70vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 80px;
+  overflow: hidden;
+}
+
+/* Floating background shapes */
+.floatingShape1,
+.floatingShape2 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(246, 199, 220, 0.3);
+  z-index: 1;
+}
+
+.floatingShape1 {
+  top: 10%;
+  left: 20%;
+}
+
+.floatingShape2 {
+  bottom: 5%;
+  right: 15%;
+}
+
+/* Card */
+.inviteCard {
+  position: relative;
+  background: #fff;
+  padding: 60px 40px;
+  border-radius: 32px;
+  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  text-align: center;
+  max-width: 480px;
+}
+
+.inviteCard p {
+  font-size: 1.4rem;
+  margin: 12px 0;
+}
+
+.inviteStay {
+  font-weight: 700;
+  font-size: 1.6rem;
+  color: var(--warm-coral-red);
+}
+
+.inviteMuted {
+  font-size: 1rem;
+  color: rgba(0, 0, 0, 0.65);
+  margin-top: 12px;
+}
+
+/* Cursor-follow sparkle */
+.cursorSparkle {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, #f6c7dc 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+}
+/* Bold reflection heading */
+.reflectionBold {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.4;
+  margin-top: 20px;
+  color: var(--deep-forest);
+}
+
+/* Reflection regular text */
+.reflection {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  margin-top: 16px;
+  color: var(--charcoal-black);
+}
+
+/* Muted text */
+.reflectionMuted {
+  font-size: 1rem;
+  margin-top: 12px;
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+/* Pause label */
+.pauseLabel {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.95rem;
+  color: var(--warm-coral-red);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .inviteCard {
+    padding: 40px 20px;
+  }
+  .inviteCard p {
+    font-size: 1.2rem;
+  }
+  .inviteStay {
+    font-size: 1.4rem;
+  }
+  .floatingShape1,
+  .floatingShape2 {
+    width: 120px;
+    height: 120px;
+  }
+}

@@ -109,38 +109,27 @@ textarea {
   background: #4338ca;
 }
 
+/* Leave table */
 .leaveTable {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px; /* ensures table doesn't shrink too much */
 }
 
+/* Table headers and cells */
 th,
 td {
   padding: 12px 10px;
   border-bottom: 1px solid #eee;
   text-align: left;
+  white-space: nowrap; /* prevent text from wrapping */
 }
 
+/* Empty state */
 .empty {
   text-align: center;
   color: #888;
 }
-
-/* Cancel button */
-.cancelBtn {
-  background: #f87171;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.cancelBtn:hover {
-  background: #ef4444;
-}
-
 /* Status Colors */
 .statusPENDING {
   color: orange;
@@ -162,8 +151,27 @@ td {
   font-weight: 600;
 }
 
+/* Cancel button */
+.cancelBtn {
+  background: #f87171;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.cancelBtn:hover {
+  background: #ef4444;
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
+  .container {
+    padding: 0;
+  }
+
   .formRow {
     flex-direction: column;
   }
@@ -172,5 +180,20 @@ td {
   select,
   textarea {
     width: 100%;
+  }
+}
+
+/* Small screens: table scrolls horizontally */
+@media (max-width: 600px) {
+  .leaveTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .leaveTable th,
+  .leaveTable td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
   }
 }

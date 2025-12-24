@@ -151,9 +151,9 @@ export default function EmployeeTasks({
             className={styles.modalContent}
             onClick={(e) => e.stopPropagation()}
           >
-            <button className={styles.modalClose} onClick={closeModal}>
+            {/* <button className={styles.modalClose} onClick={closeModal}>
               ×
-            </button>
+            </button> */}
             <TaskForm
               users={allEmployees}
               task={editingTask}

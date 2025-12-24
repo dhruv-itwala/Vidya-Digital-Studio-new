@@ -9,7 +9,7 @@
 }
 
 .topRow {
-  height: 270px;
+  height: 250px;
   width: 100%;
   display: flex;
   gap: 20px;
@@ -19,4 +19,11 @@
   color: #d9534f;
   font-weight: 500;
   margin: 10px 0;
+}
+
+@media (max-width: 768px) {
+  .topRow {
+    flex-direction: column;
+    height: auto;
+  }
 }

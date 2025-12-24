@@ -122,47 +122,52 @@ export default function EmployeeLeaves() {
         {/* LEAVE HISTORY */}
         <div className={styles.card}>
           <h3>Leave History</h3>
-          <table className={styles.leaveTable}>
-            <thead>
-              <tr>
-                <th>Duration</th>
-                <th>Type</th>
-                <th>Half Day</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaves.length === 0 ? (
+          <div className={styles.tableWrapper}>
+            <table className={styles.leaveTable}>
+              <thead>
                 <tr>
-                  <td colSpan="5" className={styles.empty}>
-                    No leave records
-                  </td>
+                  <th>Duration</th>
+                  <th>Type</th>
+                  <th>Half Day</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
-              ) : (
-                leaves.map((l) => (
-                  <tr key={l._id}>
-                    <td>
-                      {formatDate(l.fromDate)} → {formatDate(l.toDate)}
-                    </td>
-                    <td>{l.type}</td>
-                    <td>{l.isHalfDay ? "Yes" : "No"}</td>
-                    <td className={styles[`status${l.status}`]}>{l.status}</td>
-                    <td>
-                      {(l.status === "PENDING" || l.status === "APPROVED") && (
-                        <button
-                          className={styles.cancelBtn}
-                          onClick={() => cancelLeave(l._id)}
-                        >
-                          Cancel
-                        </button>
-                      )}
+              </thead>
+              <tbody>
+                {leaves.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className={styles.empty}>
+                      No leave records
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  leaves.map((l) => (
+                    <tr key={l._id}>
+                      <td>
+                        {formatDate(l.fromDate)} → {formatDate(l.toDate)}
+                      </td>
+                      <td>{l.type}</td>
+                      <td>{l.isHalfDay ? "Yes" : "No"}</td>
+                      <td className={styles[`status${l.status}`]}>
+                        {l.status}
+                      </td>
+                      <td>
+                        {(l.status === "PENDING" ||
+                          l.status === "APPROVED") && (
+                          <button
+                            className={styles.cancelBtn}
+                            onClick={() => cancelLeave(l._id)}
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

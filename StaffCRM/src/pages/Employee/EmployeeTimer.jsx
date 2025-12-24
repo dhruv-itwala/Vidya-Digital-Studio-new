@@ -28,39 +28,50 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       punchOut: "Great work today! 🌟",
     }[type]);
 
-  /* -------------------- Backend Sync (ONCE) -------------------- */
+  /* -------------------- Backend Sync -------------------- */
   const syncFromServer = async () => {
-    const res = await getTodayWorkRecordAPI();
-    const record = res?.data;
+    try {
+      const res = await getTodayWorkRecordAPI();
+      const record = res?.data;
 
-    if (!record) {
-      setSeconds(0);
-      setIsRunning(false);
-      setOnBreak(false);
-      return;
+      if (!record) {
+        setSeconds(0);
+        setIsRunning(false);
+        setOnBreak(false);
+        return;
+      }
+
+      setSeconds(record.liveNetSeconds);
+      setIsRunning(record.isRunning);
+      setOnBreak(record.onBreak);
+    } catch (e) {
+      console.error("Failed to sync from server:", e);
     }
-
-    setSeconds(record.liveNetSeconds); // 🔥 backend truth
-    setIsRunning(record.isRunning);
-    setOnBreak(record.onBreak);
   };
 
-  /* -------------------- Local Timer (UI only) -------------------- */
+  /* -------------------- Timer -------------------- */
   useEffect(() => {
     clearInterval(intervalRef.current);
 
-    if (isRunning) {
+    if (isRunning && seconds < WORK_TARGET_SECONDS) {
       intervalRef.current = setInterval(() => {
         setSeconds((prev) => prev + 1);
       }, 1000);
     }
 
     return () => clearInterval(intervalRef.current);
-  }, [isRunning]);
+  }, [isRunning, seconds]);
+
+  /* -------------------- Stop Timer at Shift End -------------------- */
+  useEffect(() => {
+    if (seconds >= WORK_TARGET_SECONDS) {
+      setIsRunning(false);
+    }
+  }, [seconds]);
 
   /* -------------------- Initial Load -------------------- */
   useEffect(() => {
-    syncFromServer(); // 🔥 no polling loop
+    syncFromServer();
   }, []);
 
   /* -------------------- Actions -------------------- */
@@ -90,78 +101,94 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
   };
 
   /* -------------------- Helpers -------------------- */
-  const formatTime = () => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
+  const remainingSeconds = Math.max(WORK_TARGET_SECONDS - seconds, 0);
+
+  const formatTime = (secs) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
     return `${String(h).padStart(2, "0")}:${String(m).padStart(
       2,
       "0"
     )}:${String(s).padStart(2, "0")}`;
   };
 
-  const progress = Math.min((seconds / WORK_TARGET_SECONDS) * 100, 100);
+  const progress = Math.min(
+    (remainingSeconds / WORK_TARGET_SECONDS) * 100,
+    100
+  );
 
-  /* -------------------- Circular UI -------------------- */
   const radius = 70;
   const stroke = 8;
+
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   /* -------------------- Button States -------------------- */
-  const canPunchIn = !isRunning && !onBreak;
-  const canPunchOut = isRunning;
-  const canBreakIn = isRunning && !onBreak;
-  const canBreakOut = onBreak;
+  const shiftComplete = remainingSeconds === 0;
+
+  const canPunchIn = !isRunning && !onBreak && !shiftComplete;
+  const canPunchOut = isRunning && !shiftComplete;
+  const canBreakIn = isRunning && !onBreak && !shiftComplete;
+  const canBreakOut = onBreak && !shiftComplete;
 
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>Today’s Work Progress</h3>
 
-      <div className={styles.circularProgressWrapper}>
-        <svg height={radius * 2} width={radius * 2}>
-          <circle
-            stroke="#e6e6e6"
-            fill="transparent"
-            strokeWidth={stroke}
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
-          />
-          <circle
-            stroke="#4caf50"
-            fill="transparent"
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={`${circumference} ${circumference}`}
-            style={{
-              strokeDashoffset,
-              transition: "stroke-dashoffset 0.5s",
-            }}
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
-          />
-          <text
-            x="50%"
-            y="50%"
-            dominantBaseline="middle"
-            textAnchor="middle"
-            fontSize="18"
-            fontWeight="bold"
-            fill="#333"
-          >
-            {formatTime()}
-          </text>
-        </svg>
-      </div>
+      <div className={styles.timerStatusWrapper}>
+        <div className={styles.circularProgressWrapper}>
+          <svg height={radius * 2} width={radius * 2}>
+            <circle
+              stroke="#e6e6e6"
+              fill="transparent"
+              strokeWidth={stroke}
+              r={normalizedRadius}
+              cx={radius}
+              cy={radius}
+            />
+            <circle
+              stroke="#0f5c44"
+              fill="transparent"
+              strokeWidth={stroke}
+              strokeLinecap="round"
+              strokeDasharray={`${circumference} ${circumference}`}
+              style={{
+                strokeDashoffset,
+                transition: "stroke-dashoffset 0.5s",
+              }}
+              r={normalizedRadius}
+              cx={radius}
+              cy={radius}
+            />
+            <text
+              x="50%"
+              y="50%"
+              dominantBaseline="middle"
+              textAnchor="middle"
+              fontSize="16"
+              fontWeight="bold"
+              fill="#1e293b"
+            >
+              {formatTime(remainingSeconds)}
+            </text>
+          </svg>
+        </div>
 
-      <div className={styles.status}>
-        {onBreak ? "☕ On Break" : isRunning ? "🟢 Working" : "⚪ Not Working"}
+        <div className={styles.statusMessageWrapper}>
+          <span className={styles.statusText}>
+            {shiftComplete
+              ? "✅ Shift Complete"
+              : onBreak
+              ? "☕ On Break"
+              : isRunning
+              ? "🟢 Working"
+              : "⚪ Not Working"}
+          </span>
+          {message && <span className={styles.message}>{message}</span>}
+        </div>
       </div>
-
-      {message && <div className={styles.message}>{message}</div>}
 
       <div className={styles.actions}>
         <button

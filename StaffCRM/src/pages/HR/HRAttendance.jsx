@@ -7,7 +7,7 @@ import {
 import styles from "./HRAttendance.module.css";
 import toast from "react-hot-toast";
 
-import { FiChevronDown, FiCalendar, FiUsers, FiActivity } from "react-icons/fi";
+import { FiChevronDown, FiUsers, FiActivity } from "react-icons/fi";
 
 const HRAttendance = () => {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
