@@ -15,6 +15,9 @@ cron.schedule("*/5 * * * *", async () => {
     punchIn: { $exists: true },
     punchOut: { $exists: false },
   });
+  cron.schedule("*/5 * * * *", async () => {
+    console.log("🕒 Auto punch-out cron running", new Date().toISOString());
+  });
 
   for (const record of runningRecords) {
     const netSeconds = calcLiveNetSeconds(record);

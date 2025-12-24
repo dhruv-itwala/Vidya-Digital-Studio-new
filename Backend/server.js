@@ -1,6 +1,10 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+
+// Cron Jobs
+import "./config/cron.config.js";
+
 // Configs
 import { connectDB } from "./config/db.config.js";
 import corsOptions from "./config/cors.config.js";
