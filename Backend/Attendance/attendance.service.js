@@ -162,6 +162,41 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
     .sort({ date: 1 });
 };
 
+export const getLiveEmployeesStatusService = async () => {
+  const today = todayISTUTC();
+
+  const users = await userModel.find({ role: { $ne: "admin" } });
+
+  const records = await workRecordModel.find({ date: today });
+
+  return users.map((u) => {
+    const record = records.find((r) => r.user.equals(u._id));
+
+    if (!record) {
+      return {
+        userId: u._id,
+        name: u.name,
+        status: "NOT_STARTED",
+        workedSeconds: 0,
+      };
+    }
+
+    const lastBreak = record.breaks.at(-1);
+    const onBreak = lastBreak && !lastBreak.out;
+
+    let status = "WORKING";
+    if (record.punchOut) status = "COMPLETED";
+    else if (onBreak) status = "ON_BREAK";
+
+    return {
+      userId: u._id,
+      name: u.name,
+      status,
+      workedSeconds: calcLiveNetSeconds(record),
+    };
+  });
+};
+
 /* ================= ADMIN ================= */
 export const getDayAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);

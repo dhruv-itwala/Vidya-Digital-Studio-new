@@ -27,11 +27,10 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
 
       {dueStatus && (
         <span className={`${styles.due} ${styles[dueStatus]}`}>
-          {dueStatus}
+          Due Date is {dueStatus}
         </span>
       )}
       <p className={styles.details}>{task.details}</p>
-
       <div className={styles.meta}>
         <span>
           Priority: <strong>{task.priority.toUpperCase()}</strong>
@@ -43,7 +42,6 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
           Due: <strong>{formattedEnd}</strong>
         </span>
       </div>
-
       <div className={styles.assigned}>
         Assigned to:{" "}
         {task.assignedTo.map((u) => (
@@ -52,7 +50,6 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
           </span>
         ))}
       </div>
-
       <div className={styles.actions}>
         <select
           value={task.status}

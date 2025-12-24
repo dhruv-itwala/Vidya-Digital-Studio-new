@@ -30,7 +30,20 @@ attendanceRoutes.get(
   ctrl.getAllEmployeesAttendanceByDateRange
 );
 
+attendanceRoutes.get(
+  "/live-status",
+  roleCheck("admin", "hr"),
+  ctrl.getLiveEmployeesStatus
+);
+
 /* ========== ADMIN ROUTES ========== */
 
 attendanceRoutes.get("/day", roleCheck("admin"), ctrl.dayAttendance);
+
+attendanceRoutes.get(
+  "/download/pdf",
+  roleCheck("admin"),
+  ctrl.downloadAttendancePDF
+);
+
 export default attendanceRoutes;

@@ -108,3 +108,18 @@ export const markAttendanceStatusAPI = async (data) => {
     handleError(error);
   }
 };
+
+export const getLiveEmployeesStatusAPI = async () => {
+  try {
+    return await api.get("/attendance/live-status");
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const downloadAttendancePDFAPI = async (from, to) => {
+  return api.get("/attendance/download/pdf", {
+    params: { from, to },
+    responseType: "blob",
+  });
+};

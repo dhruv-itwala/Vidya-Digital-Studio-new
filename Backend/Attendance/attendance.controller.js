@@ -1,4 +1,5 @@
 import * as service from "./attendance.service.js";
+import { downloadAttendancePDFService } from "./attendancePdf.service.js";
 
 /* ================= EMPLOYEE ================= */
 
@@ -127,12 +128,29 @@ export const markAttendanceStatus = async (req, res) => {
   }
 };
 
+export const getLiveEmployeesStatus = async (req, res) => {
+  try {
+    const data = await service.getLiveEmployeesStatusService();
+    res.json(data);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
 /* ================= ADMIN ================= */
 export const dayAttendance = async (req, res) => {
   try {
     const { date } = req.query;
     const data = await service.getDayAttendanceService(date);
     res.json(data);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+export const downloadAttendancePDF = async (req, res) => {
+  try {
+    await downloadAttendancePDFService(req, res);
   } catch (e) {
     res.status(400).json({ message: e.message });
   }

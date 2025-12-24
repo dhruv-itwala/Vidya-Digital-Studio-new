@@ -6,44 +6,50 @@
 .title {
   text-align: center;
   margin-bottom: 24px;
-  color: var(--color-text);
 }
 
-/* Card */
 .card {
   background: #ffffff;
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 30px var(--color-shadow);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
-.cardHeader {
+/* Accordion */
+.accordionHeader {
   display: flex;
+  color: var(--color-primary);
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
+  cursor: pointer;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.card h3 {
-  color: var(--color-text);
+.headerIcon {
+  color: #0f5c44;
+  font-size: 18px;
 }
 
-/* Inputs */
-input[type="date"] {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--color-border);
-  font-size: 14px;
-  background: #ffffff;
+.accordionBody {
+  margin-top: 15px;
+  animation: fadeIn 0.2s ease-in;
 }
 
-input[type="date"]:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(15, 92, 68, 0.15);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Table */
@@ -58,116 +64,93 @@ table {
 }
 
 thead {
-  background: var(--color-primary);
-  color: #ffffff;
+  background: #0f5c44;
+  color: #fff;
 }
 
 th,
 td {
   padding: 12px;
   font-size: 14px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid #e5e5e5;
 }
 
 tbody tr:hover {
   background: rgba(15, 92, 68, 0.05);
 }
 
-.empty {
+.empty,
+.loading {
   text-align: center;
   padding: 20px;
-  color: rgba(34, 34, 34, 0.6);
+  color: #666;
 }
 
-/* Status */
-.statusPresent {
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.statusAbsent {
-  color: var(--color-accent);
-  font-weight: 600;
-}
-
-/* Download */
-.downloadRow {
+/* Filters */
+.filters {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 /* Button */
 .primaryBtn {
-  padding: 12px 18px;
-  background: var(--color-button);
-  color: var(--color-button-text);
+  padding: 10px 16px;
+  background: #0f5c44;
+  color: #fff;
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
 }
 
-.primaryBtn:hover:not(:disabled) {
-  background: var(--color-button-hover);
-  transform: translateY(-1px);
+/* Status */
+.statusworking {
+  color: #0d6efd;
+  font-weight: 600;
 }
 
-.primaryBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.statusonbreak {
+  color: #fd7e14;
+  font-weight: 600;
 }
 
-/* Loading */
-.loading {
-  padding: 20px;
-  text-align: center;
-  color: rgba(34, 34, 34, 0.6);
+.statusnotstarted {
+  color: #6c757d;
+  font-weight: 600;
 }
 
-/* Mobile */
-@media (max-width: 600px) {
-  .cardHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-.filters {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 15px;
+.statuscompleted {
+  color: #198754;
+  font-weight: 600;
 }
 
 .statuspresent {
   color: green;
-  font-weight: 600;
 }
 
 .statusabsent {
   color: red;
-  font-weight: 600;
 }
 
 .statushalfday {
   color: orange;
-  font-weight: 600;
 }
 
 .statusleave {
   color: blue;
-  font-weight: 600;
 }
 
 .statusholiday {
   color: purple;
-  font-weight: 600;
 }
 
 .statuswfh {
   color: teal;
-  font-weight: 600;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .filters {
+    flex-direction: column;
+  }
 }
