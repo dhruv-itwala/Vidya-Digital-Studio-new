@@ -39,6 +39,11 @@ export const punchInService = async (userId) => {
 
   const date = todayISTUTC();
 
+  const isHoliday = await holidayModel.exists({ date });
+  if (isHoliday) {
+    throw new Error("Punch-in not allowed on holidays");
+  }
+
   const record = await WorkRecord.findOneAndUpdate(
     { user: userId, date },
     { $setOnInsert: { punchIn: now } },

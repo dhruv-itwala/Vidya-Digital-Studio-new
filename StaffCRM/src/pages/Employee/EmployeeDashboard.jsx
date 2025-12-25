@@ -3,8 +3,12 @@ import EmployeeTimer from "./EmployeeTimer";
 import EmployeeReport from "./EmployeeReport";
 import EmployeeTasks from "./EmployeeTasks";
 import styles from "./EmployeeDashboard.module.css";
-import { getTodayWorkRecordAPI } from "../../api/attendance.api";
+import {
+  getMyAttendanceByDateAPI,
+  getTodayWorkRecordAPI,
+} from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
+import HolidayCard from "./holidayCard";
 
 const EmployeeDashboard = () => {
   const [punchInDone, setPunchInDone] = useState(false);
@@ -12,10 +16,24 @@ const EmployeeDashboard = () => {
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const [isHoliday, setIsHoliday] = useState(false);
+  const [holidayName, setHolidayName] = useState("");
+
   const fetchStatus = async () => {
     try {
       setLoading(true);
+      const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+      /* -------------------- 1️⃣ Attendance Check -------------------- */
+      const attendanceRes = await getMyAttendanceByDateAPI(today);
+      const attendance = attendanceRes?.data;
 
+      if (attendance?.status === "HOLIDAY") {
+        setIsHoliday(true);
+        setHolidayName(attendance.remarks || "Holiday");
+        return; // ⛔ stop further dashboard logic
+      }
+
+      setIsHoliday(false);
       /* -------------------- 1️⃣ Work Record -------------------- */
       const recordRes = await getTodayWorkRecordAPI();
       const record = recordRes?.data;
@@ -60,6 +78,10 @@ const EmployeeDashboard = () => {
   };
 
   if (loading) return <p>Loading dashboard...</p>;
+
+  if (isHoliday) {
+    return <HolidayCard holidayName={holidayName} />;
+  }
 
   return (
     <div className="masterContainer">
