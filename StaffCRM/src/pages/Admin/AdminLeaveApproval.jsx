@@ -161,7 +161,7 @@ export default function AdminLeaveApproval() {
         />
       )}
 
-      {loading && <p>Loading...</p>}
+      {loading && <Loader />}
     </div>
   );
 }

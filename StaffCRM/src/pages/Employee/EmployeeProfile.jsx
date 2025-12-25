@@ -1,3 +1,4 @@
+import Loader from "../../components/Loader/Loader";
 import { useAuth } from "../../context/AuthContext";
 import { getInitials } from "../../utils/name.util";
 
@@ -6,7 +7,7 @@ import styles from "./EmployeeProfile.module.css";
 export default function EmployeeProfile() {
   const { user, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loader />;
   if (!user) return null;
 
   const formatDate = (date) =>

@@ -8,6 +8,7 @@ import styles from "./HRAttendance.module.css";
 import toast from "react-hot-toast";
 
 import { FiChevronDown, FiUsers, FiActivity } from "react-icons/fi";
+import Loader from "../../components/Loader/Loader";
 
 const HRAttendance = () => {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
@@ -97,7 +98,7 @@ const HRAttendance = () => {
         {open.attendance && (
           <div className={styles.accordionBody}>
             {loading ? (
-              <p className={styles.loading}>Loading...</p>
+              <Loader />
             ) : (
               <div className={styles.tableWrapper}>
                 <table>

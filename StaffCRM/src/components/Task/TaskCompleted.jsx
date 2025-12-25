@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAllTasksAPI, updateTaskStatusAPI } from "../../api/task.api";
 import styles from "./Task.module.css";
+import Loader from "../Loader/Loader";
 
 export default function TaskCompleted() {
   const [tasks, setTasks] = useState([]);
@@ -38,7 +39,7 @@ export default function TaskCompleted() {
     }
   };
 
-  if (loading) return <p className={styles.loading}>Loading tasks…</p>;
+  if (loading) return <Loader />;
   if (error) return <p className={styles.error}>{error}</p>;
   return (
     <div className={styles.container}>

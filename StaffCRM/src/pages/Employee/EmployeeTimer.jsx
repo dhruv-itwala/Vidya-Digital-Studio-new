@@ -7,6 +7,7 @@ import {
   getTodayWorkRecordAPI,
 } from "../../api/attendance.api";
 import styles from "./EmployeeTimer.module.css";
+import Loader from "../../components/Loader/Loader";
 
 const WORK_TARGET_SECONDS = 8 * 60 * 60; // 8 hours
 
@@ -220,7 +221,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
         </button>
       </div>
 
-      {loading && <p className={styles.loading}>Processing…</p>}
+      {loading && <Loader />}
     </div>
   );
 }

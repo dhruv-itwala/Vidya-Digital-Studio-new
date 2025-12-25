@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getMyAttendanceAPI } from "../../api/attendance.api";
 import styles from "./EmployeeAttendance.module.css";
 import { useAuth } from "../../context/AuthContext";
+import Loader from "../../components/Loader/Loader";
 
 export default function EmployeeAttendance() {
   const { user } = useAuth();
@@ -63,7 +64,7 @@ export default function EmployeeAttendance() {
         {/* TABLE */}
         <div className={styles.card}>
           {loading ? (
-            <p className={styles.loading}>Loading...</p>
+            <Loader />
           ) : (
             <table>
               <thead>

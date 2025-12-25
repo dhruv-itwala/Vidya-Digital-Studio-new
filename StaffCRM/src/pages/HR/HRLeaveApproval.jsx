@@ -5,6 +5,7 @@ import {
   declineLeaveAPI,
 } from "../../api/leave.api";
 import styles from "./HRLeaveApproval.module.css";
+import Loader from "../../components/Loader/Loader";
 
 const PAGE_SIZE = 5;
 
@@ -161,7 +162,7 @@ export default function HRLeaveApproval() {
         />
       )}
 
-      {loading && <p>Loading...</p>}
+      {loading && <Loader />}
     </div>
   );
 }

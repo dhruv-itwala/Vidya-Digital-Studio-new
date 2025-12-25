@@ -4,6 +4,7 @@ import {
   getAllReportsByDate,
 } from "../../api/report.api";
 import styles from "./AdminReports.module.css";
+import Loader from "../../components/Loader/Loader";
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -62,7 +63,7 @@ export default function AdminReports() {
         </div>
 
         {loading ? (
-          <p className={styles.loadingText}>Loading reports...</p>
+          <Loader />
         ) : (
           <table className={styles.reportsTable}>
             <thead>

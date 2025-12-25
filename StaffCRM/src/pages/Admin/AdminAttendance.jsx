@@ -11,6 +11,7 @@ import { IoChevronDown, IoChevronUp } from "react-icons/io5";
 
 import styles from "./AdminAttendance.module.css";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader/Loader";
 
 /* ================= ACCORDION HEADER ================= */
 const AccordionHeader = ({
@@ -189,7 +190,7 @@ export default function AdminAttendance() {
             <div className={styles.accordionBody}>
               <div className={styles.tableContainer}>
                 {liveLoading ? (
-                  <p className={styles.loading}>Loading...</p>
+                  <Loader />
                 ) : (
                   <table>
                     <thead>
@@ -337,7 +338,7 @@ export default function AdminAttendance() {
 
               <div className={styles.tableContainer}>
                 {rangeLoading ? (
-                  <p className={styles.loading}>Loading...</p>
+                  <Loader />
                 ) : (
                   <table>
                     <thead>

@@ -5,6 +5,7 @@ import {
   getAllReportsByDate,
 } from "../../api/report.api";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader/Loader";
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -63,7 +64,7 @@ export default function HRReports() {
       </div>
 
       {loading ? (
-        <p className={styles.loading}>Loading reports...</p>
+        <Loader />
       ) : (
         <div className={styles.tableWrapper}>
           <table className={styles.table}>

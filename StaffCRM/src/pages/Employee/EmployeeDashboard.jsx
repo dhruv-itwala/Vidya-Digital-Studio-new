@@ -9,6 +9,8 @@ import {
 } from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
 import HolidayCard from "./HolidayCard";
+import LeaveCard from "./LeaveCard";
+import Loader from "../../components/Loader/Loader";
 
 const EmployeeDashboard = () => {
   const [punchInDone, setPunchInDone] = useState(false);
@@ -16,6 +18,7 @@ const EmployeeDashboard = () => {
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const [isLeave, setIsLeave] = useState(false);
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayName, setHolidayName] = useState("");
 
@@ -33,6 +36,12 @@ const EmployeeDashboard = () => {
         return; // ⛔ stop further dashboard logic
       }
 
+      if (attendance?.status === "LEAVE") {
+        setIsLeave(true);
+        return; // ⛔ stop further dashboard logic
+      }
+
+      setIsLeave(false);
       setIsHoliday(false);
       /* -------------------- 1️⃣ Work Record -------------------- */
       const recordRes = await getTodayWorkRecordAPI();
@@ -77,10 +86,14 @@ const EmployeeDashboard = () => {
     setPunchedOut(true);
   };
 
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading) return <Loader />;
 
   if (isHoliday) {
     return <HolidayCard holidayName={holidayName} />;
+  }
+
+  if (isLeave) {
+    return <LeaveCard />;
   }
 
   return (
