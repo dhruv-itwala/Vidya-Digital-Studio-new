@@ -34,8 +34,8 @@ export const getMyAttendanceService = async (userId, from, to) => {
 
 export const punchInService = async (userId) => {
   const now = nowUTC();
-  // if (!isWithinOfficeHoursIST(now))
-  //   throw new Error("Punch in allowed between 10AM–7PM IST");
+  if (!isWithinOfficeHoursIST(now))
+    throw new Error("Punch in allowed between 10AM–7PM IST");
 
   const date = todayISTUTC();
 
