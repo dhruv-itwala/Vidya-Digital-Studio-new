@@ -8,7 +8,7 @@ import {
   getTodayWorkRecordAPI,
 } from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
-import HolidayCard from "./holidayCard";
+import HolidayCard from "./HolidayCard";
 
 const EmployeeDashboard = () => {
   const [punchInDone, setPunchInDone] = useState(false);
