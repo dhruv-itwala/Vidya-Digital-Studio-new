@@ -14,6 +14,7 @@ import userModel from "../Users/user.model.js";
 import holidayModel from "../Holidays/holiday.model.js";
 import attendanceModel from "./attendance.model.js";
 import workRecordModel from "./workRecord.model.js";
+import leaveModel from "../Leaves/leave.model.js";
 
 /* ========== EMPLOYEE ========== */
 
@@ -136,6 +137,26 @@ export const markAttendanceStatusService = async (userId, date, status) => {
   }
 
   const day = parseISTDateOnly(date);
+
+  // 🔒 1️⃣ CHECK APPROVED LEAVE
+  const approvedLeave = await leaveModel.findOne({
+    user: userId,
+    status: "APPROVED",
+    fromDate: { $lte: day },
+    toDate: { $gte: day },
+  });
+
+  if (approvedLeave && status !== "LEAVE") {
+    throw new Error(
+      "Employee is on approved leave. Please decline or cancel the leave before marking attendance."
+    );
+  }
+
+  // 🔒 2️⃣ CHECK HOLIDAY LOCK
+  const isHoliday = await holidayModel.exists({ date: day });
+  if (isHoliday && status !== "HOLIDAY") {
+    throw new Error("This day is a holiday. Attendance cannot be changed.");
+  }
 
   // Find existing or create new attendance
   const attendance = await attendanceModel.findOneAndUpdate(

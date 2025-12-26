@@ -1,3 +1,4 @@
+import attendanceModel from "../Attendance/attendance.model.js";
 import workRecordModel from "../Attendance/workRecord.model.js";
 import Report from "./report.model.js";
 
@@ -9,6 +10,20 @@ export const submitReportService = async (userId, workPoints) => {
   }
 
   const date = today();
+
+  // 🔒 Check attendance first
+  const attendance = await attendanceModel.findOne({
+    user: userId,
+    date: new Date(date),
+  });
+
+  if (attendance?.status === "LEAVE") {
+    throw new Error("You cannot submit a report while on leave");
+  }
+
+  if (attendance?.status === "HOLIDAY") {
+    throw new Error("You cannot submit a report on a holiday");
+  }
 
   const exists = await Report.findOne({ user: userId, date });
   if (exists) throw new Error("Report already submitted for today");

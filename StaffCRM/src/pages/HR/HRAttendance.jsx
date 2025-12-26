@@ -44,8 +44,12 @@ const HRAttendance = () => {
         prev.map((e) => (e._id === id ? { ...e, status } : e))
       );
       toast.success("Status updated");
-    } catch {
-      toast.error("Update failed");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || // Axios API error
+          err.message || // Thrown Error
+          "Update failed" // Fallback
+      );
     }
   };
 

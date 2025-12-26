@@ -26,13 +26,14 @@ import HRReports from "./pages/HR/HRReports";
 import HRLeaveApproval from "./pages/HR/HRLeaveApproval";
 import HRLayout from "./layouts/HRLayout";
 import HRAttendance from "./pages/HR/HRAttendance";
+import Loader from "./components/Loader/Loader";
 export default function App() {
   return (
     <>
       <Routes>
         {/* LOGIN */}
         <Route path="/login" element={<Login />} />
-
+        <Route path="/loading" element={<Loader />} />
         {/* ROOT */}
         <Route
           path="/"

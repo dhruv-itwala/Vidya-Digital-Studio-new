@@ -16,6 +16,7 @@ export default function EmployeeLeaves() {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const todayStr = new Date().toISOString().split("T")[0];
   const fetchLeaves = async () => {
     const res = await getMyLeavesAPI();
     setLeaves(res.data || []);
@@ -78,6 +79,7 @@ export default function EmployeeLeaves() {
             <input
               type="date"
               value={fromDate}
+              min={todayStr}
               onChange={(e) => setFromDate(e.target.value)}
             />
             <input

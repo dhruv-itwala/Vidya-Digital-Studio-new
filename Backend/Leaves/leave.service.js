@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import leavesModel from "./leaves.model.js";
+import leavesModel from "./leave.model.js";
 import holidayModel from "../Holidays/holiday.model.js";
 import attendanceModel from "../Attendance/attendance.model.js";
 

@@ -44,8 +44,8 @@ export default function EmployeeProfile() {
           </div>
 
           <div className={styles.row}>
-            <span>Role</span>
-            <span>{user.role?.toUpperCase()}</span>
+            <span>Employee Id</span>
+            <span>{user._id?.toUpperCase()}</span>
           </div>
 
           <div className={styles.row}>

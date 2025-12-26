@@ -17,7 +17,10 @@ const attendanceSchema = new mongoose.Schema(
     },
     remarks: String,
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    strict: true, // 🔥 CRITICAL
+  }
 );
 
 attendanceSchema.index({ user: 1, date: 1 }, { unique: true });
