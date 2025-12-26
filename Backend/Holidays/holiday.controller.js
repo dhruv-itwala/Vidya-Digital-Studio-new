@@ -4,6 +4,10 @@ export const getHolidays = async (req, res) => {
   res.json(await service.getAllHolidaysService());
 };
 
+export const getUpcomingHolidays = async (req, res) => {
+  res.json(await service.getUpcomingHolidaysService());
+};
+
 export const createHoliday = async (req, res) => {
   res.json(await service.createHolidayService(req.body));
 };

@@ -50,11 +50,9 @@ export default function EmployeeNavbar() {
                 <button onClick={() => navigate("/employee/attendance")}>
                   Attendance
                 </button>
-                {user && user.role.toLowerCase() === "hr" && (
-                  <button onClick={() => navigate("/employee/hrHoliday")}>
-                    Holidays
-                  </button>
-                )}
+                <button onClick={() => navigate("/employee/holidays")}>
+                  Holidays
+                </button>
                 <button onClick={() => navigate("/employee/profile")}>
                   Profile
                 </button>

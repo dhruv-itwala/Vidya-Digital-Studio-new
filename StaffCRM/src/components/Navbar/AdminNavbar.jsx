@@ -61,7 +61,9 @@ export default function AdminNavbar() {
                 </button>
                 <button onClick={() => goTo("/admin/leaves")}>Leaves</button>
                 <button onClick={() => goTo("/admin/reports")}>Reports</button>
-
+                <button onClick={() => goTo("/admin/holidays")}>
+                  Holidays
+                </button>
                 <hr />
                 <button className={styles.logout} onClick={handleLogout}>
                   Logout

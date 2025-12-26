@@ -8,3 +8,17 @@ export const getDueStatus = (endDate) => {
   if (due === today) return "today";
   return "upcoming";
 };
+
+export const holidayGetDayName = (date) => {
+  return new Date(date).toLocaleDateString("en-IN", {
+    weekday: "long",
+  });
+};
+
+export const holidayFormatDate = (date) => {
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};

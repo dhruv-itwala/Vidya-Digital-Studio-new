@@ -27,6 +27,7 @@ import HRLeaveApproval from "./pages/HR/HRLeaveApproval";
 import HRLayout from "./layouts/HRLayout";
 import HRAttendance from "./pages/HR/HRAttendance";
 import Loader from "./components/Loader/Loader";
+import EmployeeHoliday from "./pages/Employee/EmployeeHoliday";
 export default function App() {
   return (
     <>
@@ -56,6 +57,7 @@ export default function App() {
           {/* index route redirects /admin → /admin/dashboard */}
           <Route index element={<Navigate to="attendence" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="holidays" element={<EmployeeHoliday />} />
           <Route path="employees" element={<AdminEmployees />} />
           <Route path="leaves" element={<AdminLeaveApproval />} />
           <Route path="tasks" element={<AdminTasks />} />
@@ -73,6 +75,7 @@ export default function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<EmployeeDashboard />} />
+          <Route path="holidays" element={<EmployeeHoliday />} />
           <Route path="attendance" element={<EmployeeAttendance />} />
           <Route path="profile" element={<EmployeeProfile />} />
           <Route path="leaves" element={<EmployeeLeaves />} />

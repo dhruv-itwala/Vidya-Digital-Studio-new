@@ -6,6 +6,7 @@ import {
   deleteHolidayAPI,
 } from "../../api/holiday.api";
 import styles from "./HRHoliday.module.css";
+import { holidayFormatDate, holidayGetDayName } from "../../utils/date.util";
 
 export default function HRHoliday() {
   const [holidays, setHolidays] = useState([]);
@@ -112,6 +113,7 @@ export default function HRHoliday() {
           <table>
             <thead>
               <tr>
+                <th>Day</th>
                 <th>Date</th>
                 <th>Name</th>
                 <th>Action</th>
@@ -129,7 +131,8 @@ export default function HRHoliday() {
 
               {sortedHolidays.map((h) => (
                 <tr key={h._id}>
-                  <td>{new Date(h.date).toISOString().split("T")[0]}</td>
+                  <td>{holidayGetDayName(h.date)}</td>
+                  <td>{holidayFormatDate(h.date)}</td>
                   <td>{h.name}</td>
                   <td>
                     <button
