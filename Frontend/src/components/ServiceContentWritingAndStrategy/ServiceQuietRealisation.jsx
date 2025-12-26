@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { useEffect } from "react";
 import { serviceMedia } from "../../assets/Data/MasterData";
 import { Typewriter } from "./Typewriter.jsx";
 import styles from "./ServiceContentWritingAndStrategy.module.css";
@@ -11,7 +10,6 @@ export default function ServiceQuietRealisation({
 }) {
   const textHoverMap = { pause: serviceMedia.Pause };
 
-  // Motion variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -19,9 +17,7 @@ export default function ServiceQuietRealisation({
 
   const containerVariants = {
     hidden: {},
-    visible: {
-      transition: { staggerChildren: 0.2 },
-    },
+    visible: { transition: { staggerChildren: 0.2 } },
   };
 
   return (
@@ -33,31 +29,21 @@ export default function ServiceQuietRealisation({
       variants={containerVariants}
       onViewportEnter={() => setStartTypewriter((s) => ({ ...s, pause: true }))}
     >
-      {/* Side Image */}
       <motion.img
         src={serviceMedia.reflectionImg}
-        alt="Reflection concept illustration"
         className={styles.sideImage}
-        initial={{ y: 0 }}
-        whileHover={{ y: -8, scale: 1.04 }}
-        animate={{
-          y: [0, -2, 0],
-          transition: { repeat: Infinity, duration: 4 },
-        }}
-        transition={{ type: "spring", stiffness: 200 }}
+        animate={{ y: [0, -2, 0] }}
+        transition={{ repeat: Infinity, duration: 4 }}
       />
 
-      {/* Text Content */}
       <motion.div className={styles.textContent} variants={containerVariants}>
-        {/* Pause Label with Typewriter */}
         <motion.p
           className={styles.pauseLabel}
           variants={fadeInUp}
           onMouseEnter={() => setHoverImg(textHoverMap.pause)}
           onMouseLeave={() => setHoverImg(null)}
-          style={{ cursor: "pointer" }}
         >
-          A small pause...{" "}
+          A small pause…{" "}
           <Typewriter
             phrases={["before we go further"]}
             start={startTypewriter.pause}
@@ -65,7 +51,6 @@ export default function ServiceQuietRealisation({
           />
         </motion.p>
 
-        {/* Big bold reflective text */}
         <motion.p className={styles.reflectionBold} variants={fadeInUp}>
           Think about the last piece of content you posted.
         </motion.p>
@@ -76,6 +61,16 @@ export default function ServiceQuietRealisation({
 
         <motion.p className={styles.reflectionMuted} variants={fadeInUp}>
           That difference matters more than algorithms ever will.
+        </motion.p>
+
+        <motion.p className={styles.reflectionSoft} variants={fadeInUp}>
+          Most content fails quietly. <br />
+          Not because it’s bad - <br />
+          but because it was written without a reason to exist.
+        </motion.p>
+
+        <motion.p className={styles.reflectionWhisper} variants={fadeInUp}>
+          You didn’t miss the trend. You missed the intention.
         </motion.p>
       </motion.div>
     </motion.section>

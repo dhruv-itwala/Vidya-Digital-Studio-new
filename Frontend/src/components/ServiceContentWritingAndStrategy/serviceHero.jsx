@@ -33,16 +33,23 @@ export default function ServiceHero({ setHoverImg }) {
                   "with evolving.",
                 ]}
                 speed={100}
-                pause={1200} // hold 1.2s after finishing each phrase
+                pause={1200}
               />
             </h1>
 
             <p className={styles.heroText}>
-              Most brands already possess powerful ideas <br />
-              With the right clarity and direction, these ideas can be
-              amplified, articulated, and brought to life with a distinctive,
-              compelling voice.
+              Most brands already possess powerful ideas. <br />
+              With the right clarity and direction, those ideas find their
+              voice.
             </p>
+
+            <p className={styles.heroMuted}>
+              Content is not about filling space. <br />
+              It’s about recognising when something needs to be said — and
+              having the restraint to stay silent when it doesn’t.
+            </p>
+
+            <p className={styles.heroMicro}>Not louder. Clearer.</p>
           </motion.div>
 
           <motion.img

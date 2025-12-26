@@ -71,18 +71,40 @@ h2 {
 }
 
 /* ================= LISTS ================= */
-.services,
-.strategyList {
+.services {
   margin: 32px 0;
   display: grid;
   gap: 14px;
 }
 
-.serviceItem {
-  padding: 10px 16px;
-  border-left: 3px solid var(--blush-pink);
+.strategyList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.strategyItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(6px);
   transition: all 0.3s ease;
-  cursor: pointer;
+}
+
+.strategyItem:hover {
+  background: rgba(246, 199, 220, 0.25);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111;
+  min-width: 32px;
 }
 
 /* ================= PROCESS ================= */

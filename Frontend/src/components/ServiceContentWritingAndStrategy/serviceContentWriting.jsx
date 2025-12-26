@@ -13,7 +13,6 @@ export default function ServiceContentWriting() {
     "Ad & film scripts": serviceMedia.Ads_Films_Scripts,
   };
 
-  // Track current image
   const [currentImg, setCurrentImg] = useState(serviceMedia.writingImg);
 
   return (
@@ -21,9 +20,10 @@ export default function ServiceContentWriting() {
       <motion.section className={styles.sectionGrid}>
         <div>
           <h2>What content writing means to us</h2>
-          <p>
-            To us, content writing is about creating meaning and choosing words
-            that carry weight.
+
+          <p className={styles.lead}>
+            Content rarely needs more creativity. <br />
+            It needs more honesty about what it’s trying to do.
           </p>
 
           <div className={styles.services}>
@@ -31,14 +31,17 @@ export default function ServiceContentWriting() {
               <motion.p
                 key={i}
                 className={styles.serviceItem}
-                whileHover={{ x: 8, backgroundColor: "rgba(246,199,220,0.3)" }}
-                onMouseEnter={() => setCurrentImg(writingHoverMap[item])} // update image on hover
-                // no onMouseLeave → image stays
+                whileHover={{ x: 8 }}
+                onMouseEnter={() => setCurrentImg(writingHoverMap[item])}
               >
                 {item}
               </motion.p>
             ))}
           </div>
+
+          <p className={styles.servicesNote}>
+            Different formats. <br /> One intention.
+          </p>
 
           <p className={styles.question}>
             The question is never “what should we write?”
@@ -48,10 +51,9 @@ export default function ServiceContentWriting() {
         </div>
 
         <motion.img
-          src={currentImg} // dynamically updates
+          src={currentImg}
           className={styles.sideImage}
           whileHover={{ y: -8, scale: 1.04 }}
-          transition={{ type: "spring", stiffness: 200 }}
         />
       </motion.section>
     </div>

@@ -1,91 +1,61 @@
 import { motion } from "framer-motion";
 import { serviceMedia } from "../../assets/Data/MasterData";
 import styles from "./ServiceContentWritingAndStrategy.module.css";
+import {
+  FiUsers,
+  FiCompass,
+  FiLayers,
+  FiClock,
+  FiShield,
+  FiTrendingUp,
+} from "react-icons/fi";
 
 export default function ServiceStrategy() {
   const strategyList = [
-    "Audience & belief mapping",
-    "Narrative pillars",
-    "Platform intelligence",
-    "Sequencing & timing",
-    "Messaging boundaries",
-    "Measurement loops",
+    { text: "Audience & belief mapping", icon: FiUsers },
+    { text: "Narrative pillars", icon: FiLayers },
+    { text: "Platform intelligence", icon: FiCompass },
+    { text: "Sequencing & timing", icon: FiClock },
+    { text: "Messaging boundaries", icon: FiShield },
+    { text: "Measurement loops", icon: FiTrendingUp },
   ];
-
-  // Variants for animating letters
-  const letterVariants = {
-    hidden: { opacity: 0, y: 20 }, // initial state: invisible and moved down
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: { delay: i * 0.05, type: "spring", stiffness: 120 },
-    }),
-  };
 
   return (
     <div className="masterContainer">
-      <motion.section
-        className={styles.sectionAltGrid}
-        initial={{ opacity: 0, y: 80 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ type: "spring", stiffness: 100 }}
-      >
-        {/* Floating/hover image */}
+      <motion.section className={styles.sectionAltGrid}>
         <motion.img
           src={serviceMedia.strategyImg}
           className={styles.sideImage}
-          initial={{ y: 0 }}
-          animate={{ y: [0, -10, 0] }} // subtle floating
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          whileHover={{ scale: 1.08, rotate: [0, 2, -2, 0] }}
+          animate={{ y: [0, -10, 0] }}
+          transition={{ repeat: Infinity, duration: 3 }}
         />
 
         <div>
-          <motion.h2
-            initial={{ opacity: 0, y: -20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ type: "spring", stiffness: 120, damping: 12 }}
-            whileHover={{ scale: 1.05, color: "#F6C7DC" }}
-          >
-            Strategy in Motion
-          </motion.h2>
+          <h2>Where strategy enters the room</h2>
 
-          <motion.div className={styles.strategyList}>
-            {strategyList.map((item, i) => (
-              <motion.p
-                key={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.2 }}
-                style={{ display: "block", color: "#000" }} // ensure visible color
-              >
-                {item.split("").map((char, j) => (
-                  <motion.span
-                    key={j}
-                    custom={j}
-                    variants={letterVariants}
-                    style={{ display: "inline-block" }}
-                    whileHover={{ y: -2, scale: 1.05, color: "#F6C7DC" }}
-                  >
-                    {char === " " ? "\u00A0" : char} {/* preserve spaces */}
-                  </motion.span>
-                ))}
-              </motion.p>
-            ))}
-          </motion.div>
+          <p className={styles.lead}>
+            Strategy isn’t a document. <br />
+            It’s the thinking that happens before the first word — and the
+            discipline that stays long after it’s written.
+          </p>
 
-          <motion.p
-            className={styles.conclusion}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 1, type: "spring", stiffness: 80 }}
-          >
-            Strategy transforms content from noise into impact.
-          </motion.p>
+          <div className={styles.strategyList}>
+            {strategyList.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <div key={i} className={styles.strategyItem}>
+                  <Icon size={22} />
+                  <p>{item.text}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className={styles.conclusion}>
+            Strategy transforms content from noise into impact — by deciding
+            what matters enough to repeat, and what deserves to be said only
+            once.
+          </p>
         </div>
       </motion.section>
     </div>
