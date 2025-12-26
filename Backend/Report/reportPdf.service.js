@@ -58,7 +58,7 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
       .font("Helvetica-Bold")
       .fontSize(13)
       .text("Employee Name", nameX, y, { width: 160 })
-      .text("Working Hrs", hoursX, y, { width: 60 })
+      // .text("Working Hrs", hoursX, y, { width: 60 })
       .text("Tasks Completed", taskX, y);
 
     doc.moveDown(1.5);
@@ -87,7 +87,7 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
     doc.text(report.user.name, nameX, startY, { width: 160 });
 
     // Working Hours
-    doc.text(`${report.workingHours} hrs`, hoursX, startY, { width: 60 });
+    // doc.text(`${report.workingHours} hrs`, hoursX, startY, { width: 60 });
 
     // Tasks (bullet list)
     let taskY = startY;
