@@ -12,7 +12,7 @@ import TaskForm from "../../components/Task/TaskForm";
 import TaskAnalytics from "../../components/Task/TaskAnalytics";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./AdminTasks.module.css";
-import TaskCompleted from "../../components/Task/TaskCompleted";
+import AllTaskCompleted from "../../components/Task/AllTaskCompleted";
 
 export default function AdminTasks() {
   const { allEmployees } = useAuth();
@@ -124,7 +124,7 @@ export default function AdminTasks() {
           onEdit={startEdit}
         />
 
-        <TaskCompleted />
+        <AllTaskCompleted />
 
         {showForm && (
           <div

@@ -5,6 +5,7 @@ import {
   updateTaskStatusService,
   deleteTaskService,
   updateTaskService,
+  getMyCompletedTasksService,
 } from "./task.service.js";
 
 export const createTask = async (req, res) => {
@@ -19,6 +20,15 @@ export const createTask = async (req, res) => {
 export const myTasks = async (req, res) => {
   const tasks = await getMyTasksService(req.user.id);
   res.json(tasks);
+};
+
+export const myCompletedTasks = async (req, res) => {
+  try {
+    const tasks = await getMyCompletedTasksService(req.user.id);
+    res.json(tasks);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };
 
 export const allTasks = async (req, res) => {

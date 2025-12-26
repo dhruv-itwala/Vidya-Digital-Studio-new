@@ -340,3 +340,18 @@
     flex-direction: column;
   }
 }
+/* ===== Mobile List Wrapper ===== */
+.mobileList {
+  display: none;
+}
+
+/* ===== Responsive Switch ===== */
+@media (max-width: 768px) {
+  .table {
+    display: none;
+  }
+
+  .mobileList {
+    display: block;
+  }
+}

@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
-import {
-  getMyCompletedTasksAPI,
-  updateTaskStatusAPI,
-} from "../../api/task.api";
+import { getAllTasksAPI, updateTaskStatusAPI } from "../../api/task.api";
 import styles from "./Task.module.css";
 import Loader from "../Loader/Loader";
 
-export default function TaskCompleted() {
+export default function AllTaskCompleted() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,7 +15,7 @@ export default function TaskCompleted() {
   const load = async () => {
     try {
       setLoading(true);
-      const res = await getMyCompletedTasksAPI();
+      const res = await getAllTasksAPI();
       console.log(res.data);
       const completedTasks = res.data.filter(
         (t) => t.status === "complete" || t.status === "hold"
@@ -105,59 +102,6 @@ export default function TaskCompleted() {
           )}
         </tbody>
       </table>
-
-      {/* ===== Mobile Cards ===== */}
-      <div className={styles.mobileList}>
-        {tasks.length === 0 ? (
-          <p className={styles.empty}>No completed tasks found</p>
-        ) : (
-          tasks.map((task) => (
-            <div key={task._id} className={styles.card}>
-              <div className={styles.header}>
-                <span className={styles.taskName}>{task.name}</span>
-                <span className={`${styles.status} ${styles[task.status]}`}>
-                  {task.status.toUpperCase()}
-                </span>
-              </div>
-
-              <div className={styles.meta}>
-                <span>
-                  <strong>Priority:</strong>{" "}
-                  <span
-                    className={`${styles.priority} ${styles[task.priority]}`}
-                  >
-                    {task.priority.toUpperCase()}
-                  </span>
-                </span>
-
-                <span>
-                  <strong>Due:</strong>{" "}
-                  {task.endDate
-                    ? new Date(task.endDate).toLocaleDateString()
-                    : "-"}
-                </span>
-              </div>
-
-              <div className={styles.assigned}>
-                <strong>Assigned:</strong>{" "}
-                {task.assignedTo.map((u) => u.name).join(", ")}
-              </div>
-
-              <div className={styles.actions}>
-                <select
-                  value={task.status}
-                  onChange={(e) => changeStatus(task._id, e.target.value)}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="started">Started</option>
-                  <option value="hold">Hold</option>
-                  <option value="complete">Complete</option>
-                </select>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }

@@ -16,6 +16,14 @@ export const getMyTasksAPI = async () => {
   }
 };
 
+export const getMyCompletedTasksAPI = async () => {
+  try {
+    return await api.get("/tasks/my/completed");
+  } catch (error) {
+    handleError(error);
+  }
+};
+
 // ================= ADMIN =================
 export const getAllTasksAPI = async () => {
   try {

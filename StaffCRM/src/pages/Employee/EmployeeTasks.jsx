@@ -10,6 +10,7 @@ import TaskForm from "../../components/Task/TaskForm";
 import TaskAnalytics from "../../components/Task/TaskAnalytics";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeTasks.module.css";
+import TaskCompleted from "../../components/Task/TaskCompleted";
 
 export default function EmployeeTasks({
   showTasks,
@@ -134,8 +135,7 @@ export default function EmployeeTasks({
         onDelete={removeTask}
         onEdit={startEdit}
       />
-      {/* <TaskCompleted /> */}
-
+      <TaskCompleted />
       {showForm && (
         <div
           className={styles.modalOverlay}

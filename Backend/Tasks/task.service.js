@@ -22,6 +22,16 @@ export const getMyTasksService = async (userId) => {
     .sort({ createdAt: -1 });
 };
 
+export const getMyCompletedTasksService = async (userId) => {
+  return Task.find({
+    status: "complete",
+    $or: [{ assignedTo: userId }, { "createdBy.user": userId }],
+  })
+    .populate("assignedTo", "name email")
+    .populate("createdBy.user", "name email")
+    .sort({ updatedAt: -1 }); // completed recently first
+};
+
 export const getAllTasksService = async () => {
   return Task.find()
     .populate("assignedTo", "name email")
