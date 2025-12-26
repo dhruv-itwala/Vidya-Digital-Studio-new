@@ -29,7 +29,7 @@ const HolidayCard = ({ holidayName }) => {
         <h1 className={styles.holidayTitle}>{holidayName}</h1>
 
         <p className={styles.holidayText}>
-          Take a pause, breathe easy, and enjoy your well - earned holiday.
+          Take a pause, breathe easy, and enjoy your well , earned holiday.
         </p>
 
         {/* Decorative Icons */}

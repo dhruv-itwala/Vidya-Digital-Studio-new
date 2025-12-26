@@ -11,6 +11,7 @@ import { getMyReportsByDateAPI } from "../../api/report.api";
 import HolidayCard from "./HolidayCard";
 import LeaveCard from "./LeaveCard";
 import Loader from "../../components/Loader/Loader";
+import WeekendCard from "./WeekendCard";
 
 const EmployeeDashboard = () => {
   const [punchInDone, setPunchInDone] = useState(false);
@@ -21,6 +22,17 @@ const EmployeeDashboard = () => {
   const [isLeave, setIsLeave] = useState(false);
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayName, setHolidayName] = useState("");
+
+  const getISTDay = () => {
+    const now = new Date();
+    const istTime = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    );
+    return istTime.getDay();
+  };
+
+  const istDay = getISTDay();
+  const isWeekend = [0, 6].includes(istDay);
 
   const fetchStatus = async () => {
     try {
@@ -94,6 +106,10 @@ const EmployeeDashboard = () => {
 
   if (isLeave) {
     return <LeaveCard />;
+  }
+
+  if (isWeekend) {
+    return <WeekendCard day={istDay} />;
   }
 
   return (
