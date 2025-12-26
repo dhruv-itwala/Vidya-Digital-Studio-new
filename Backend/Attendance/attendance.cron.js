@@ -9,8 +9,6 @@ import {
   suggestAttendanceStatus,
 } from "./attendance.utils.js";
 
-const existing = await Attendance.findOne({ user: r.user, date });
-
 cron.schedule("0 0 * * *", async () => {
   const yesterday = new Date(todayISTUTC().getTime() - 86400000);
 
@@ -25,6 +23,8 @@ cron.schedule("0 0 * * *", async () => {
     r.breaks.forEach((b) => !b.out && (b.out = r.punchOut));
     calcWorkMinutes(r);
     await r.save();
+
+    const existing = await Attendance.findOne({ user: r.user, date });
 
     if (!existing || !["LEAVE", "HOLIDAY"].includes(existing.status)) {
       await Attendance.findOneAndUpdate(

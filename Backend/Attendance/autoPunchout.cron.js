@@ -9,7 +9,6 @@ import {
 } from "./attendance.utils.js";
 
 const MAX_NET_SECONDS = 8 * 60 * 60; // 8 hours
-const existing = await Attendance.findOne({ user: r.user, date });
 
 cron.schedule("*/5 * * * *", async () => {
   const runningRecords = await WorkRecord.find({
@@ -34,7 +33,7 @@ cron.schedule("*/5 * * * *", async () => {
       record.netWorkMinutes = record.totalWorkMinutes;
 
       await record.save();
-
+      const existing = await Attendance.findOne({ user: r.user, date });
       if (!existing || !["LEAVE", "HOLIDAY"].includes(existing.status)) {
         await Attendance.findOneAndUpdate(
           { user: r.user, date },
