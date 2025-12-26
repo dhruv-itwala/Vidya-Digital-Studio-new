@@ -49,17 +49,14 @@ const BusinessCard = () => {
             🎨 Portfolio
           </button>
 
-          {/* <button
+          <button
             className={styles.cardBtn}
             onClick={() =>
-              window.open(
-                "https://www.vidyadigitalstudio.com/brochure",
-                "_blank"
-              )
+              window.open("https://calendly.com/vidyadigitalstudio", "_blank")
             }
           >
-            📄 Brochure
-          </button> */}
+            📄 Schedule a Meeting
+          </button>
 
           <button
             className={styles.cardBtn}

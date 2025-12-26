@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import styles from "./HRReports.module.css";
 import {
   downloadAllReportsByDatePDF,
   getAllReportsByDate,
 } from "../../api/report.api";
-import toast from "react-hot-toast";
+import styles from "./HRReports.module.css";
 import Loader from "../../components/Loader/Loader";
 
 const today = () => new Date().toISOString().split("T")[0];
@@ -14,6 +13,7 @@ export default function HRReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Fetch reports when date changes
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
@@ -26,6 +26,7 @@ export default function HRReports() {
       }
       setLoading(false);
     };
+
     fetchReports();
   }, [date]);
 
@@ -34,40 +35,41 @@ export default function HRReports() {
       const res = await downloadAllReportsByDatePDF(date);
       const blob = new Blob([res.data], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
+
       const link = document.createElement("a");
       link.href = url;
       link.download = `${date} Work Report.pdf`;
       link.click();
+
       URL.revokeObjectURL(url);
-      toast.success("Report downloaded");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to download report");
+      alert("Failed to download report");
     }
   };
 
   return (
-    <div className={`masterContainer ${styles.container}`}>
-      <h2 className={styles.title}>Work Reports</h2>
+    <div className="masterContainer">
+      <div className={styles.hrReportsContainer}>
+        <h2>Work Reports</h2>
 
-      <div className={styles.controls}>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className={styles.dateInput}
-        />
+        <div className={styles.controls}>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className={styles.dateInput}
+          />
 
-        <button onClick={download} className={styles.downloadBtn}>
-          Download Reports
-        </button>
-      </div>
+          <button className={styles.downloadButton} onClick={download}>
+            Download Reports
+          </button>
+        </div>
 
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
+        {loading ? (
+          <Loader />
+        ) : (
+          <table className={styles.reportsTable}>
             <thead>
               <tr>
                 <th>Employee Name</th>
@@ -75,10 +77,11 @@ export default function HRReports() {
                 <th>Work Points</th>
               </tr>
             </thead>
+
             <tbody>
               {reports.length === 0 && (
                 <tr>
-                  <td colSpan="3" className={styles.empty}>
+                  <td colSpan="3" className={styles.noReports}>
                     No reports found
                   </td>
                 </tr>
@@ -91,23 +94,25 @@ export default function HRReports() {
                 return (
                   <tr key={report._id}>
                     <td>{report.user.name}</td>
-                    <td
-                      className={
-                        submitted
-                          ? styles.statusSubmitted
-                          : styles.statusPending
-                      }
-                    >
-                      {submitted ? "Submitted" : "Pending"}
+                    <td>{submitted ? "Submitted" : "Pending"}</td>
+                    <td>
+                      {submitted ? (
+                        <ul>
+                          {report.workPoints.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        "-"
+                      )}
                     </td>
-                    <td>{submitted ? report.workPoints.join(", ") : "-"}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

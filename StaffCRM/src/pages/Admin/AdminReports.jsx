@@ -36,7 +36,7 @@ export default function AdminReports() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Work_Reports_${date}.pdf`;
+      link.download = `${date} Work Report.pdf`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
