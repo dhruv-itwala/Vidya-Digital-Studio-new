@@ -2,7 +2,6 @@ import cron from "node-cron";
 
 // Attendance crons
 import "../Attendance/attendance.cron.js";
-import "../Attendance/autoPunchout.cron.js";
 
 console.log("🕒 Cron jobs initialized");
 

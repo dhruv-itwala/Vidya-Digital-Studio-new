@@ -58,20 +58,50 @@ export const punchInService = async (userId) => {
 };
 
 export const punchOutService = async (userId) => {
-  const date = todayISTUTC();
-  const record = await WorkRecord.findOne({ user: userId, date });
+  const today = todayISTUTC();
+  const yesterday = new Date(today.getTime() - 86400000);
 
-  if (!record || record.punchOut) throw new Error("Punch in first");
+  // 1️⃣ Try today first
+  let record = await WorkRecord.findOne({
+    user: userId,
+    date: today,
+  });
 
+  // 2️⃣ Fallback to yesterday (shift crossed midnight)
+  if (!record) {
+    record = await WorkRecord.findOne({
+      user: userId,
+      date: yesterday,
+      punchIn: { $exists: true },
+      punchOut: { $exists: false },
+    });
+  }
+
+  if (!record) {
+    throw new Error("Punch in first");
+  }
+
+  // 3️⃣ Check attendance lock (INCOMPLETE)
+  const attendance = await Attendance.findOne({
+    user: userId,
+    date: record.date,
+  });
+
+  if (attendance?.status === "INCOMPLETE") {
+    throw new Error(
+      "Attendance already auto-closed as INCOMPLETE. Contact HR."
+    );
+  }
+
+  // 4️⃣ Normal punch-out
   record.punchOut = nowUTC();
   record.breaks.forEach((b) => !b.out && (b.out = record.punchOut));
   calcWorkMinutes(record);
 
   await record.save();
 
-  // Auto suggest attendance
   await Attendance.findOneAndUpdate(
-    { user: userId, date },
+    { user: userId, date: record.date },
     {
       status: suggestAttendanceStatus(record.netWorkMinutes),
       source: "SYSTEM",
@@ -272,10 +302,21 @@ export const getDayAttendanceService = async (date) => {
 
 /* ================= HELPERS ================= */
 export const getTodayWorkRecordService = async (userId) => {
-  const record = await workRecordModel.findOne({
+  const today = todayISTUTC();
+  const yesterday = new Date(today.getTime() - 86400000);
+
+  let record = await workRecordModel.findOne({
     user: userId,
-    date: todayISTUTC(),
+    date: today,
   });
+
+  if (!record) {
+    record = await workRecordModel.findOne({
+      user: userId,
+      date: yesterday,
+      punchOut: { $exists: false },
+    });
+  }
 
   if (!record) return null;
 
@@ -284,12 +325,8 @@ export const getTodayWorkRecordService = async (userId) => {
 
   return {
     ...record.toObject(),
-
-    // 🔥 live computed values
     liveNetSeconds: calcLiveNetSeconds(record),
     serverNow: new Date(),
-
-    // 🔥 state flags
     isRunning: !!record.punchIn && !record.punchOut && !onBreak,
     onBreak,
   };
