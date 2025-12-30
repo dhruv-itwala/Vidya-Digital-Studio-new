@@ -15,14 +15,15 @@ const WARNING_SECONDS = 7.5 * 60 * 60; // 7h 30m
 const BREAK_LIMIT_SECONDS = 60 * 60; // 60 minutes
 
 export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
-  const [seconds, setSeconds] = useState(0);
+  /* ================= STATE ================= */
   const [workSeconds, setWorkSeconds] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
 
   const [isRunning, setIsRunning] = useState(false);
   const [onBreak, setOnBreak] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [hasPunchedOut, setHasPunchedOut] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [warning, setWarning] = useState("");
 
@@ -40,6 +41,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
         setBreakSeconds(0);
         setIsRunning(false);
         setOnBreak(false);
+        setHasPunchedOut(false);
         return;
       }
 
@@ -55,6 +57,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       setBreakSeconds(breakSecs);
       setIsRunning(record.isRunning);
       setOnBreak(record.onBreak);
+      setHasPunchedOut(!!record.punchOut);
     } catch (e) {
       console.error("Sync failed:", e);
     }
@@ -90,7 +93,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
   useEffect(() => {
     if (workSeconds >= WARNING_SECONDS && workSeconds < WORK_TARGET_SECONDS) {
       setWarning("⚠️ You have crossed 7h 30m. Please prepare to punch out.");
-    } else if (workSeconds >= WORK_TARGET_SECONDS) {
+    } else if (workSeconds >= WORK_TARGET_SECONDS && !hasPunchedOut) {
       setWarning(
         "⚠️ 8 hours completed. Please punch out or attendance may be marked INCOMPLETE."
       );
@@ -98,7 +101,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
     } else {
       setWarning("");
     }
-  }, [workSeconds]);
+  }, [workSeconds, hasPunchedOut]);
 
   useEffect(() => {
     if (breakSeconds >= BREAK_LIMIT_SECONDS && onBreak) {
@@ -135,7 +138,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
         }[type]
       );
     } catch (e) {
-      setMessage(e.message || "Action failed");
+      setMessage(e?.response?.data?.message || e.message || "Action failed");
     } finally {
       setLoading(false);
       setTimeout(() => setMessage(""), 4000);
@@ -143,7 +146,8 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
   };
 
   /* ================= HELPERS ================= */
-  const remainingSeconds = Math.max(WORK_TARGET_SECONDS - seconds, 0);
+  const remainingWork = Math.max(WORK_TARGET_SECONDS - workSeconds, 0);
+  const remainingBreak = Math.max(BREAK_LIMIT_SECONDS - breakSeconds, 0);
 
   const formatTime = (secs) => {
     const h = Math.floor(secs / 3600);
@@ -154,26 +158,25 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       "0"
     )}:${String(s).padStart(2, "0")}`;
   };
-  const progress = Math.min(
-    (remainingSeconds / WORK_TARGET_SECONDS) * 100,
-    100
-  );
+
+  const progress = Math.min((remainingWork / WORK_TARGET_SECONDS) * 100, 100);
+
   const radius = 70;
   const stroke = 8;
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  const remainingWork = Math.max(WORK_TARGET_SECONDS - workSeconds, 0);
-  const remainingBreak = Math.max(BREAK_LIMIT_SECONDS - breakSeconds, 0);
-
   /* ================= BUTTON STATES ================= */
   const shiftComplete = remainingWork === 0;
 
-  const canPunchIn = !isRunning && !onBreak && !shiftComplete;
-  const canPunchOut = isRunning || shiftComplete;
-  const canBreakIn = isRunning && !onBreak && !shiftComplete;
-  const canBreakOut = onBreak;
+  const canPunchIn = !isRunning && !onBreak && !hasPunchedOut;
+
+  const canPunchOut = !hasPunchedOut && (isRunning || shiftComplete);
+
+  const canBreakIn = isRunning && !onBreak && !hasPunchedOut;
+
+  const canBreakOut = onBreak && !hasPunchedOut;
 
   /* ================= UI ================= */
   return (
@@ -198,10 +201,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
               strokeWidth={stroke}
               strokeLinecap="round"
               strokeDasharray={`${circumference} ${circumference}`}
-              style={{
-                strokeDashoffset,
-                transition: "stroke-dashoffset 0.5s",
-              }}
+              style={{ strokeDashoffset }}
               r={normalizedRadius}
               cx={radius}
               cy={radius}
@@ -224,7 +224,9 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
         <div className={styles.statusMessageWrapper}>
           <div className={styles.statusWrapper}>
             <span className={styles.statusText}>
-              {shiftComplete
+              {hasPunchedOut
+                ? "✅ Shift Closed"
+                : shiftComplete
                 ? "⛔ Shift Complete"
                 : onBreak
                 ? "☕ On Break"
@@ -234,11 +236,9 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
             </span>
           </div>
 
-          {/* WARNINGS */}
           {warning && <span className={styles.message}>{warning}</span>}
 
-          {/* BREAK TIMER (ONLY WHEN ON BREAK) */}
-          {onBreak && (
+          {onBreak && !hasPunchedOut && (
             <span className={styles.status}>
               Break Remaining: {formatTime(remainingBreak)}
             </span>
@@ -255,12 +255,14 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
           Punch In
         </button>
 
-        <button
-          disabled={!canPunchOut || loading}
-          onClick={() => handleAction(punchOutAPI, "punchOut")}
-        >
-          Punch Out
-        </button>
+        {!hasPunchedOut && (
+          <button
+            disabled={!canPunchOut || loading}
+            onClick={() => handleAction(punchOutAPI, "punchOut")}
+          >
+            Punch Out
+          </button>
+        )}
 
         <button
           disabled={!canBreakIn || loading}
