@@ -7,7 +7,15 @@ const attendanceSchema = new mongoose.Schema(
     date: { type: Date, required: true }, // IST day (UTC stored)
     status: {
       type: String,
-      enum: ["PRESENT", "HALF_DAY", "ABSENT", "WFH", "HOLIDAY", "LEAVE"],
+      enum: [
+        "PRESENT",
+        "HALF_DAY",
+        "ABSENT",
+        "WFH",
+        "HOLIDAY",
+        "LEAVE",
+        "INCOMPLETE",
+      ],
       default: "ABSENT",
     },
     source: {

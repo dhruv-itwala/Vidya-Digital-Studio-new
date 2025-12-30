@@ -9,73 +9,109 @@ import {
 import styles from "./EmployeeTimer.module.css";
 import Loader from "../../components/Loader/Loader";
 
+/* ================= CONSTANTS ================= */
 const WORK_TARGET_SECONDS = 8 * 60 * 60; // 8 hours
+const WARNING_SECONDS = 7.5 * 60 * 60; // 7h 30m
+const BREAK_LIMIT_SECONDS = 60 * 60; // 60 minutes
 
 export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
   const [seconds, setSeconds] = useState(0);
+  const [workSeconds, setWorkSeconds] = useState(0);
+  const [breakSeconds, setBreakSeconds] = useState(0);
+
   const [isRunning, setIsRunning] = useState(false);
   const [onBreak, setOnBreak] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const [message, setMessage] = useState("");
+  const [warning, setWarning] = useState("");
 
-  const intervalRef = useRef(null);
+  const workIntervalRef = useRef(null);
+  const breakIntervalRef = useRef(null);
 
-  /* -------------------- Messages -------------------- */
-  const getMessage = (type) =>
-    ({
-      punchIn: "Hey 👋 Have a great day 🚀",
-      breakIn: "☕ Enjoy your break!",
-      breakOut: "Welcome back! 💪",
-      punchOut: "Great work today! 🌟",
-    }[type]);
-
-  /* -------------------- Backend Sync -------------------- */
+  /* ================= BACKEND SYNC ================= */
   const syncFromServer = async () => {
     try {
       const res = await getTodayWorkRecordAPI();
       const record = res?.data;
 
       if (!record) {
-        setSeconds(0);
+        setWorkSeconds(0);
+        setBreakSeconds(0);
         setIsRunning(false);
         setOnBreak(false);
         return;
       }
 
-      setSeconds(record.liveNetSeconds);
+      setWorkSeconds(record.liveNetSeconds || 0);
+
+      const breakSecs =
+        record.breaks?.reduce((sum, b) => {
+          if (!b.in) return sum;
+          const end = b.out ? new Date(b.out) : new Date();
+          return sum + Math.floor((end - new Date(b.in)) / 1000);
+        }, 0) || 0;
+
+      setBreakSeconds(breakSecs);
       setIsRunning(record.isRunning);
       setOnBreak(record.onBreak);
     } catch (e) {
-      console.error("Failed to sync from server:", e);
+      console.error("Sync failed:", e);
     }
   };
 
-  /* -------------------- Timer -------------------- */
+  /* ================= WORK TIMER ================= */
   useEffect(() => {
-    clearInterval(intervalRef.current);
+    clearInterval(workIntervalRef.current);
 
-    if (isRunning && seconds < WORK_TARGET_SECONDS) {
-      intervalRef.current = setInterval(() => {
-        setSeconds((prev) => prev + 1);
+    if (isRunning && !onBreak && workSeconds < WORK_TARGET_SECONDS) {
+      workIntervalRef.current = setInterval(() => {
+        setWorkSeconds((prev) => prev + 1);
       }, 1000);
     }
 
-    return () => clearInterval(intervalRef.current);
-  }, [isRunning, seconds]);
+    return () => clearInterval(workIntervalRef.current);
+  }, [isRunning, onBreak, workSeconds]);
 
-  /* -------------------- Stop Timer at Shift End -------------------- */
+  /* ================= BREAK TIMER ================= */
   useEffect(() => {
-    if (seconds >= WORK_TARGET_SECONDS) {
-      setIsRunning(false);
-    }
-  }, [seconds]);
+    clearInterval(breakIntervalRef.current);
 
-  /* -------------------- Initial Load -------------------- */
+    if (onBreak && breakSeconds < BREAK_LIMIT_SECONDS) {
+      breakIntervalRef.current = setInterval(() => {
+        setBreakSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => clearInterval(breakIntervalRef.current);
+  }, [onBreak, breakSeconds]);
+
+  /* ================= WARNINGS ================= */
+  useEffect(() => {
+    if (workSeconds >= WARNING_SECONDS && workSeconds < WORK_TARGET_SECONDS) {
+      setWarning("⚠️ You have crossed 7h 30m. Please prepare to punch out.");
+    } else if (workSeconds >= WORK_TARGET_SECONDS) {
+      setWarning(
+        "⚠️ 8 hours completed. Please punch out or attendance may be marked INCOMPLETE."
+      );
+      setIsRunning(false);
+    } else {
+      setWarning("");
+    }
+  }, [workSeconds]);
+
+  useEffect(() => {
+    if (breakSeconds >= BREAK_LIMIT_SECONDS && onBreak) {
+      setMessage("⚠️ Break limit (60 min) exceeded. Please resume work.");
+    }
+  }, [breakSeconds, onBreak]);
+
+  /* ================= INITIAL LOAD ================= */
   useEffect(() => {
     syncFromServer();
   }, []);
 
-  /* -------------------- Actions -------------------- */
+  /* ================= ACTION HANDLER ================= */
   const handleAction = async (api, type) => {
     if (
       type === "punchOut" &&
@@ -83,7 +119,6 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       !(await onPunchOutAttempt())
     ) {
       setMessage("⚠️ Submit your report before punching out.");
-      setTimeout(() => setMessage(""), 4000);
       return;
     }
 
@@ -91,8 +126,14 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       setLoading(true);
       await api();
       await syncFromServer();
-      setMessage(getMessage(type));
-      if (type === "punchIn") onPunchIn?.();
+      setMessage(
+        {
+          punchIn: "👋 Have a great day!",
+          breakIn: "☕ Break started",
+          breakOut: "💪 Back to work",
+          punchOut: "🌟 Great work today!",
+        }[type]
+      );
     } catch (e) {
       setMessage(e.message || "Action failed");
     } finally {
@@ -101,7 +142,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
     }
   };
 
-  /* -------------------- Helpers -------------------- */
+  /* ================= HELPERS ================= */
   const remainingSeconds = Math.max(WORK_TARGET_SECONDS - seconds, 0);
 
   const formatTime = (secs) => {
@@ -113,32 +154,34 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       "0"
     )}:${String(s).padStart(2, "0")}`;
   };
-
   const progress = Math.min(
     (remainingSeconds / WORK_TARGET_SECONDS) * 100,
     100
   );
-
   const radius = 70;
   const stroke = 8;
-
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  /* -------------------- Button States -------------------- */
-  const shiftComplete = remainingSeconds === 0;
+  const remainingWork = Math.max(WORK_TARGET_SECONDS - workSeconds, 0);
+  const remainingBreak = Math.max(BREAK_LIMIT_SECONDS - breakSeconds, 0);
+
+  /* ================= BUTTON STATES ================= */
+  const shiftComplete = remainingWork === 0;
 
   const canPunchIn = !isRunning && !onBreak && !shiftComplete;
-  const canPunchOut = isRunning && !shiftComplete;
+  const canPunchOut = isRunning || shiftComplete;
   const canBreakIn = isRunning && !onBreak && !shiftComplete;
-  const canBreakOut = onBreak && !shiftComplete;
+  const canBreakOut = onBreak;
 
+  /* ================= UI ================= */
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>Today’s Work Progress</h3>
 
       <div className={styles.timerStatusWrapper}>
+        {/* LEFT: CIRCLE */}
         <div className={styles.circularProgressWrapper}>
           <svg height={radius * 2} width={radius * 2}>
             <circle
@@ -172,25 +215,38 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
               fontWeight="bold"
               fill="#1e293b"
             >
-              {formatTime(remainingSeconds)}
+              {formatTime(remainingWork)}
             </text>
           </svg>
         </div>
 
+        {/* RIGHT: STATUS */}
         <div className={styles.statusMessageWrapper}>
-          <span className={styles.statusText}>
-            {shiftComplete
-              ? "✅ Shift Complete"
-              : onBreak
-              ? "☕ On Break"
-              : isRunning
-              ? "🟢 Working"
-              : "⚪ Not Working"}
-          </span>
-          {message && <span className={styles.message}>{message}</span>}
+          <div className={styles.statusWrapper}>
+            <span className={styles.statusText}>
+              {shiftComplete
+                ? "⛔ Shift Complete"
+                : onBreak
+                ? "☕ On Break"
+                : isRunning
+                ? "🟢 Working"
+                : "⚪ Not Working"}
+            </span>
+          </div>
+
+          {/* WARNINGS */}
+          {warning && <span className={styles.message}>{warning}</span>}
+
+          {/* BREAK TIMER (ONLY WHEN ON BREAK) */}
+          {onBreak && (
+            <span className={styles.status}>
+              Break Remaining: {formatTime(remainingBreak)}
+            </span>
+          )}
         </div>
       </div>
 
+      {/* ACTIONS */}
       <div className={styles.actions}>
         <button
           disabled={!canPunchIn || loading}

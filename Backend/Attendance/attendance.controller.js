@@ -1,6 +1,7 @@
 // Backend/Attendance/attendance.controller.js
 import * as service from "./attendance.service.js";
 import { downloadAttendancePDFService } from "./attendancePdf.service.js";
+import { downloadAttendanceWithPunchPDFService } from "./attendancePdfWithPunch.js";
 
 /* ================= EMPLOYEE ================= */
 
@@ -103,7 +104,12 @@ export const getAllEmployeesAttendanceByDateRange = async (req, res) => {
     }
 
     const data = await service.getAllAttendanceByDateRangeService(from, to);
-    res.json(data);
+
+    res.json({
+      success: true,
+      count: data.length,
+      data,
+    });
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
@@ -152,6 +158,14 @@ export const dayAttendance = async (req, res) => {
 export const downloadAttendancePDF = async (req, res) => {
   try {
     await downloadAttendancePDFService(req, res);
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+export const downloadAttendanceWithPunchPDF = async (req, res) => {
+  try {
+    await downloadAttendanceWithPunchPDFService(req, res);
   } catch (e) {
     res.status(400).json({ message: e.message });
   }

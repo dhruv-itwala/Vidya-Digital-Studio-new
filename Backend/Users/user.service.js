@@ -63,8 +63,27 @@ export const loginService = async (email, password) => {
   return user;
 };
 
+// export const getAllUsersService = async () => {
+//   return User.find().select("-password");
+// };
+
 export const getAllUsersService = async () => {
-  return User.find().select("-password");
+  const users = await User.find({ isActive: true }).select("-password");
+
+  const rolePriority = {
+    admin: 1,
+    hr: 2,
+    employee: 3,
+  };
+
+  return users.sort((a, b) => {
+    const roleDiff = rolePriority[a.role] - rolePriority[b.role];
+
+    if (roleDiff !== 0) return roleDiff;
+
+    // Optional: sort by name inside same role
+    return a.name.localeCompare(b.name);
+  });
 };
 
 export const getProfileService = async (userId) => {

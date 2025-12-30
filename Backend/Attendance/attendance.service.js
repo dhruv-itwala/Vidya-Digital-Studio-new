@@ -179,15 +179,54 @@ export const getUserAttendanceByDateService = async (userId, date) => {
     date: { $gte: startOfDay, $lt: endOfDay }, // range query
   });
 };
+// export const getAllAttendanceByDateRangeService = async (from, to) => {
+//   const fromDate = parseISTDateOnly(from);
+//   const toDate = parseISTDateOnly(to);
+
+//   return attendanceModel
+//     .find({ date: { $gte: fromDate, $lte: toDate } })
+//     .populate("user")
+//     .sort({ date: 1 });
+// };
 
 export const getAllAttendanceByDateRangeService = async (from, to) => {
   const fromDate = parseISTDateOnly(from);
   const toDate = parseISTDateOnly(to);
 
-  return attendanceModel
-    .find({ date: { $gte: fromDate, $lte: toDate } })
-    .populate("user")
-    .sort({ date: 1 });
+  // 1️⃣ Get attendance records
+  const attendance = await Attendance.find({
+    date: { $gte: fromDate, $lte: toDate },
+  })
+    .populate("user", "name email")
+    .lean();
+
+  // 2️⃣ Get work records for punch times
+  const workRecords = await WorkRecord.find({
+    date: { $gte: fromDate, $lte: toDate },
+  }).lean();
+
+  // 3️⃣ Map work records by user+date
+  const workMap = new Map();
+  workRecords.forEach((w) => {
+    workMap.set(`${w.user}_${w.date.getTime()}`, w);
+  });
+
+  // 4️⃣ Merge clean response
+  return attendance.map((att) => {
+    const key = `${att.user._id}_${att.date.getTime()}`;
+    const work = workMap.get(key);
+
+    return {
+      userId: att.user._id,
+      name: att.user.name,
+      email: att.user.email,
+      date: att.date,
+      status: att.status,
+
+      punchIn: work?.punchIn || null,
+      punchOut: work?.punchOut || null,
+    };
+  });
 };
 
 export const getLiveEmployeesStatusService = async () => {

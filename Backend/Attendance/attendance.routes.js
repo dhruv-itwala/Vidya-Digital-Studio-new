@@ -43,8 +43,14 @@ attendanceRoutes.get("/day", roleCheck("admin"), ctrl.dayAttendance);
 
 attendanceRoutes.get(
   "/download/pdf",
-  roleCheck("admin"),
+  roleCheck("admin", "hr"),
   ctrl.downloadAttendancePDF
+);
+
+attendanceRoutes.get(
+  "/download/timepdf",
+  roleCheck("admin", "hr"),
+  ctrl.downloadAttendanceWithPunchPDF
 );
 
 export default attendanceRoutes;

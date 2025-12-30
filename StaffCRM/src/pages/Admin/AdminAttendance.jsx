@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  downloadAttendancePDFAPI,
-  getAllEmployeesAttendanceByDateRangeAPI,
   getDayAttendanceAPI,
   getLiveEmployeesStatusAPI,
+  getAllEmployeesAttendanceByDateRangeAPI,
+  downloadAttendancePDFAPI,
+  downloadAttendancePDFWithPunchAPI,
 } from "../../api/attendance.api";
 
 import { FaUsers, FaCalendarDay, FaCalendarAlt } from "react-icons/fa";
@@ -26,7 +27,6 @@ const AccordionHeader = ({
       <Icon className={styles.headerIcon} />
       <h3>{title}</h3>
     </div>
-
     {openSection === sectionKey ? <IoChevronUp /> : <IoChevronDown />}
   </div>
 );
@@ -34,69 +34,66 @@ const AccordionHeader = ({
 export default function AdminAttendance() {
   const today = new Date().toISOString().split("T")[0];
 
-  const formatDateIST = (utcDate) => {
-    if (!utcDate) return "—";
-    return new Date(utcDate).toLocaleDateString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
   /* ================= STATE ================= */
   const [openSection, setOpenSection] = useState("live");
 
   const [date, setDate] = useState(today);
-  const [attendance, setAttendance] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [dailyAttendance, setDailyAttendance] = useState([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
+
+  const [liveStatus, setLiveStatus] = useState([]);
+  const [liveLoading, setLiveLoading] = useState(false);
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [rangeAttendance, setRangeAttendance] = useState([]);
   const [rangeLoading, setRangeLoading] = useState(false);
 
-  const [liveStatus, setLiveStatus] = useState([]);
-  const [liveLoading, setLiveLoading] = useState(false);
-
-  const toggleSection = (key) => {
+  const toggleSection = (key) =>
     setOpenSection((prev) => (prev === key ? null : key));
-  };
+
+  /* ================= HELPERS ================= */
+  const formatDateIST = (d) => new Date(d).toLocaleDateString("en-IN");
+
+  const formatTime = (d) =>
+    new Date(d).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
   const formatDuration = (seconds = 0) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    return `${String(h).padStart(2, "0")} hrs ${String(m).padStart(
-      2,
-      "0"
-    )} mins`;
+    return `${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
   };
 
-  /* ================= FETCH DAILY ================= */
-  const fetchAttendance = async () => {
+  /* ================= DAILY ================= */
+  const fetchDailyAttendance = async () => {
     try {
-      setLoading(true);
+      setDailyLoading(true);
       const res = await getDayAttendanceAPI(date);
-      setAttendance(res.data || []);
-    } catch (err) {
-      console.error(err);
+      setDailyAttendance(res.data || []);
+    } catch {
+      toast.error("Failed to load daily attendance");
+      setDailyAttendance([]);
     } finally {
-      setLoading(false);
+      setDailyLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAttendance();
+    fetchDailyAttendance();
   }, [date]);
 
-  /* ================= LIVE STATUS ================= */
+  /* ================= LIVE ================= */
   const fetchLiveStatus = async () => {
     try {
       setLiveLoading(true);
       const res = await getLiveEmployeesStatusAPI();
       setLiveStatus(res.data || []);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to load live status");
+      setLiveStatus([]);
     } finally {
       setLiveLoading(false);
     }
@@ -104,77 +101,107 @@ export default function AdminAttendance() {
 
   useEffect(() => {
     fetchLiveStatus();
-    const interval = setInterval(fetchLiveStatus, 60000);
-    return () => clearInterval(interval);
+    const i = setInterval(fetchLiveStatus, 60000);
+    return () => clearInterval(i);
   }, []);
 
   /* ================= RANGE ================= */
-  const fetchAllAttendanceByRange = async () => {
+  const fetchRangeAttendance = async () => {
     if (!fromDate || !toDate) {
-      toast.error("Please select both From and To dates");
+      toast.error("Please select both dates");
       return;
     }
+
     try {
       setRangeLoading(true);
       const res = await getAllEmployeesAttendanceByDateRangeAPI(
         fromDate,
         toDate
       );
-      setRangeAttendance(res.data || []);
-    } catch (err) {
-      console.error(err);
+
+      // API may return { success, data }
+      const list = Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+
+      setRangeAttendance(list);
+    } catch {
+      toast.error("Failed to load range attendance");
+      setRangeAttendance([]);
     } finally {
       setRangeLoading(false);
     }
   };
 
-  const downloadAttendancePDF = async () => {
+  /* ================= DOWNLOAD ================= */
+  const downloadPDF = async () => {
     if (!fromDate || !toDate) {
-      toast.error("Please select both From and To dates");
+      toast.error("Select both dates");
       return;
     }
 
     try {
       const res = await downloadAttendancePDFAPI(fromDate, toDate);
-
-      const url = window.URL.createObjectURL(
+      const url = URL.createObjectURL(
         new Blob([res.data], { type: "application/pdf" })
       );
-
       const link = document.createElement("a");
       link.href = url;
       link.download = `attendance_${fromDate}_to_${toDate}.pdf`;
-      document.body.appendChild(link);
       link.click();
-      link.remove();
-
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error(err);
+      URL.revokeObjectURL(url);
+    } catch {
       toast.error("Failed to download PDF");
     }
   };
 
-  /* ================= RENDER ================= */
+  const downloadPDFWithPunch = async () => {
+    if (!fromDate || !toDate) {
+      toast.error("Select both dates");
+      return;
+    }
+
+    try {
+      const res = await downloadAttendancePDFWithPunchAPI(fromDate, toDate);
+      const url = URL.createObjectURL(
+        new Blob([res.data], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `attendance_with_punch_${fromDate}_to_${toDate}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to download PDF");
+    }
+  };
+
+  /* ================= RANGE MAPPING ================= */
+
   const employees = Array.from(
     new Map(
-      rangeAttendance
-        .filter((a) => a.user?._id)
-        .map((a) => [a.user._id, a.user])
+      rangeAttendance.map((a) => [a.userId, { userId: a.userId, name: a.name }])
     ).values()
   );
 
   const attendanceByDate = rangeAttendance.reduce((acc, curr) => {
     const dateKey = formatDateIST(curr.date);
     if (!acc[dateKey]) acc[dateKey] = {};
-    acc[dateKey][curr.user?._id] = curr.status;
+    acc[dateKey][curr.userId] = {
+      status: curr.status,
+      punchIn: curr.punchIn,
+      punchOut: curr.punchOut,
+    };
     return acc;
   }, {});
 
+  /* ================= RENDER ================= */
   return (
     <div className="masterContainer">
       <div className={styles.container}>
-        <h2 className={styles.title}>Attendance Management</h2>
+        <h2 className={styles.title}>Admin Attendance</h2>
 
         {/* ================= LIVE ================= */}
         <div className={styles.card}>
@@ -185,51 +212,38 @@ export default function AdminAttendance() {
             openSection={openSection}
             toggle={toggleSection}
           />
-
           {openSection === "live" && (
             <div className={styles.accordionBody}>
-              <div className={styles.tableContainer}>
-                {liveLoading ? (
-                  <Loader />
-                ) : (
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Employee</th>
-                        <th>Status</th>
-                        <th>Worked Time</th>
+              {liveLoading ? (
+                <Loader />
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Status</th>
+                      <th>Worked</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {liveStatus.map((e) => (
+                      <tr key={e.userId}>
+                        <td>{e.name}</td>
+                        <td
+                          className={
+                            styles[
+                              `status${e.status.toLowerCase().replace("_", "")}`
+                            ]
+                          }
+                        >
+                          {e.status.replace("_", " ")}
+                        </td>
+                        <td>{formatDuration(e.workedSeconds)}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {liveStatus.length === 0 ? (
-                        <tr>
-                          <td colSpan="3" className={styles.empty}>
-                            No data
-                          </td>
-                        </tr>
-                      ) : (
-                        liveStatus.map((emp) => (
-                          <tr key={emp.userId}>
-                            <td>{emp.name}</td>
-                            <td
-                              className={
-                                styles[
-                                  `status${emp.status
-                                    .toLowerCase()
-                                    .replace("_", "")}`
-                                ]
-                              }
-                            >
-                              {emp.status.replace("_", " ")}
-                            </td>
-                            <td>{formatDuration(emp.workedSeconds)}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </div>
@@ -243,7 +257,6 @@ export default function AdminAttendance() {
             openSection={openSection}
             toggle={toggleSection}
           />
-
           {openSection === "daily" && (
             <div className={styles.accordionBody}>
               <input
@@ -251,47 +264,30 @@ export default function AdminAttendance() {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
-
-              <div className={styles.tableContainer}>
-                {loading ? (
-                  <p className={styles.loading}>Loading...</p>
-                ) : (
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Employee</th>
-                        <th>Status</th>
+              {dailyLoading ? (
+                <Loader />
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyAttendance.map((a) => (
+                      <tr key={a._id}>
+                        <td>{a.user?.name || "—"}</td>
+                        <td
+                          className={styles["status" + a.status?.toLowerCase()]}
+                        >
+                          {a.status}
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {attendance.length === 0 ? (
-                        <tr>
-                          <td colSpan="2" className={styles.empty}>
-                            No data
-                          </td>
-                        </tr>
-                      ) : (
-                        attendance.map((a) => (
-                          <tr key={a._id}>
-                            <td>{a.user?.name || "—"}</td>
-                            <td
-                              className={
-                                styles[
-                                  `status${a.status
-                                    .toLowerCase()
-                                    .replace("_", "")}`
-                                ]
-                              }
-                            >
-                              {a.status}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </div>
@@ -305,7 +301,6 @@ export default function AdminAttendance() {
             openSection={openSection}
             toggle={toggleSection}
           />
-
           {openSection === "range" && (
             <div className={styles.accordionBody}>
               <div className={styles.filters}>
@@ -323,71 +318,65 @@ export default function AdminAttendance() {
                   onChange={(e) => setToDate(e.target.value)}
                 />
                 <button
-                  onClick={fetchAllAttendanceByRange}
+                  onClick={fetchRangeAttendance}
                   className={styles.primaryBtn}
                 >
                   Get
                 </button>
+                <button onClick={downloadPDF} className={styles.primaryBtn}>
+                  Download
+                </button>
                 <button
-                  onClick={downloadAttendancePDF}
+                  onClick={downloadPDFWithPunch}
                   className={styles.primaryBtn}
                 >
-                  Download
+                  Download with Punch
                 </button>
               </div>
 
-              <div className={styles.tableContainer}>
-                {rangeLoading ? (
-                  <Loader />
-                ) : (
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        {employees.map((emp) => (
-                          <th key={emp._id}>{emp.name}</th>
-                        ))}
+              {rangeLoading ? (
+                <Loader />
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      {employees.map((e) => (
+                        <th key={e.userId}>{e.name}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(attendanceByDate).map(([date, records]) => (
+                      <tr key={date}>
+                        <td>{date}</td>
+                        {employees.map((e) => {
+                          const r = records[e.userId];
+                          return (
+                            <td key={e.userId}>
+                              {r ? (
+                                <>
+                                  <div>{r.status}</div>
+                                  <small>
+                                    {r.punchIn ? formatTime(r.punchIn) : "--"} -{" "}
+                                    {r.punchOut
+                                      ? formatTime(r.punchOut)
+                                      : r.status === "INCOMPLETE"
+                                      ? "INC"
+                                      : "--"}
+                                  </small>
+                                </>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
-                    </thead>
-                    <tbody>
-                      {Object.keys(attendanceByDate).length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={employees.length + 1}
-                            className={styles.empty}
-                          >
-                            No data
-                          </td>
-                        </tr>
-                      ) : (
-                        Object.entries(attendanceByDate).map(
-                          ([date, records]) => (
-                            <tr key={date}>
-                              <td>{date}</td>
-                              {employees.map((emp) => (
-                                <td
-                                  key={emp._id}
-                                  className={
-                                    records[emp._id]
-                                      ? styles[
-                                          `status${records[emp._id]
-                                            .toLowerCase()
-                                            .replace("_", "")}`
-                                        ]
-                                      : ""
-                                  }
-                                >
-                                  {records[emp._id] || "—"}
-                                </td>
-                              ))}
-                            </tr>
-                          )
-                        )
-                      )}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </div>

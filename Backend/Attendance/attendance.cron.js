@@ -14,27 +14,28 @@ cron.schedule("0 0 * * *", async () => {
 
   const records = await WorkRecord.find({
     date: yesterday,
+    punchIn: { $exists: true },
     punchOut: { $exists: false },
   });
 
-  for (const r of records) {
-    r.punchOut = nowUTC();
-    r.autoClosed = true;
-    r.breaks.forEach((b) => !b.out && (b.out = r.punchOut));
-    calcWorkMinutes(r);
-    await r.save();
+  for (const record of records) {
+    // Auto-close at midnight
+    record.punchOut = new Date(record.punchIn.getTime() + 8 * 60 * 60 * 1000); // ⏱ cap to 8 hrs
 
-    const existing = await Attendance.findOne({ user: r.user, date });
+    record.autoClosed = true;
+    record.breaks.forEach((b) => !b.out && (b.out = record.punchOut));
 
-    if (!existing || !["LEAVE", "HOLIDAY"].includes(existing.status)) {
-      await Attendance.findOneAndUpdate(
-        { user: r.user, date },
-        {
-          status: suggestAttendanceStatus(r.netWorkMinutes),
-          source: "SYSTEM",
-        },
-        { upsert: true }
-      );
-    }
+    calcWorkMinutes(record);
+    await record.save();
+
+    await Attendance.findOneAndUpdate(
+      { user: record.user, date: record.date },
+      {
+        status: "INCOMPLETE", // 🔥 KEY
+        source: "SYSTEM",
+        remarks: "Auto closed at midnight (forgot punch-out)",
+      },
+      { upsert: true }
+    );
   }
 });

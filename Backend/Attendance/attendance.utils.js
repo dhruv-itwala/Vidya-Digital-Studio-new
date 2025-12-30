@@ -1,6 +1,10 @@
 // Backend/Attendance/attendance.utils.js
 export const nowUTC = () => new Date();
 
+// Cap work minutes to 8 hours
+const MAX_WORK_MINUTES = 8 * 60;
+export const capWorkMinutes = (minutes) => Math.min(minutes, MAX_WORK_MINUTES);
+
 // YYYY-MM-DD (IST) → UTC midnight
 export const parseISTDateOnly = (dateStr) => {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -33,12 +37,11 @@ export const calcWorkMinutes = (record) => {
     0
   );
 
+  const net = Math.max(total - breaks, 0);
+
   record.totalWorkMinutes = Math.floor(total);
   record.totalBreakMinutes = Math.floor(breaks);
-  record.netWorkMinutes = Math.max(
-    record.totalWorkMinutes - record.totalBreakMinutes,
-    0
-  );
+  record.netWorkMinutes = capWorkMinutes(Math.floor(net)); // 🔥 CAP HERE
 };
 
 export const suggestAttendanceStatus = (minutes) => {

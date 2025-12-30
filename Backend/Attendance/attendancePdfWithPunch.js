@@ -1,10 +1,9 @@
-// Backend/Attendance/attendancePdf.service.js
+// Backend/Attendance/attendancePdfWithPunch.service.js
 import PDFDocument from "pdfkit";
 import dayjs from "dayjs";
 import { getAllAttendanceByDateRangeService } from "./attendance.service.js";
 
 /* ---------------- STATUS MAPS ---------------- */
-
 const STATUS_MAP = {
   PRESENT: "P",
   ABSENT: "A",
@@ -21,12 +20,12 @@ const STATUS_COLOR_MAP = {
   L: "#9b59b6", // purple
   WFH: "#3498db", // blue
   H: "#95a5a6", // gray
-  IC: "#000000", // default
-  "—": "#7f8c8d", // default
+  IC: "#000000",
+  "—": "#7f8c8d",
 };
 
 /* ---------------- DATA TRANSFORM ---------------- */
-function buildAttendanceMatrix(data = []) {
+function buildAttendanceMatrixWithPunch(data = []) {
   const employees = [];
   const dateMap = {};
 
@@ -34,9 +33,11 @@ function buildAttendanceMatrix(data = []) {
     if (!att.userId || !att.name) return;
 
     const dateKey = dayjs(att.date).format("DD/MM/YYYY");
-    const empKey = att.userId; // unique & stable
+    const empKey = att.userId; // unique
     const empName = att.name;
     const status = STATUS_MAP[att.status] || "—";
+    const punchIn = att.punchIn ? dayjs(att.punchIn).format("HH:mm") : "-";
+    const punchOut = att.punchOut ? dayjs(att.punchOut).format("HH:mm") : "-";
 
     if (!employees.find((e) => e.id === empKey)) {
       employees.push({ id: empKey, name: empName });
@@ -46,7 +47,7 @@ function buildAttendanceMatrix(data = []) {
       dateMap[dateKey] = {};
     }
 
-    dateMap[dateKey][empKey] = status;
+    dateMap[dateKey][empKey] = { status, punchIn, punchOut };
   });
 
   const rows = Object.keys(dateMap)
@@ -60,13 +61,12 @@ function buildAttendanceMatrix(data = []) {
 }
 
 /* ---------------- PDF SERVICE ---------------- */
-
-export const downloadAttendancePDFService = async (req, res) => {
+export const downloadAttendanceWithPunchPDFService = async (req, res) => {
   try {
     const { from, to } = req.query;
     const data = await getAllAttendanceByDateRangeService(from, to);
 
-    const { employees, rows } = buildAttendanceMatrix(data);
+    const { employees, rows } = buildAttendanceMatrixWithPunch(data);
 
     const doc = new PDFDocument({
       size: "A4",
@@ -77,34 +77,32 @@ export const downloadAttendancePDFService = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="attendance.pdf"`
+      `attachment; filename="attendance_punch.pdf"`
     );
 
     doc.pipe(res);
 
     /* ---------- TITLE ---------- */
-    doc.fontSize(18).text("Attendance Sheet", { align: "center" });
+    doc
+      .fontSize(18)
+      .text("Attendance Sheet with Punch In/Out", { align: "center" });
     doc.moveDown(0.5);
 
     doc
       .fontSize(10)
       .text(`From: ${dayjs(from).format("DD/MM/YYYY")}`)
       .text(`To: ${dayjs(to).format("DD/MM/YYYY")}`);
-
     doc.moveDown(1);
 
     /* ---------- TABLE CONFIG ---------- */
     const startX = doc.x;
     let startY = doc.y;
-
     const rowHeight = 25;
     const dateColWidth = 80;
-
     const usableWidth =
       doc.page.width - doc.page.margins.left - doc.page.margins.right;
-
     const empColWidth = Math.min(
-      80,
+      120,
       (usableWidth - dateColWidth) / employees.length
     );
 
@@ -117,13 +115,18 @@ export const downloadAttendancePDFService = async (req, res) => {
 
     employees.forEach((emp, i) => {
       const x = startX + dateColWidth + i * empColWidth;
-
       doc.rect(x, startY, empColWidth, rowHeight).stroke();
-
       doc
         .fontSize(8)
         .fillColor("black")
-        .text(emp.name, x + 2, startY + 7, {
+        .text(emp.name, x + 2, startY + 2, {
+          width: empColWidth - 4,
+          align: "center",
+        });
+      doc
+        .fontSize(7)
+        .fillColor("black")
+        .text("Status | In | Out", x + 2, startY + 14, {
           width: empColWidth - 4,
           align: "center",
         });
@@ -141,37 +144,36 @@ export const downloadAttendancePDFService = async (req, res) => {
 
       employees.forEach((emp, i) => {
         const x = startX + dateColWidth + i * empColWidth;
-        const value = row.attendance[emp.id] || "—";
-        const color = STATUS_COLOR_MAP[value] || "#000000";
+        const empData = row.attendance[emp.id] || {
+          status: "—",
+          punchIn: "-",
+          punchOut: "-",
+        };
+        const color = STATUS_COLOR_MAP[empData.status] || "#000000";
 
         doc.rect(x, startY, empColWidth, rowHeight).stroke();
-
         doc
           .fillColor(color)
           .fontSize(9)
-          .text(value, x, startY + 7, {
-            width: empColWidth,
-            align: "center",
-          })
+          .text(
+            `${empData.status} | ${empData.punchIn} | ${empData.punchOut}`,
+            x,
+            startY + 7,
+            { width: empColWidth, align: "center" }
+          )
           .fillColor("black");
       });
 
       startY += rowHeight;
-
       if (startY > doc.page.height - 50) {
         doc.addPage();
         startY = doc.y;
       }
     });
 
-    /* ---------- LEGEND (ONE LINE) ---------- */
-    /* ---------- LEGEND (FORCED ONE LINE) ---------- */
-
+    /* ---------- LEGEND ---------- */
     doc.moveDown(1);
-
-    // reset X position to left margin
     doc.x = doc.page.margins.left;
-
     const legendWidth =
       doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
@@ -180,19 +182,13 @@ export const downloadAttendancePDFService = async (req, res) => {
       .fillColor("black")
       .text(
         "Legend: P = Present | A = Absent | H-D = Half Day | L = Leave | WFH = Work From Home | H = Holiday",
-        {
-          width: legendWidth,
-          align: "center",
-          lineBreak: false, // 🚨 force single line
-        }
+        { width: legendWidth, align: "center", lineBreak: false }
       );
 
     doc.fillColor("black");
-    /* ---------- FINALIZE ---------- */
     doc.end();
   } catch (error) {
     console.error("PDF generation error:", error);
-
     if (!res.headersSent) {
       res.status(500).json({ message: "Failed to generate PDF" });
     }

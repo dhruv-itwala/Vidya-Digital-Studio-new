@@ -101,6 +101,17 @@ export const getAllEmployeesAttendanceByDateRangeAPI = async (from, to) => {
   }
 };
 
+export const downloadAttendancePDFWithPunchAPI = async (from, to) => {
+  try {
+    return await api.get("/attendance/download/timepdf", {
+      params: { from, to },
+      responseType: "blob",
+    });
+  } catch (error) {
+    handleError(error);
+  }
+};
+
 export const markAttendanceStatusAPI = async (data) => {
   try {
     return await api.post("/attendance/mark", data);

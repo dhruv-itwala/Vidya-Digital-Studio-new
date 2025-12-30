@@ -36,6 +36,16 @@
   gap: 4px;
   margin-right: 20%;
 }
+/* Keeps right-side content vertically centered */
+.statusMessageWrapper {
+  align-items: flex-start;
+}
+
+/* Smaller warning text to avoid layout jump */
+.message {
+  font-size: 13px;
+  line-height: 1.2;
+}
 
 .statusWrapper {
   display: flex;

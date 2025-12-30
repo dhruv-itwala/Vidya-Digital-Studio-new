@@ -47,6 +47,7 @@ export default function EmployeeAttendance() {
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
+              max={today}
             />
           </div>
 
