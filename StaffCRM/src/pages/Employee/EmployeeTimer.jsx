@@ -8,6 +8,7 @@ import {
 } from "../../api/attendance.api";
 import styles from "./EmployeeTimer.module.css";
 import Loader from "../../components/Loader/Loader";
+import toast from "react-hot-toast";
 
 /* ================= CONSTANTS ================= */
 const WORK_TARGET_SECONDS = 8 * 60 * 60; // 8 hours
@@ -60,6 +61,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       setHasPunchedOut(!!record.punchOut);
     } catch (e) {
       console.error("Sync failed:", e);
+      toast.error("Failed to sync attendance status");
     }
   };
 
@@ -121,7 +123,9 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       onPunchOutAttempt &&
       !(await onPunchOutAttempt())
     ) {
-      setMessage("⚠️ Submit your report before punching out.");
+      const msg = "⚠️ Submit your report before punching out.";
+      toast.error(msg);
+      setMessage(msg);
       return;
     }
 
@@ -129,16 +133,21 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
       setLoading(true);
       await api();
       await syncFromServer();
-      setMessage(
-        {
-          punchIn: "👋 Have a great day!",
-          breakIn: "☕ Break started",
-          breakOut: "💪 Back to work",
-          punchOut: "🌟 Great work today!",
-        }[type]
-      );
-    } catch (e) {
-      setMessage(e?.response?.data?.message || e.message || "Action failed");
+      const successMsg = {
+        punchIn: "👋 Have a great day!",
+        breakIn: "☕ Break started",
+        breakOut: "💪 Back to work",
+        punchOut: "🌟 Great work today!",
+      }[type];
+
+      toast.success(successMsg);
+      setMessage(successMsg);
+    } catch (err) {
+      const errorMsg =
+        err?.message || err?.response?.data?.message || "Something went wrong";
+
+      toast.error(errorMsg);
+      setMessage(errorMsg);
     } finally {
       setLoading(false);
       setTimeout(() => setMessage(""), 4000);
@@ -201,11 +210,16 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
               strokeWidth={stroke}
               strokeLinecap="round"
               strokeDasharray={`${circumference} ${circumference}`}
-              style={{ strokeDashoffset }}
+              style={{
+                strokeDashoffset,
+                transform: "rotate(-90deg)",
+                transformOrigin: "50% 50%",
+              }}
               r={normalizedRadius}
               cx={radius}
               cy={radius}
             />
+
             <text
               x="50%"
               y="50%"
@@ -255,14 +269,12 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
           Punch In
         </button>
 
-        {!hasPunchedOut && (
-          <button
-            disabled={!canPunchOut || loading}
-            onClick={() => handleAction(punchOutAPI, "punchOut")}
-          >
-            Punch Out
-          </button>
-        )}
+        <button
+          disabled={!canPunchOut || loading}
+          onClick={() => handleAction(punchOutAPI, "punchOut")}
+        >
+          Punch Out
+        </button>
 
         <button
           disabled={!canBreakIn || loading}

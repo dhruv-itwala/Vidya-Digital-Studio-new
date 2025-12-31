@@ -1,6 +1,14 @@
 // Backend/Attendance/attendancePdfWithPunch.service.js
 import PDFDocument from "pdfkit";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const IST = "Asia/Kolkata";
+
 import { getAllAttendanceByDateRangeService } from "./attendance.service.js";
 
 /* ---------------- STATUS MAPS ---------------- */
@@ -32,12 +40,19 @@ function buildAttendanceMatrixWithPunch(data = []) {
   data.forEach((att) => {
     if (!att.userId || !att.name) return;
 
-    const dateKey = dayjs(att.date).format("DD/MM/YYYY");
-    const empKey = att.userId; // unique
+    const dateKey = dayjs.utc(att.date).tz(IST).format("DD/MM/YYYY");
+    const empKey = att.userId;
     const empName = att.name;
+
     const status = STATUS_MAP[att.status] || "—";
-    const punchIn = att.punchIn ? dayjs(att.punchIn).format("HH:mm") : "-";
-    const punchOut = att.punchOut ? dayjs(att.punchOut).format("HH:mm") : "-";
+
+    const punchIn = att.punchIn
+      ? dayjs.utc(att.punchIn).tz(IST).format("HH:mm")
+      : "-";
+
+    const punchOut = att.punchOut
+      ? dayjs.utc(att.punchOut).tz(IST).format("HH:mm")
+      : "-";
 
     if (!employees.find((e) => e.id === empKey)) {
       employees.push({ id: empKey, name: empName });
