@@ -8,20 +8,23 @@ import {
 import TaskKanban from "../../components/Task/TaskKanban";
 import TaskForm from "../../components/Task/TaskForm";
 import TaskAnalytics from "../../components/Task/TaskAnalytics";
+import TaskCompleted from "../../components/Task/TaskCompleted";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeTasks.module.css";
-import TaskCompleted from "../../components/Task/TaskCompleted";
 
 export default function EmployeeTasks({
   showTasks,
   disableTasksAfterPunchOut,
 }) {
   const { allEmployees } = useAuth();
+
   const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+
+  /* ================= LOAD TASKS ================= */
 
   useEffect(() => {
     if (showTasks) loadTasks();
@@ -32,10 +35,12 @@ export default function EmployeeTasks({
       const res = await getMyTasksAPI();
       setTasks(res.data || []);
     } catch (err) {
-      console.error("Failed to load tasks", err);
+      console.error(err);
       toast.error("Failed to load tasks");
     }
   };
+
+  /* ================= ACTIONS ================= */
 
   const updateStatus = async (id, status) => {
     try {
@@ -62,25 +67,40 @@ export default function EmployeeTasks({
     setShowForm(true);
   };
 
+  /* ================= DATE HELPERS ================= */
+
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
 
-  const filteredTasks = useMemo(() => {
+  const isOverdue = (task) => {
+    if (!task.endDate) return false;
+    if (task.status === "complete") return false;
+    return new Date(task.endDate) < today;
+  };
+
+  /* ================= ACTIVE TASKS (KANBAN) ================= */
+
+  const activeTasks = useMemo(() => {
     return tasks.filter((t) => {
+      // ❌ Never show completed in Kanban
       if (t.status === "complete") return false;
-      if (t.endDate) {
-        const endDate = new Date(t.endDate);
-        if (endDate < today) return false;
-      }
-      const statusMatch = statusFilter === "all" || t.status === statusFilter;
-      const priorityMatch =
-        priorityFilter === "all" || t.priority === priorityFilter;
-      return statusMatch && priorityMatch;
+
+      // Status filter
+      if (statusFilter !== "all" && t.status !== statusFilter) return false;
+
+      // Priority filter
+      if (priorityFilter !== "all" && t.priority !== priorityFilter)
+        return false;
+
+      // ✅ Overdue tasks are ALLOWED
+      return true;
     });
-  }, [tasks, statusFilter, priorityFilter, today]);
+  }, [tasks, statusFilter, priorityFilter]);
+
+  /* ================= MODAL ================= */
 
   const closeModal = () => {
     setShowForm(false);
@@ -90,10 +110,14 @@ export default function EmployeeTasks({
 
   if (!showTasks || disableTasksAfterPunchOut) return null;
 
+  /* ================= UI ================= */
+
   return (
     <div className={styles.container}>
+      {/* ===== Header ===== */}
       <header className={styles.header}>
         <h2 className={styles.title}>My Tasks</h2>
+
         <div className={styles.actionsRow}>
           <select
             value={statusFilter}
@@ -103,7 +127,6 @@ export default function EmployeeTasks({
             <option value="pending">Pending</option>
             <option value="started">Started</option>
             <option value="hold">Hold</option>
-            <option value="complete">Complete</option>
           </select>
 
           <select
@@ -128,14 +151,22 @@ export default function EmployeeTasks({
         </div>
       </header>
 
+      {/* ===== Analytics ===== */}
       <TaskAnalytics tasks={tasks} />
+
+      {/* ===== Kanban (Active + Overdue) ===== */}
       <TaskKanban
-        tasks={filteredTasks}
+        tasks={activeTasks}
+        isOverdue={isOverdue}
         onStatusChange={updateStatus}
         onDelete={removeTask}
         onEdit={startEdit}
       />
+
+      {/* ===== Completed Tasks ===== */}
       <TaskCompleted />
+
+      {/* ===== Task Form Modal ===== */}
       {showForm && (
         <div
           className={styles.modalOverlay}
@@ -143,17 +174,15 @@ export default function EmployeeTasks({
             if (
               !window.__TASK_DIRTY__ ||
               window.confirm("You have unsaved changes. Discard them?")
-            )
+            ) {
               closeModal();
+            }
           }}
         >
           <div
             className={styles.modalContent}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* <button className={styles.modalClose} onClick={closeModal}>
-              ×
-            </button> */}
             <TaskForm
               users={allEmployees}
               task={editingTask}

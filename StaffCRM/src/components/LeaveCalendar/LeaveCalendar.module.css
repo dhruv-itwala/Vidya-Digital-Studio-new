@@ -1,0 +1,118 @@
+.wrapper {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.header button {
+  border: none;
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Week Row */
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.weekDay {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cell {
+  min-height: 120px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 6px;
+  position: relative;
+  background: #fff;
+}
+
+.date {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+/* Holiday */
+.holidayCell {
+  background: #f0fdf4;
+  border-color: #34d399;
+}
+
+.holidayLabel {
+  font-size: 0.65rem;
+  color: #065f46;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Leaves */
+.leaves {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.leave {
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 6px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Leave types */
+.CASUAL {
+  background: #6366f1;
+}
+
+.SICK {
+  background: #ef4444;
+}
+
+.UNPAID {
+  background: #f59e0b;
+}
+
+/* Half day */
+.halfDay {
+  border: 1px dashed rgba(255, 255, 255, 0.6);
+  opacity: 0.9;
+}
+
+.halfBadge {
+  font-size: 0.75rem;
+}
+
+.leaveName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -19,9 +19,8 @@ export default function TaskCompleted() {
     try {
       setLoading(true);
       const res = await getMyCompletedTasksAPI();
-      const completedTasks = res.data.filter(
-        (t) => t.status === "complete" || t.status === "hold"
-      );
+      const completedTasks = res.data.filter((t) => t.status === "complete");
+
       res.data.forEach((t) => console.log(t.status));
 
       setTasks(completedTasks);

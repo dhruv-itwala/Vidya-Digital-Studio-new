@@ -62,11 +62,27 @@ export default function AdminTasks() {
   };
 
   const filteredTasks = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return tasks.filter((t) => {
       const statusMatch = statusFilter === "all" || t.status === statusFilter;
       const priorityMatch =
         priorityFilter === "all" || t.priority === priorityFilter;
-      return statusMatch && priorityMatch;
+
+      if (!statusMatch || !priorityMatch) return false;
+
+      // ❌ hide completed tasks whose END DATE is passed
+      if (t.status === "complete" && t.endDate) {
+        const endDate = new Date(t.endDate);
+        endDate.setHours(0, 0, 0, 0);
+
+        if (endDate < today) {
+          return false;
+        }
+      }
+
+      return true;
     });
   }, [tasks, statusFilter, priorityFilter]);
 

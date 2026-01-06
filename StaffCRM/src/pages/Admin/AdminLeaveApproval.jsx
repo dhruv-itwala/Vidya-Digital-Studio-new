@@ -5,6 +5,8 @@ import {
   declineLeaveAPI,
 } from "../../api/leave.api";
 import styles from "./AdminLeaveApproval.module.css";
+import Loader from "../../components/Loader/Loader";
+import LeaveCalendar from "../../components/LeaveCalendar/LeaveCalendar";
 
 const PAGE_SIZE = 5;
 
@@ -59,109 +61,115 @@ export default function AdminLeaveApproval() {
   };
 
   return (
-    <div className={styles.container}>
-      {/* ================= PENDING ================= */}
-      <h2 className={styles.title}>Pending Leave Requests</h2>
+    <div className="masterContainer">
+      <div className={styles.container}>
+        {/* ================= PENDING ================= */}
+        <h2 className={styles.title}>Pending Leave Requests</h2>
 
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Duration</th>
-            <th>Type</th>
-            <th>Half Day</th>
-            <th>Reason</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {paginate(pendingLeaves, pendingPage).length === 0 && (
+        <table className={styles.table}>
+          <thead>
             <tr>
-              <td colSpan="6">No pending leaves</td>
+              <th>Employee</th>
+              <th>Duration</th>
+              <th>Type</th>
+              <th>Half Day</th>
+              <th>Reason</th>
+              <th>Actions</th>
             </tr>
-          )}
+          </thead>
 
-          {paginate(pendingLeaves, pendingPage).map((l) => (
-            <tr key={l._id}>
-              <td>{l.user?.name}</td>
-              <td>
-                {l.fromDate.slice(0, 10)} → {l.toDate.slice(0, 10)}
-              </td>
-              <td>{l.type}</td>
-              <td>{l.isHalfDay ? "Yes" : "No"}</td>
-              <td>{l.reason}</td>
-              <td>
-                <button
-                  className={styles.approveBtn}
-                  onClick={() => approve(l._id)}
-                >
-                  Approve
-                </button>
-                <button
-                  className={styles.declineBtn}
-                  onClick={() => decline(l._id)}
-                >
-                  Decline
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <tbody>
+            {paginate(pendingLeaves, pendingPage).length === 0 && (
+              <tr>
+                <td colSpan="6">No pending leaves</td>
+              </tr>
+            )}
 
-      {pendingLeaves.length > PAGE_SIZE && (
-        <Pagination
-          page={pendingPage}
-          total={pendingLeaves.length}
-          onChange={setPendingPage}
-        />
-      )}
+            {paginate(pendingLeaves, pendingPage).map((l) => (
+              <tr key={l._id}>
+                <td>{l.user?.name}</td>
+                <td>
+                  {l.fromDate.slice(0, 10)} → {l.toDate.slice(0, 10)}
+                </td>
+                <td>{l.type}</td>
+                <td>{l.isHalfDay ? "Yes" : "No"}</td>
+                <td>{l.reason}</td>
+                <td>
+                  <button
+                    className={styles.approveBtn}
+                    onClick={() => approve(l._id)}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className={styles.declineBtn}
+                    onClick={() => decline(l._id)}
+                  >
+                    Decline
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      {/* ================= HISTORY ================= */}
-      <h2 className={styles.title}>Leave History</h2>
+        {pendingLeaves.length > PAGE_SIZE && (
+          <Pagination
+            page={pendingPage}
+            total={pendingLeaves.length}
+            onChange={setPendingPage}
+          />
+        )}
 
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Duration</th>
-            <th>Type</th>
-            <th>Half Day</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+        {/* ================= HISTORY ================= */}
+        <h2 className={styles.title}>Leave History</h2>
 
-        <tbody>
-          {paginate(historyLeaves, historyPage).length === 0 && (
+        <table className={styles.table}>
+          <thead>
             <tr>
-              <td colSpan="5">No leave history</td>
+              <th>Employee</th>
+              <th>Duration</th>
+              <th>Type</th>
+              <th>Half Day</th>
+              <th>Status</th>
             </tr>
-          )}
+          </thead>
 
-          {paginate(historyLeaves, historyPage).map((l) => (
-            <tr key={l._id}>
-              <td>{l.user?.name}</td>
-              <td>
-                {l.fromDate.slice(0, 10)} → {l.toDate.slice(0, 10)}
-              </td>
-              <td>{l.type}</td>
-              <td>{l.isHalfDay ? "Yes" : "No"}</td>
-              <td className={styles[`status${l.status}`]}>{l.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <tbody>
+            {paginate(historyLeaves, historyPage).length === 0 && (
+              <tr>
+                <td colSpan="5">No leave history</td>
+              </tr>
+            )}
 
-      {historyLeaves.length > PAGE_SIZE && (
-        <Pagination
-          page={historyPage}
-          total={historyLeaves.length}
-          onChange={setHistoryPage}
-        />
-      )}
+            {paginate(historyLeaves, historyPage).map((l) => (
+              <tr key={l._id}>
+                <td>{l.user?.name}</td>
+                <td>
+                  {l.fromDate.slice(0, 10)} → {l.toDate.slice(0, 10)}
+                </td>
+                <td>{l.type}</td>
+                <td>{l.isHalfDay ? "Yes" : "No"}</td>
+                <td className={styles[`status${l.status}`]}>{l.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      {loading && <Loader />}
+        {historyLeaves.length > PAGE_SIZE && (
+          <Pagination
+            page={historyPage}
+            total={historyLeaves.length}
+            onChange={setHistoryPage}
+          />
+        )}
+
+        {/* =================  Leave Calendar ================= */}
+        <h2 className={styles.title}>Leave Calendar</h2>
+        <LeaveCalendar />
+
+        {loading && <Loader />}
+      </div>
     </div>
   );
 }

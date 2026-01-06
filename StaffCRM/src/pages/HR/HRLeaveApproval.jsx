@@ -6,6 +6,7 @@ import {
 } from "../../api/leave.api";
 import styles from "./HRLeaveApproval.module.css";
 import Loader from "../../components/Loader/Loader";
+import LeaveCalendar from "../../components/LeaveCalendar/LeaveCalendar";
 
 const PAGE_SIZE = 5;
 
@@ -63,7 +64,6 @@ export default function HRLeaveApproval() {
     <div className={styles.container}>
       {/* ================= PENDING ================= */}
       <h2 className={styles.title}>Pending Leave Requests</h2>
-
       <table className={styles.table}>
         <thead>
           <tr>
@@ -161,6 +161,10 @@ export default function HRLeaveApproval() {
           onChange={setHistoryPage}
         />
       )}
+
+      {/* =================  Leave Calendar ================= */}
+      <h2 className={styles.title}>Leave Calendar</h2>
+      <LeaveCalendar />
 
       {loading && <Loader />}
     </div>

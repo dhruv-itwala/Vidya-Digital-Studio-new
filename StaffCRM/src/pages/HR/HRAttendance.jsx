@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
 
 import { FiChevronDown, FiUsers, FiActivity } from "react-icons/fi";
+import { FaCalendarAlt } from "react-icons/fa";
 
 const HRAttendance = () => {
   const today = new Date().toISOString().split("T")[0];
@@ -296,7 +297,10 @@ const HRAttendance = () => {
           className={styles.accordionHeader}
           onClick={() => setOpen((p) => ({ ...p, range: !p.range }))}
         >
-          <span>📅 Attendance Summary (Date Range)</span>
+          <span>
+            <FaCalendarAlt />
+            Attendance Summary (Date Range)
+          </span>
           <FiChevronDown className={open.range ? styles.rotate : ""} />
         </button>
 
