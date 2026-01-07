@@ -125,12 +125,6 @@ const EmployeeDashboard = () => {
           <EmployeeReport onSubmitted={handleReportSubmitted} />
         </div>
 
-        {/* {punchInDone && !reportSubmitted && (
-          <p className={styles.infoText}>
-            ⚠️ You need to submit the daily report before Punch Out.
-          </p>
-        )} */}
-
         {punchInDone && (
           <EmployeeTasks
             showTasks={punchInDone}

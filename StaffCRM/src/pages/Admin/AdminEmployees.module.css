@@ -3,26 +3,25 @@
   max-width: 1200px;
   margin: auto;
   padding: 0 16px;
-  box-sizing: border-box;
 }
 
-/* Header */
+/* ================= HEADER ================= */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   margin-bottom: 16px;
+  gap: 10px;
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-primary);
-  letter-spacing: -0.5px;
 }
 
-/* Primary Button */
+/* ================= BUTTON ================= */
 .createBtn {
   padding: 10px 18px;
   background-color: var(--color-button);
@@ -32,8 +31,8 @@ h2 {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
   box-shadow: 0 6px 16px rgba(15, 92, 68, 0.25);
+  transition: all 0.25s ease;
 }
 
 .createBtn:hover {
@@ -41,62 +40,46 @@ h2 {
   transform: translateY(-1px);
 }
 
-/* Rows per page */
-.rowsPerPage {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.rowsPerPage select {
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-}
-
-/* Table Wrapper */
+/* ================= TABLE ================= */
 .tableWrapper {
   width: 100%;
-  background-color: #ffffff;
-  border-radius: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
 }
 
-/* Table */
 .table {
   width: 100%;
+  min-width: 800px; /* 🔥 KEY FOR SCROLL */
+  border-collapse: collapse;
+  background-color: #fff;
 }
 
 .table th {
-  background-color: rgba(15, 92, 68, 0.05);
-  color: var(--soft-ivory);
+  background-color: var(--color-primary);
+  color: #fff;
   font-weight: 600;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 14px 16px;
   text-align: left;
+  white-space: nowrap;
 }
 
 .table td {
   padding: 16px;
   font-size: 14px;
   color: var(--color-text);
-  text-align: left;
   border-bottom: 1px solid var(--color-border);
-}
-
-/* Hover row */
-.table tbody tr {
-  transition: background-color 0.2s ease;
+  white-space: nowrap;
 }
 
 .table tbody tr:hover {
   background-color: rgba(242, 92, 5, 0.05);
 }
 
-/* Status */
+/* ================= STATUS ================= */
 .active {
   color: var(--deep-forest);
   font-weight: 600;
@@ -107,12 +90,11 @@ h2 {
   font-weight: 600;
 }
 
-/* Edit Button */
-.editBtn,
-.deleteBtn {
+/* ================= EDIT BUTTON ================= */
+.editBtn {
   padding: 6px 14px;
   background-color: var(--color-secondary);
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 999px;
   font-size: 13px;
@@ -121,18 +103,23 @@ h2 {
   transition: all 0.25s ease;
 }
 
-.editBtn:hover {
+.editBtn:hover:not(:disabled) {
   background-color: var(--color-accent);
   transform: translateY(-1px);
 }
 
-/* Pagination */
+.editBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ================= PAGINATION ================= */
 .pagination {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  margin-top: 16px;
   gap: 6px;
+  margin-top: 16px;
+  flex-wrap: wrap;
 }
 
 .pagination button {
@@ -140,14 +127,13 @@ h2 {
   border: none;
   border-radius: 6px;
   background-color: var(--color-button);
-  color: white;
+  color: #fff;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .pagination button:hover:not(:disabled) {
   background-color: var(--color-button-hover);
-  transform: translateY(-1px);
 }
 
 .pagination button:disabled {
@@ -159,34 +145,31 @@ h2 {
   background-color: var(--color-accent);
 }
 
-/* Responsive */
+/* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
-  .table th,
-  .table td {
-    padding: 12px 8px;
-    font-size: 13px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
   .createBtn {
     width: 100%;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px 10px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 480px) {
+  .table {
+    min-width: 720px;
+  }
+
   .table th,
   .table td {
     font-size: 12px;
-    padding: 10px 6px;
-  }
-
-  .rowsPerPage {
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 10px 8px;
   }
 }

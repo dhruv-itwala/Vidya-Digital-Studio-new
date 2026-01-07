@@ -6,8 +6,10 @@
 .title {
   text-align: center;
   margin-bottom: 24px;
+  color: var(--color-primary);
 }
 
+/* Card */
 .card {
   background: #ffffff;
   border-radius: 16px;
@@ -18,11 +20,15 @@
 
 /* Accordion */
 .accordionHeader {
+  width: 100%;
   display: flex;
-  color: var(--color-primary);
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
 }
 
 .headerLeft {
@@ -32,75 +38,68 @@
 }
 
 .headerIcon {
-  color: #0f5c44;
   font-size: 18px;
 }
 
 .accordionBody {
-  margin-top: 15px;
-  animation: fadeIn 0.2s ease-in;
+  margin-top: 16px;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Inputs */
+.dateInput,
+.filters input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Button */
+.primaryBtn {
+  padding: 8px 14px;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 /* Table */
-.tableContainer {
+.tableWrapper {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
   width: 100%;
+  min-width: 700px;
   border-collapse: collapse;
-  margin-top: 10px;
 }
 
 thead {
-  background: #0f5c44;
+  background: var(--color-primary);
   color: #fff;
 }
 
 th,
 td {
   padding: 12px;
-  font-size: 14px;
   border-bottom: 1px solid #e5e5e5;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 tbody tr:hover {
   background: rgba(15, 92, 68, 0.05);
-}
-
-.empty,
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
-
-/* Filters */
-.filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-/* Button */
-.primaryBtn {
-  padding: 10px 16px;
-  background: #0f5c44;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
 }
 
 /* Status */
@@ -148,9 +147,19 @@ tbody tr:hover {
   color: teal;
 }
 
-/* Mobile */
-@media (max-width: 600px) {
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
   .filters {
     flex-direction: column;
+  }
+
+  .primaryBtn {
+    width: 100%;
+  }
+
+  th,
+  td {
+    font-size: 0.85rem;
+    padding: 10px;
   }
 }

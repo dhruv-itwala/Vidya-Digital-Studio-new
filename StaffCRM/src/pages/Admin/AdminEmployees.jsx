@@ -9,7 +9,7 @@ export default function AdminEmployees() {
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(100);
+  const [rowsPerPage] = useState(100);
 
   useEffect(() => {
     if (user?.role === "admin" || user?.role === "hr") {
@@ -19,7 +19,7 @@ export default function AdminEmployees() {
 
   const load = async () => {
     const res = await getAllUsersAPI();
-    setUsers(res.data);
+    setUsers(res.data || []);
   };
 
   const indexOfLastUser = currentPage * rowsPerPage;
@@ -30,13 +30,6 @@ export default function AdminEmployees() {
 
   const totalPages = Math.ceil(users.length / rowsPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const handleRowsChange = (e) => {
-    setRowsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page
-  };
-
   if (!user || (user.role !== "admin" && user.role !== "hr")) {
     return <p>Access denied</p>;
   }
@@ -44,6 +37,7 @@ export default function AdminEmployees() {
   return (
     <div className="masterContainer" style={{ flexDirection: "column" }}>
       <div className={styles.container}>
+        {/* ================= HEADER ================= */}
         <div className={styles.header}>
           <h2>Employees</h2>
           <button
@@ -54,16 +48,7 @@ export default function AdminEmployees() {
           </button>
         </div>
 
-        {/* Rows per page selector */}
-        {/* <div className={styles.rowsPerPage}>
-          <label>Rows per page:</label>
-          <select value={rowsPerPage} onChange={handleRowsChange}>
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-          </select>
-        </div> */}
-
+        {/* ================= TABLE ================= */}
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
@@ -100,11 +85,11 @@ export default function AdminEmployees() {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* ================= PAGINATION ================= */}
         {totalPages > 1 && (
           <div className={styles.pagination}>
             <button
-              onClick={() => paginate(currentPage - 1)}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
               Previous
@@ -113,7 +98,7 @@ export default function AdminEmployees() {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i + 1}
-                onClick={() => paginate(i + 1)}
+                onClick={() => setCurrentPage(i + 1)}
                 className={currentPage === i + 1 ? styles.activePage : ""}
               >
                 {i + 1}
@@ -121,7 +106,7 @@ export default function AdminEmployees() {
             ))}
 
             <button
-              onClick={() => paginate(currentPage + 1)}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
               Next
@@ -129,6 +114,7 @@ export default function AdminEmployees() {
           </div>
         )}
 
+        {/* ================= MODAL ================= */}
         {editingUser && (
           <EmployeeModal
             user={editingUser}

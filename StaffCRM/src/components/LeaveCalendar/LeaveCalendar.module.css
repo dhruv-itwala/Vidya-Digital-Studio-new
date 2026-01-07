@@ -2,9 +2,11 @@
   background: #fff;
   border-radius: 14px;
   padding: 16px;
+  width: 100%;
+  overflow-x: auto;
 }
 
-/* Header */
+/* ================= HEADER ================= */
 .header {
   display: flex;
   align-items: center;
@@ -12,38 +14,54 @@
   margin-bottom: 14px;
 }
 
-.header button {
-  border: none;
-  background: #f3f4f6;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
+.header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
-/* Week Row */
+/* Navigation buttons (using global theme) */
+.navBtn {
+  border: none;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.navBtn:hover {
+  background: var(--color-button-hover);
+  transform: scale(1.05);
+}
+
+/* ================= WEEK ROW ================= */
 .weekRow {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(80px, 1fr));
   margin-bottom: 8px;
 }
 
 .weekDay {
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #6b7280;
 }
 
-/* Grid */
+/* ================= GRID ================= */
 .grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
   gap: 6px;
+  min-width: 840px; /* enables horizontal scroll on mobile */
 }
 
 .cell {
   min-height: 120px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 6px;
   position: relative;
@@ -56,7 +74,7 @@
   margin-bottom: 4px;
 }
 
-/* Holiday */
+/* ================= HOLIDAY ================= */
 .holidayCell {
   background: #f0fdf4;
   border-color: #34d399;
@@ -69,7 +87,7 @@
   margin-bottom: 4px;
 }
 
-/* Leaves */
+/* ================= LEAVES ================= */
 .leaves {
   display: flex;
   flex-direction: column;
@@ -89,7 +107,7 @@
   overflow: hidden;
 }
 
-/* Leave types */
+/* Leave Types */
 .CASUAL {
   background: #6366f1;
 }
@@ -102,7 +120,7 @@
   background: #f59e0b;
 }
 
-/* Half day */
+/* Half Day */
 .halfDay {
   border: 1px dashed rgba(255, 255, 255, 0.6);
   opacity: 0.9;
@@ -115,4 +133,26 @@
 .leaveName {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .header h2 {
+    font-size: 1rem;
+  }
+
+  .cell {
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navBtn {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
+
+  .weekDay {
+    font-size: 0.7rem;
+  }
 }

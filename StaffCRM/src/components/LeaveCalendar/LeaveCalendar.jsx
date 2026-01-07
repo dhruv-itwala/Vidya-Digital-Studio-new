@@ -51,7 +51,6 @@ export default function LeaveCalendar() {
 
   const leavesForDate = (date) => {
     if (!date) return [];
-
     const current = normalize(date);
 
     return leaves.filter((l) => {
@@ -69,9 +68,12 @@ export default function LeaveCalendar() {
   /* ================= UI ================= */
   return (
     <div className={styles.wrapper}>
-      {/* ===== Header ===== */}
+      {/* HEADER */}
       <div className={styles.header}>
-        <button onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}>
+        <button
+          className={styles.navBtn}
+          onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
+        >
           ←
         </button>
 
@@ -82,12 +84,15 @@ export default function LeaveCalendar() {
           })}
         </h2>
 
-        <button onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}>
+        <button
+          className={styles.navBtn}
+          onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
+        >
           →
         </button>
       </div>
 
-      {/* ===== Week Row ===== */}
+      {/* WEEK ROW */}
       <div className={styles.weekRow}>
         {WEEK_DAYS.map((d) => (
           <div key={d} className={styles.weekDay}>
@@ -96,7 +101,7 @@ export default function LeaveCalendar() {
         ))}
       </div>
 
-      {/* ===== Calendar Grid ===== */}
+      {/* CALENDAR */}
       <div className={styles.grid}>
         {calendarDays.map((date, idx) => {
           const holiday = holidayForDate(date);
@@ -127,7 +132,6 @@ export default function LeaveCalendar() {
                         }`}
                       >
                         <span className={styles.leaveName}>{l.user.name}</span>
-
                         {l.isHalfDay && (
                           <span className={styles.halfBadge}>🌓</span>
                         )}

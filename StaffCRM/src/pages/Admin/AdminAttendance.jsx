@@ -22,13 +22,13 @@ const AccordionHeader = ({
   openSection,
   toggle,
 }) => (
-  <div className={styles.accordionHeader} onClick={() => toggle(sectionKey)}>
+  <button className={styles.accordionHeader} onClick={() => toggle(sectionKey)}>
     <div className={styles.headerLeft}>
       <Icon className={styles.headerIcon} />
       <h3>{title}</h3>
     </div>
     {openSection === sectionKey ? <IoChevronUp /> : <IoChevronDown />}
-  </div>
+  </button>
 );
 
 export default function AdminAttendance() {
@@ -119,7 +119,6 @@ export default function AdminAttendance() {
         toDate
       );
 
-      // API may return { success, data }
       const list = Array.isArray(res.data?.data)
         ? res.data.data
         : Array.isArray(res.data)
@@ -179,7 +178,6 @@ export default function AdminAttendance() {
   };
 
   /* ================= RANGE MAPPING ================= */
-
   const employees = Array.from(
     new Map(
       rangeAttendance.map((a) => [a.userId, { userId: a.userId, name: a.name }])
@@ -189,11 +187,7 @@ export default function AdminAttendance() {
   const attendanceByDate = rangeAttendance.reduce((acc, curr) => {
     const dateKey = formatDateIST(curr.date);
     if (!acc[dateKey]) acc[dateKey] = {};
-    acc[dateKey][curr.userId] = {
-      status: curr.status,
-      punchIn: curr.punchIn,
-      punchOut: curr.punchOut,
-    };
+    acc[dateKey][curr.userId] = curr;
     return acc;
   }, {});
 
@@ -212,37 +206,42 @@ export default function AdminAttendance() {
             openSection={openSection}
             toggle={toggleSection}
           />
+
           {openSection === "live" && (
             <div className={styles.accordionBody}>
               {liveLoading ? (
                 <Loader />
               ) : (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Employee</th>
-                      <th>Status</th>
-                      <th>Worked</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {liveStatus.map((e) => (
-                      <tr key={e.userId}>
-                        <td>{e.name}</td>
-                        <td
-                          className={
-                            styles[
-                              `status${e.status.toLowerCase().replace("_", "")}`
-                            ]
-                          }
-                        >
-                          {e.status.replace("_", " ")}
-                        </td>
-                        <td>{formatDuration(e.workedSeconds)}</td>
+                <div className={styles.tableWrapper}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Status</th>
+                        <th>Worked</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {liveStatus.map((e) => (
+                        <tr key={e.userId}>
+                          <td>{e.name}</td>
+                          <td
+                            className={
+                              styles[
+                                `status${e.status
+                                  .toLowerCase()
+                                  .replace("_", "")}`
+                              ]
+                            }
+                          >
+                            {e.status.replace("_", " ")}
+                          </td>
+                          <td>{formatDuration(e.workedSeconds)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}
@@ -257,36 +256,43 @@ export default function AdminAttendance() {
             openSection={openSection}
             toggle={toggleSection}
           />
+
           {openSection === "daily" && (
             <div className={styles.accordionBody}>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                className={styles.dateInput}
               />
+
               {dailyLoading ? (
                 <Loader />
               ) : (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Employee</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dailyAttendance.map((a) => (
-                      <tr key={a._id}>
-                        <td>{a.user?.name || "—"}</td>
-                        <td
-                          className={styles["status" + a.status?.toLowerCase()]}
-                        >
-                          {a.status}
-                        </td>
+                <div className={styles.tableWrapper}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {dailyAttendance.map((a) => (
+                        <tr key={a._id}>
+                          <td>{a.user?.name || "—"}</td>
+                          <td
+                            className={
+                              styles["status" + a.status?.toLowerCase()]
+                            }
+                          >
+                            {a.status}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}
@@ -301,6 +307,7 @@ export default function AdminAttendance() {
             openSection={openSection}
             toggle={toggleSection}
           />
+
           {openSection === "range" && (
             <div className={styles.accordionBody}>
               <div className={styles.filters}>
@@ -317,6 +324,7 @@ export default function AdminAttendance() {
                   max={today}
                   onChange={(e) => setToDate(e.target.value)}
                 />
+
                 <button
                   onClick={fetchRangeAttendance}
                   className={styles.primaryBtn}
@@ -337,45 +345,50 @@ export default function AdminAttendance() {
               {rangeLoading ? (
                 <Loader />
               ) : (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      {employees.map((e) => (
-                        <th key={e.userId}>{e.name}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(attendanceByDate).map(([date, records]) => (
-                      <tr key={date}>
-                        <td>{date}</td>
-                        {employees.map((e) => {
-                          const r = records[e.userId];
-                          return (
-                            <td key={e.userId}>
-                              {r ? (
-                                <>
-                                  <div>{r.status}</div>
-                                  <small>
-                                    {r.punchIn ? formatTime(r.punchIn) : "--"} -{" "}
-                                    {r.punchOut
-                                      ? formatTime(r.punchOut)
-                                      : r.status === "INCOMPLETE"
-                                      ? "INC"
-                                      : "--"}
-                                  </small>
-                                </>
-                              ) : (
-                                "—"
-                              )}
-                            </td>
-                          );
-                        })}
+                <div className={styles.tableWrapper}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        {employees.map((e) => (
+                          <th key={e.userId}>{e.name}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {Object.entries(attendanceByDate).map(
+                        ([date, records]) => (
+                          <tr key={date}>
+                            <td>{date}</td>
+                            {employees.map((e) => {
+                              const r = records[e.userId];
+                              return (
+                                <td key={e.userId}>
+                                  {r ? (
+                                    <>
+                                      <div>{r.status}</div>
+                                      <small>
+                                        {r.punchIn
+                                          ? formatTime(r.punchIn)
+                                          : "--"}{" "}
+                                        -{" "}
+                                        {r.punchOut
+                                          ? formatTime(r.punchOut)
+                                          : "--"}
+                                      </small>
+                                    </>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}

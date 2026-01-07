@@ -25,11 +25,11 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
         <TaskStatusBadge status={task.status} />
       </div>
 
-      {dueStatus && (
+      {/* {dueStatus && (
         <span className={`${styles.due} ${styles[dueStatus]}`}>
           Due Date is {dueStatus}
         </span>
-      )}
+      )} */}
       <p className={styles.details}>{task.details}</p>
       <div className={styles.meta}>
         <span>

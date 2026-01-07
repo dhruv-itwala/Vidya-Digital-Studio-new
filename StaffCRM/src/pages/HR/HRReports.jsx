@@ -13,18 +13,18 @@ export default function HRReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch reports when date changes
   useEffect(() => {
     const fetchReports = async () => {
       setLoading(true);
       try {
         const res = await getAllReportsByDate(date);
-        setReports(res.data);
+        setReports(res.data || []);
       } catch (err) {
         console.error(err);
         alert("Failed to fetch reports");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchReports();
@@ -53,6 +53,7 @@ export default function HRReports() {
       <div className={styles.hrReportsContainer}>
         <h2>Work Reports</h2>
 
+        {/* CONTROLS */}
         <div className={styles.controls}>
           <input
             type="date"
@@ -66,51 +67,54 @@ export default function HRReports() {
           </button>
         </div>
 
+        {/* TABLE */}
         {loading ? (
           <Loader />
         ) : (
-          <table className={styles.reportsTable}>
-            <thead>
-              <tr>
-                <th>Employee Name</th>
-                <th>Report Status</th>
-                <th>Work Points</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {reports.length === 0 && (
+          <div className={styles.tableWrapper}>
+            <table className={styles.reportsTable}>
+              <thead>
                 <tr>
-                  <td colSpan="3" className={styles.noReports}>
-                    No reports found
-                  </td>
+                  <th>Employee Name</th>
+                  <th>Report Status</th>
+                  <th>Work Points</th>
                 </tr>
-              )}
+              </thead>
 
-              {reports.map((report) => {
-                const submitted =
-                  report.workPoints && report.workPoints.length > 0;
-
-                return (
-                  <tr key={report._id}>
-                    <td>{report.user.name}</td>
-                    <td>{submitted ? "Submitted" : "Pending"}</td>
-                    <td>
-                      {submitted ? (
-                        <ul>
-                          {report.workPoints.map((point, index) => (
-                            <li key={index}>{point}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        "-"
-                      )}
+              <tbody>
+                {reports.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className={styles.noReports}>
+                      No reports found
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ) : (
+                  reports.map((report) => {
+                    const submitted =
+                      report.workPoints && report.workPoints.length > 0;
+
+                    return (
+                      <tr key={report._id}>
+                        <td>{report.user?.name || "—"}</td>
+                        <td>{submitted ? "Submitted" : "Pending"}</td>
+                        <td>
+                          {submitted ? (
+                            <ul>
+                              {report.workPoints.map((point, index) => (
+                                <li key={index}>{point}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
