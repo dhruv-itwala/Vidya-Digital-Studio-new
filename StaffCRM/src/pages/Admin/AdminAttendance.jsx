@@ -220,6 +220,7 @@ export default function AdminAttendance() {
                         <th>Employee</th>
                         <th>Status</th>
                         <th>Worked</th>
+                        <th>Break</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -238,6 +239,7 @@ export default function AdminAttendance() {
                             {e.status.replace("_", " ")}
                           </td>
                           <td>{formatDuration(e.workedSeconds)}</td>
+                          <td>{formatDuration(emp.breakSeconds)}</td>
                         </tr>
                       ))}
                     </tbody>

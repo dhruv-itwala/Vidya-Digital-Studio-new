@@ -245,6 +245,7 @@ const HRAttendance = () => {
                     <th>Employee</th>
                     <th>Status</th>
                     <th>Worked</th>
+                    <th>Break</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -255,6 +256,7 @@ const HRAttendance = () => {
                         {emp.status.replace("_", " ")}
                       </td>
                       <td>{formatDuration(emp.workedSeconds)}</td>
+                      <td>{formatDuration(emp.breakSeconds)}</td>
                     </tr>
                   ))}
                 </tbody>

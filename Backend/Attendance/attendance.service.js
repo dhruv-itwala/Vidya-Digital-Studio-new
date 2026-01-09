@@ -275,9 +275,9 @@ export const getLiveEmployeesStatusService = async () => {
         name: u.name,
         status: "NOT_STARTED",
         workedSeconds: 0,
+        breakSeconds: 0,
       };
     }
-
     const lastBreak = record.breaks.at(-1);
     const onBreak = lastBreak && !lastBreak.out;
 
@@ -290,6 +290,7 @@ export const getLiveEmployeesStatusService = async () => {
       name: u.name,
       status,
       workedSeconds: calcLiveNetSeconds(record),
+      breakSeconds: calcLiveBreakSeconds(record),
     };
   });
 };
@@ -330,4 +331,18 @@ export const getTodayWorkRecordService = async (userId) => {
     isRunning: !!record.punchIn && !record.punchOut && !onBreak,
     onBreak,
   };
+};
+
+export const calcLiveBreakSeconds = (record) => {
+  let breakSeconds = (record.totalBreakMinutes || 0) * 60;
+
+  const lastBreak = record.breaks?.at(-1);
+  if (lastBreak && !lastBreak.out) {
+    // currently on break → add live duration
+    breakSeconds += Math.floor(
+      (Date.now() - new Date(lastBreak.in).getTime()) / 1000
+    );
+  }
+
+  return breakSeconds;
 };
