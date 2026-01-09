@@ -1,6 +1,18 @@
 import bcrypt from "bcryptjs";
 import User from "./user.model.js";
 
+// Login service
+export const loginService = async (email, password) => {
+  const user = await User.findOne({ email }).select("+password");
+  if (!user) throw new Error("Invalid credentials");
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) throw new Error("Invalid credentials");
+
+  return user;
+};
+
+// Create new user
 export const createUserService = async (data) => {
   if (await User.findOne({ email: data.email }))
     throw new Error("User already exists");
@@ -9,6 +21,7 @@ export const createUserService = async (data) => {
   return User.create(data);
 };
 
+// Update user with role-based restrictions
 export const updateUserService = async (loggedInUser, userId, data) => {
   const targetUser = await User.findById(userId);
   if (!targetUser) throw new Error("User not found");
@@ -34,6 +47,7 @@ export const updateUserService = async (loggedInUser, userId, data) => {
   }).select("-password");
 };
 
+// Soft delete user
 export const deleteUserService = async (loggedInUser, targetUserId) => {
   const user = await User.findById(targetUserId);
   if (!user) throw new Error("User not found");
@@ -53,20 +67,17 @@ export const deleteUserService = async (loggedInUser, targetUserId) => {
   await user.save();
 };
 
-export const loginService = async (email, password) => {
-  const user = await User.findOne({ email }).select("+password");
-  if (!user) throw new Error("Invalid credentials");
-
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) throw new Error("Invalid credentials");
-
-  return user;
+// Get all active employees with birthdays
+export const getEmployeeBirthdaysService = async () => {
+  return User.find({
+    isActive: true,
+    dateOfBirth: { $exists: true },
+  })
+    .select("name dateOfBirth -_id")
+    .sort({ dateOfBirth: 1 });
 };
 
-// export const getAllUsersService = async () => {
-//   return User.find().select("-password");
-// };
-
+// Get all active users sorted by role: Admin > HR > Employee
 export const getAllUsersService = async () => {
   const users = await User.find({ isActive: true }).select("-password");
 

@@ -6,6 +6,7 @@ import {
   getProfile,
   updateUser,
   deleteUser,
+  getEmployeeBirthdays,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
@@ -19,6 +20,7 @@ userRoutes.use(protect);
 // Profile
 userRoutes.get("/me", getProfile);
 userRoutes.get("/", getAllUsers);
+userRoutes.get("/birthdays", getEmployeeBirthdays);
 
 // HR & Admin
 userRoutes.post("/", createUser);

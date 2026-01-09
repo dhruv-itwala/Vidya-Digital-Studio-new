@@ -5,6 +5,7 @@ import {
   getProfileService,
   updateUserService,
   deleteUserService,
+  getEmployeeBirthdaysService,
 } from "./user.service.js";
 import { signToken } from "../utils/jwt.util.js";
 
@@ -56,4 +57,9 @@ export const deleteUser = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   res.json(await getAllUsersService());
+};
+
+export const getEmployeeBirthdays = async (req, res) => {
+  const birthdays = await getEmployeeBirthdaysService();
+  res.json(birthdays);
 };
