@@ -6,7 +6,7 @@
 .title {
   font-size: 20px;
   font-weight: 800;
-  margin-bottom: 16px;
+  /* margin-bottom: 16px; */
   color: #020617;
 }
 
@@ -29,6 +29,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .taskName {
@@ -349,6 +350,9 @@
 
 /* ================= FILTER SECTION ================= */
 .filterSection {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
   background: #ffffff;
   border-radius: 14px;
   padding: 16px;
@@ -443,6 +447,9 @@
   }
 
   .dateInputs {
+    flex-direction: column;
+  }
+  .filterSection {
     flex-direction: column;
   }
 }

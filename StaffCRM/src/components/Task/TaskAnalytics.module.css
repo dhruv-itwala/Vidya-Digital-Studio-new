@@ -1,11 +1,12 @@
 .grid {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 16px;
   margin-bottom: 24px;
 }
 
 .card {
+  width: 100%;
   background: white;
   padding: 16px;
   border-radius: 14px;
@@ -32,4 +33,10 @@
 
 .total {
   border-left: 4px solid #dc2626;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    flex-direction: column;
+  }
 }

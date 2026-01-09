@@ -8,6 +8,12 @@ import Loader from "../Loader/Loader";
 
 export default function TaskCompleted() {
   const [tasks, setTasks] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -40,11 +46,76 @@ export default function TaskCompleted() {
     }
   };
 
+  const filteredTasks = tasks.filter((task) => {
+    // Status filter
+    if (statusFilter && task.status !== statusFilter) return false;
+
+    // Priority filter
+    if (priorityFilter && task.priority !== priorityFilter) return false;
+
+    // Date range filter
+    if (fromDate || toDate) {
+      const taskDate = task.endDate ? new Date(task.endDate) : null;
+      if (!taskDate) return false;
+
+      if (fromDate && taskDate < new Date(fromDate)) return false;
+      if (toDate && taskDate > new Date(toDate)) return false;
+    }
+
+    return true;
+  });
+
   if (loading) return <Loader />;
   if (error) return <p className={styles.error}>{error}</p>;
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Completed & Past Tasks</h2>
+      <div className={styles.header}>
+        <h2 className={styles.title}>Completed & Past Tasks</h2>
+        <button
+          className={styles.filterToggle}
+          onClick={() => setShowFilters((p) => !p)}
+        >
+          Filters
+        </button>
+      </div>
+      {showFilters && (
+        <div className={styles.filterSection}>
+          {/* Priority */}
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
+            <option value="">All Priority</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+
+          {/* Date Range */}
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+          />
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+          />
+
+          <button
+            className={styles.clear}
+            onClick={() => {
+              setStatusFilter("");
+              setPriorityFilter("");
+              setFromDate("");
+              setToDate("");
+            }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       <table className={styles.table}>
         <thead>
@@ -58,14 +129,14 @@ export default function TaskCompleted() {
         </thead>
 
         <tbody>
-          {tasks.length === 0 ? (
+          {filteredTasks.length === 0 ? (
             <tr>
               <td colSpan="5" className={styles.empty}>
                 No completed tasks found
               </td>
             </tr>
           ) : (
-            tasks.map((task) => (
+            filteredTasks.map((task) => (
               <tr key={task._id}>
                 <td className={styles.name}>{task.name}</td>
 
@@ -106,10 +177,10 @@ export default function TaskCompleted() {
 
       {/* ===== Mobile Cards ===== */}
       <div className={styles.mobileList}>
-        {tasks.length === 0 ? (
+        {filteredTasks.length === 0 ? (
           <p className={styles.empty}>No completed tasks found</p>
         ) : (
-          tasks.map((task) => (
+          filteredTasks.map((task) => (
             <div key={task._id} className={styles.card}>
               <div className={styles.header}>
                 <span className={styles.taskName}>{task.name}</span>
