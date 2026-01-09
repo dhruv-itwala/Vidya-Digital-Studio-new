@@ -1,7 +1,7 @@
 export const roleRedirect = (role) => {
   switch (role) {
     case "admin":
-      return "/admin/dashboard";
+      return "/admin/attendance";
     case "employee":
       return "/employee/dashboard";
     case "hr":

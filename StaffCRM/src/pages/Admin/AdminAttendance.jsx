@@ -13,6 +13,7 @@ import { IoChevronDown, IoChevronUp } from "react-icons/io5";
 import styles from "./AdminAttendance.module.css";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
+import LeaveCalendar from "../../components/LeaveCalendar/LeaveCalendar";
 
 /* ================= ACCORDION HEADER ================= */
 const AccordionHeader = ({
@@ -393,6 +394,7 @@ export default function AdminAttendance() {
             </div>
           )}
         </div>
+        <LeaveCalendar />
       </div>
     </div>
   );

@@ -81,10 +81,29 @@
 }
 
 .holidayLabel {
-  font-size: 0.65rem;
-  color: #065f46;
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 0.75rem;
+  background: var(--color-secondary);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-bottom: 2px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weekendLabel {
+  font-size: 0.75rem;
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-bottom: 2px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ================= LEAVES ================= */
@@ -131,6 +150,23 @@
 }
 
 .leaveName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.birthdays {
+  margin-top: 4px;
+}
+
+.birthday {
+  font-size: 0.75rem;
+  background: #fff3cd;
+  color: #856404;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-bottom: 2px;
+  font-weight: 500;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
