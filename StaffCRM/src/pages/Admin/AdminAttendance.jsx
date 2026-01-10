@@ -239,7 +239,7 @@ export default function AdminAttendance() {
                             {e.status.replace("_", " ")}
                           </td>
                           <td>{formatDuration(e.workedSeconds)}</td>
-                          <td>{formatDuration(emp.breakSeconds)}</td>
+                          <td>{formatDuration(e.breakSeconds)}</td>
                         </tr>
                       ))}
                     </tbody>
