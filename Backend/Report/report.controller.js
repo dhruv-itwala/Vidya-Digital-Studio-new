@@ -6,7 +6,10 @@ import {
   getAllReportsByDateService,
   getMyReportByDateService,
 } from "./report.service.js";
-import { downloadAllReportsByDatePDF } from "./reportPdf.service.js";
+import {
+  downloadAllReportsByDatePDF,
+  downloadCustomReportsPDF,
+} from "./reportPdf.service.js";
 
 export const submitReport = async (req, res) => {
   try {
@@ -78,6 +81,21 @@ export const getMyReportsByDate = async (req, res) => {
     const report = await getMyReportByDateService(req.user.id, date);
 
     res.json(report); // null if not submitted
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const downloadCustomReports = async (req, res) => {
+  try {
+    /*
+      body = {
+        employeeIds: ["id1", "id2"],
+        fromDate: "2026-01-01",
+        toDate: "2026-01-10"
+      }
+    */
+    await downloadCustomReportsPDF(req, res);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

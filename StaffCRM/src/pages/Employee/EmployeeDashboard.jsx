@@ -8,16 +8,19 @@ import {
   getTodayWorkRecordAPI,
 } from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
-import HolidayCard from "./HolidayCard";
-import LeaveCard from "./LeaveCard";
 import Loader from "../../components/Loader/Loader";
-import WeekendCard from "./WeekendCard";
+import WeekendCard from "../../components/Cards/WeekendCard";
+import LeaveCard from "../../components/Cards/LeaveCard";
+import HolidayCard from "../../components/Cards/HolidayCard";
+import BirthdayCard from "../../components/Cards/BirthdayCard";
+import { getEmployeeBirthdaysAPI } from "../../api/admin.api";
 
 const EmployeeDashboard = () => {
   const [punchInDone, setPunchInDone] = useState(false);
   const [punchedOut, setPunchedOut] = useState(false);
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [birthdays, setBirthdays] = useState([]);
 
   const [isLeave, setIsLeave] = useState(false);
   const [isHoliday, setIsHoliday] = useState(false);
@@ -42,6 +45,14 @@ const EmployeeDashboard = () => {
       const attendanceRes = await getMyAttendanceByDateAPI(today);
       const attendance = attendanceRes?.data;
 
+      /* -------------------- 🎂 Birthday Check -------------------- */
+      try {
+        const bdayRes = await getEmployeeBirthdaysAPI();
+        setBirthdays(bdayRes.data || []);
+      } catch {
+        setBirthdays([]);
+      }
+
       if (attendance?.status === "HOLIDAY") {
         setIsHoliday(true);
         setHolidayName(attendance.remarks || "Holiday");
@@ -55,6 +66,7 @@ const EmployeeDashboard = () => {
 
       setIsLeave(false);
       setIsHoliday(false);
+
       /* -------------------- 1️⃣ Work Record -------------------- */
       const recordRes = await getTodayWorkRecordAPI();
       const record = recordRes?.data;
@@ -115,6 +127,8 @@ const EmployeeDashboard = () => {
   return (
     <div className="masterContainer">
       <div className={styles.container}>
+        {birthdays.length > 0 && <BirthdayCard people={birthdays} />}
+
         <div className={styles.topRow}>
           <EmployeeTimer
             onPunchIn={handlePunchIn}

@@ -1,4 +1,7 @@
-import { getReportsWithWorkingHrsByDateService } from "./report.service.js";
+import {
+  getReportsByEmployeesAndDateRangeService,
+  getReportsWithWorkingHrsByDateService,
+} from "./report.service.js";
 import PDFDocument from "pdfkit";
 
 export const downloadAllReportsByDatePDF = async (req, res) => {
@@ -116,6 +119,110 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
     .fontSize(10)
     .fillColor("#6B7280")
     .text(`Total Reports: ${reports.length}`, { align: "right" });
+
+  doc.end();
+};
+
+export const downloadCustomReportsPDF = async (req, res) => {
+  const { employeeIds, fromDate, toDate } = req.body;
+
+  if (!employeeIds?.length || !fromDate || !toDate) {
+    return res.status(400).json({
+      message: "employeeIds, fromDate and toDate are required",
+    });
+  }
+
+  const reports = await getReportsByEmployeesAndDateRangeService(
+    employeeIds,
+    fromDate,
+    toDate
+  );
+
+  if (!reports.length) {
+    return res.status(404).json({ message: "No reports found" });
+  }
+
+  /* -------- GROUP BY EMPLOYEE -------- */
+  const grouped = {};
+  reports.forEach((r) => {
+    const id = r.user._id.toString();
+    if (!grouped[id]) {
+      grouped[id] = {
+        user: r.user,
+        reports: [],
+      };
+    }
+    grouped[id].reports.push(r);
+  });
+
+  /* -------- PDF SETUP -------- */
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="Work_Report_${fromDate}_to_${toDate}.pdf"`
+  );
+
+  const doc = new PDFDocument({ margin: 50, size: "A4" });
+  doc.pipe(res);
+
+  doc
+    .fontSize(22)
+    .text("Employee Work Report", { align: "center" })
+    .moveDown(0.5)
+    .fontSize(12)
+    .text(`From ${fromDate} to ${toDate}`, { align: "center" })
+    .moveDown(2);
+
+  /* -------- PER EMPLOYEE -------- */
+  Object.values(grouped).forEach(({ user, reports }, index) => {
+    if (index !== 0) doc.addPage();
+
+    /* Employee Name */
+    doc
+      .fontSize(16)
+      .fillColor("#111827")
+      .text(`Employee: ${user.name}`)
+      .moveDown(1);
+
+    /* Table Header */
+    const startX = 50;
+    const dateX = startX;
+    const workX = 150;
+
+    doc
+      .font("Helvetica-Bold")
+      .rect(45, doc.y - 5, 500, 25)
+      .fill("#E5E7EB")
+      .fillColor("#000")
+      .text("Date", dateX, doc.y)
+      .text("Work Report", workX, doc.y);
+
+    doc.moveDown(1.5).font("Helvetica");
+
+    /* Table Rows */
+    reports.forEach((r) => {
+      const startY = doc.y;
+
+      doc.text(r.date, dateX, startY);
+
+      let taskY = startY;
+      r.workPoints.forEach((task) => {
+        doc.text(`• ${task}`, workX, taskY, {
+          width: 350,
+          lineGap: 2,
+        });
+        taskY = doc.y;
+      });
+
+      doc
+        .moveTo(45, taskY + 5)
+        .lineTo(545, taskY + 5)
+        .strokeColor("#E5E7EB")
+        .stroke();
+
+      doc.y = taskY + 15;
+    });
+  });
 
   doc.end();
 };

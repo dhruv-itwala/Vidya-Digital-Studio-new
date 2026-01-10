@@ -22,8 +22,16 @@ attendanceRoutes.get("/my/date", ctrl.myAttendanceByDate);
 
 /* ========== HR ROUTES ========== */
 
-attendanceRoutes.get("/all", roleCheck("hr"), ctrl.getAllEmployeesAttendance);
-attendanceRoutes.post("/mark", roleCheck("hr"), ctrl.markAttendanceStatus);
+attendanceRoutes.get(
+  "/all",
+  roleCheck("admin", "hr"),
+  ctrl.getAllEmployeesAttendance
+);
+attendanceRoutes.post(
+  "/mark",
+  roleCheck("admin", "hr"),
+  ctrl.markAttendanceStatus
+);
 
 attendanceRoutes.get(
   "/all/date",

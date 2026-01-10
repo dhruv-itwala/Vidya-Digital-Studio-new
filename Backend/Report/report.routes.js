@@ -6,6 +6,7 @@ import {
   updateReport,
   downloadReportsByDate,
   getMyReportsByDate,
+  downloadCustomReports,
 } from "./report.controller.js";
 import { roleCheck } from "../middleware/role.middleware.js";
 import { protect } from "../middleware/auth.middleware.js";
@@ -25,7 +26,13 @@ reportRoutes.get(
   roleCheck("admin", "hr"),
   downloadReportsByDate
 );
-// Admin only
+// Admin only: download customized report
+reportRoutes.post(
+  "/download/custom",
+  roleCheck("admin", "hr"),
+  downloadCustomReports
+);
+
 reportRoutes.get("/all", roleCheck("admin", "hr"), allReports);
 
 export default reportRoutes;

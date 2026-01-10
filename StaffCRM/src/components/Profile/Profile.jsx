@@ -1,10 +1,10 @@
-import Loader from "../../components/Loader/Loader";
+import Loader from "../Loader/Loader";
 import { useAuth } from "../../context/AuthContext";
 import { getInitials } from "../../utils/name.util";
 
-import styles from "./EmployeeProfile.module.css";
+import styles from "./Profile.module.css";
 
-export default function EmployeeProfile() {
+export default function Profile() {
   const { user, loading } = useAuth();
 
   if (loading) return <Loader />;

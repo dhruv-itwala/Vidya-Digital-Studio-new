@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { getUpcomingHolidaysAPI } from "../../api/holiday.api";
-import styles from "./EmployeeHoliday.module.css";
+import styles from "./Holiday.module.css";
 import { holidayFormatDate, holidayGetDayName } from "../../utils/date.util";
 
-export default function EmployeeHoliday() {
+export default function Holiday() {
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
 

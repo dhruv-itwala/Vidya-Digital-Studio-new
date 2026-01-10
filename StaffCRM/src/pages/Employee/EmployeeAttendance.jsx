@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
 import { getMyAttendanceAPI } from "../../api/attendance.api";
 import styles from "./EmployeeAttendance.module.css";
-import { useAuth } from "../../context/AuthContext";
 import Loader from "../../components/Loader/Loader";
+import toast from "react-hot-toast";
+
+const getToday = () => new Date().toISOString().split("T")[0];
 
 export default function EmployeeAttendance() {
-  const { user } = useAuth();
-  const today = new Date().toISOString().split("T")[0];
-
-  const [fromDate, setFromDate] = useState(today);
-  const [toDate, setToDate] = useState(today);
+  const [fromDate, setFromDate] = useState(getToday());
+  const [toDate, setToDate] = useState(getToday());
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchAttendance = async () => {
-    if (!fromDate || !toDate) return;
+    if (!fromDate || !toDate) {
+      toast.error("Please select date range");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -22,9 +24,16 @@ export default function EmployeeAttendance() {
         from: fromDate,
         to: toDate,
       });
-      setRecords(res.data || []);
+
+      const data = res.data || [];
+      setRecords(data);
+
+      if (data.length === 0) {
+        toast("No attendance found for this range", { icon: "📭" });
+      }
     } catch (err) {
-      console.error("Failed to load attendance", err);
+      console.error(err);
+      toast.error("Failed to load attendance");
     } finally {
       setLoading(false);
     }
@@ -39,15 +48,15 @@ export default function EmployeeAttendance() {
       <div className={styles.container}>
         <h2>My Attendance</h2>
 
-        {/* DATE RANGE PICKER */}
+        {/* Filters */}
         <div className={styles.filterRow}>
           <div>
             <label>From</label>
             <input
               type="date"
               value={fromDate}
+              max={getToday()}
               onChange={(e) => setFromDate(e.target.value)}
-              max={today}
             />
           </div>
 
@@ -57,13 +66,14 @@ export default function EmployeeAttendance() {
               type="date"
               value={toDate}
               min={fromDate}
+              max={getToday()}
               onChange={(e) => setToDate(e.target.value)}
             />
           </div>
         </div>
 
-        {/* TABLE */}
-        <div className={styles.card}>
+        {/* Table */}
+        <div className={styles.tableWrapper}>
           {loading ? (
             <Loader />
           ) : (
@@ -74,11 +84,12 @@ export default function EmployeeAttendance() {
                   <th>Status</th>
                 </tr>
               </thead>
+
               <tbody>
                 {records.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className={styles.empty}>
-                      No records
+                    <td colSpan="2" className={styles.empty}>
+                      No records found
                     </td>
                   </tr>
                 ) : (

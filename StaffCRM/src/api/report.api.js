@@ -69,3 +69,26 @@ export const downloadAllReportsByDatePDF = async (date) => {
     handleError(error);
   }
 };
+
+// Download customized reports PDF
+export const downloadCustomReportsPDF = async (
+  employeeIds,
+  fromDate,
+  toDate
+) => {
+  try {
+    return await api.post(
+      `/reports/download/custom`,
+      {
+        employeeIds,
+        fromDate,
+        toDate,
+      },
+      {
+        responseType: "blob",
+      }
+    );
+  } catch (error) {
+    handleError(error);
+  }
+};

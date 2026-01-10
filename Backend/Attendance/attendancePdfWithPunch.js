@@ -19,6 +19,7 @@ const STATUS_MAP = {
   LEAVE: "L",
   WFH: "WFH",
   HOLIDAY: "H",
+  INCOMPLETE: "IC",
 };
 
 const STATUS_COLOR_MAP = {
@@ -196,7 +197,7 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
       .fontSize(9)
       .fillColor("black")
       .text(
-        "Legend: P = Present | A = Absent | H-D = Half Day | L = Leave | WFH = Work From Home | H = Holiday",
+        "Legend: P = Present | A = Absent | H-D = Half Day | L = Leave | WFH = Work From Home | H = Holiday | IC = Incomplete",
         { width: legendWidth, align: "center", lineBreak: false }
       );
 

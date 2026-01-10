@@ -27,13 +27,6 @@ export const getMyAttendanceService = async (userId, from, to) => {
     .sort({ date: 1 });
 };
 
-// export const getTodayWorkRecordService = async (userId) => {
-//   return workRecordModel.findOne({
-//     user: userId,
-//     date: todayISTUTC(),
-//   });
-// };
-
 export const punchInService = async (userId) => {
   const now = nowUTC();
   if (!isWithinOfficeHoursIST(now))
@@ -209,15 +202,6 @@ export const getUserAttendanceByDateService = async (userId, date) => {
     date: { $gte: startOfDay, $lt: endOfDay }, // range query
   });
 };
-// export const getAllAttendanceByDateRangeService = async (from, to) => {
-//   const fromDate = parseISTDateOnly(from);
-//   const toDate = parseISTDateOnly(to);
-
-//   return attendanceModel
-//     .find({ date: { $gte: fromDate, $lte: toDate } })
-//     .populate("user")
-//     .sort({ date: 1 });
-// };
 
 export const getAllAttendanceByDateRangeService = async (from, to) => {
   const fromDate = parseISTDateOnly(from);

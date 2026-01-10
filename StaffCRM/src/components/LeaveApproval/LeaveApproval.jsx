@@ -4,13 +4,13 @@ import {
   approveLeaveAPI,
   declineLeaveAPI,
 } from "../../api/leave.api";
-import styles from "./HRLeaveApproval.module.css";
+import styles from "./LeaveApproval.module.css";
 import Loader from "../../components/Loader/Loader";
 import LeaveCalendar from "../../components/LeaveCalendar/LeaveCalendar";
 
 const PAGE_SIZE = 5;
 
-export default function HRLeaveApproval() {
+export default function LeaveApproval() {
   const [leaves, setLeaves] = useState([]);
   const [pendingPage, setPendingPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
@@ -18,10 +18,13 @@ export default function HRLeaveApproval() {
 
   /* ================= FETCH ================= */
   const fetchLeaves = async () => {
-    setLoading(true);
-    const res = await getAllLeavesAPI();
-    setLeaves(res.data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const res = await getAllLeavesAPI();
+      setLeaves(res.data || []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

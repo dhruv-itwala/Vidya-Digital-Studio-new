@@ -76,6 +76,19 @@ export const getAllReportsByDateService = async (date) => {
   return Report.find({ date }).populate("user", "name email");
 };
 
+export const getReportsByEmployeesAndDateRangeService = async (
+  employeeIds,
+  fromDate,
+  toDate
+) => {
+  return Report.find({
+    user: { $in: employeeIds },
+    date: { $gte: fromDate, $lte: toDate },
+  })
+    .populate("user", "name email")
+    .sort({ user: 1, date: 1 });
+};
+
 export const getWorkRecordsByDateService = async (date) => {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
