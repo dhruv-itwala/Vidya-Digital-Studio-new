@@ -53,6 +53,9 @@ export default function EmployeeNavbar() {
                 <button onClick={() => navigate("/employee/holidays")}>
                   Holidays
                 </button>
+                <button onClick={() => navigate("/employee/todo")}>
+                  To Do List
+                </button>
                 <button onClick={() => navigate("/employee/profile")}>
                   Profile
                 </button>

@@ -1,0 +1,125 @@
+.todoWrap {
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 40px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.dateRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+.inputRow {
+  width: 100%;
+}
+
+.inputRow input::placeholder {
+  color: #999;
+}
+
+.list {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #fff;
+  padding: 14px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 6px;
+  border-radius: 8px;
+  transition: 0.2s;
+}
+
+.item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  font-size: 14px;
+}
+
+.dateInput {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.textInput {
+  width: 100%;
+  border: none;
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  padding: 8px 4px;
+  font-size: 14px;
+  outline: none;
+  color: var(--color-text);
+}
+
+.done .checkbox {
+  background: var(--color-primary);
+  color: white;
+}
+
+.done span {
+  text-decoration: line-through;
+  color: #aaa;
+}
+
+.delete {
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--color-primary);
+}
+
+.delete:hover {
+  color: var(--color-accent);
+}
+
+@media (max-width: 600px) {
+  .dateRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .todoWrap {
+    padding: 20px 10px;
+  }
+}

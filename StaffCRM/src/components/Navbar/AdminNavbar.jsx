@@ -10,7 +10,6 @@ export default function AdminNavbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
-
   useEffect(() => {
     const handler = (e) => {
       if (!dropdownRef.current?.contains(e.target)) {
@@ -55,10 +54,14 @@ export default function AdminNavbar() {
                 <button onClick={() => goTo("/admin/employees")}>
                   Employees
                 </button>
+                <button onClick={() => goTo("/admin/quotations")}>
+                  Quotations
+                </button>
                 <button onClick={() => navigate("/admin/profile")}>
                   Profile
                 </button>
                 <button onClick={() => goTo("/admin/tasks")}>Tasks</button>
+                <button onClick={() => goTo("/admin/todo")}>To Do List</button>
                 <hr />
                 <button onClick={() => goTo("/admin/attendance")}>
                   Attendance

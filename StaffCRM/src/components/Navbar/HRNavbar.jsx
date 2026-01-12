@@ -49,6 +49,7 @@ export default function HRNavbar() {
                 </button>
                 <button onClick={() => navigate("/hr/profile")}>Profile</button>
                 <button onClick={() => navigate("/hr/leaves")}>Leaves</button>
+                <button onClick={() => navigate("/hr/todo")}>To Do List</button>
                 <hr />
                 <button onClick={() => navigate("/hr/attendance")}>
                   Attendance

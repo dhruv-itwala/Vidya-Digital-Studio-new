@@ -23,6 +23,7 @@ import reportRoutes from "./Report/report.routes.js";
 import holidayRoutes from "./Holidays/holiday.routes.js";
 import taskRoutes from "./Tasks/task.routes.js";
 import leaveRoutes from "./Leaves/leave.routes.js";
+import todoRoutes from "./Todo/todo.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,6 +69,9 @@ app.use(`/api/${VERSION}/reports`, reportRoutes);
 
 // Task Routes
 app.use(`/api/${VERSION}/tasks`, taskRoutes);
+
+// Todo Routes
+app.use(`/api/${VERSION}/todo`, todoRoutes);
 
 // Start server
 app.listen(PORT, "0.0.0.0", () => {

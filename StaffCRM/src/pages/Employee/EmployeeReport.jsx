@@ -63,14 +63,6 @@ export default function EmployeeReport({ onSubmitted }) {
     try {
       const res = await getMyReportsByDateAPI();
 
-      /**
-       * EXPECTED RESPONSE EXAMPLE:
-       * {
-       *   _id: "...",
-       *   workPoints: ["Did task A", "Fixed bug B"]
-       * }
-       */
-
       if (res?.data?._id) {
         setReportId(res.data._id);
         setPoints(res.data.workPoints.length ? res.data.workPoints : [""]);

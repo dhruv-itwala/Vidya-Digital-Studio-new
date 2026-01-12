@@ -23,6 +23,8 @@ import Holiday from "./components/Holidays/Holiday";
 import LeaveApproval from "./components/LeaveApproval/LeaveApproval";
 import Attendance from "./components/Attendance/Attendance";
 import Profile from "./components/Profile/Profile";
+import TodoList from "./components/TodoList/TodoList";
+import AllQuotations from "./pages/Admin/AllQuotations";
 
 export default function App() {
   return (
@@ -59,6 +61,8 @@ export default function App() {
           <Route path="tasks" element={<AdminTasks />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="todo" element={<TodoList />} />
+          <Route path="quotations" element={<AllQuotations />} />
         </Route>
 
         {/* EMPLOYEE ROUTES */}
@@ -76,6 +80,7 @@ export default function App() {
           <Route path="attendance" element={<EmployeeAttendance />} />
           <Route path="profile" element={<Profile />} />
           <Route path="leaves" element={<EmployeeLeaves />} />
+          <Route path="todo" element={<TodoList />} />
           <Route path="tasks" element={<EmployeeTasks />} />
         </Route>
 
@@ -94,6 +99,7 @@ export default function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="leaves" element={<EmployeeLeaves />} />
           <Route path="tasks" element={<EmployeeTasks />} />
+          <Route path="todo" element={<TodoList />} />
 
           <Route path="hrLeaveApproval" element={<LeaveApproval />} />
           <Route path="hrReports" element={<Reports />} />

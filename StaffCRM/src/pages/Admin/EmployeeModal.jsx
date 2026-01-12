@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createUserAPI, updateUserAPI } from "../../api/admin.api";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeModal.module.css";
+import toast from "react-hot-toast";
 
 export default function EmployeeModal({ user, onClose, onSaved }) {
   const { user: loggedInUser } = useAuth();
@@ -35,8 +36,10 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
         : await createUserAPI(payload);
 
       onSaved();
+      toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
     } catch (err) {
-      alert(err.response?.data?.message || err.message);
+      // alert(err.response?.data?.message || err.message);
+      toast.error("Failed to save employee");
     }
   };
 

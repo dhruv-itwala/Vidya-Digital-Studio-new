@@ -26,60 +26,72 @@ const EmployeeDashboard = () => {
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayName, setHolidayName] = useState("");
 
-  const getISTDay = () => {
-    const now = new Date();
-    const istTime = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+  // ------------------ IST Helpers ------------------
+  const getISTDateObj = () => {
+    return new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
     );
-    return istTime.getDay();
   };
 
-  const istDay = getISTDay();
+  const istDate = getISTDateObj();
+  const istDay = istDate.getDay();
   const isWeekend = [0, 6].includes(istDay);
 
+  // ------------------ Main API Load ------------------
   const fetchStatus = async () => {
     try {
       setLoading(true);
-      const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
-      /* -------------------- 1️⃣ Attendance Check -------------------- */
+
+      const today = istDate.toISOString().split("T")[0]; // YYYY-MM-DD
+
+      // ---------- Attendance ----------
       const attendanceRes = await getMyAttendanceByDateAPI(today);
       const attendance = attendanceRes?.data;
 
-      /* -------------------- 🎂 Birthday Check -------------------- */
+      // ---------- Birthday ----------
       try {
         const bdayRes = await getEmployeeBirthdaysAPI();
-        setBirthdays(bdayRes.data || []);
-      } catch {
+        const allBirthdays = bdayRes?.data || [];
+
+        const todayDay = istDate.getDate();
+        const todayMonth = istDate.getMonth() + 1;
+
+        const todayBirthdays = allBirthdays.filter((emp) => {
+          const dob = new Date(emp.dateOfBirth);
+          return (
+            dob.getDate() === todayDay && dob.getMonth() + 1 === todayMonth
+          );
+        });
+
+        setBirthdays(todayBirthdays);
+        console.log(birthdays);
+      } catch (e) {
         setBirthdays([]);
       }
 
+      // ---------- Holiday / Leave ----------
       if (attendance?.status === "HOLIDAY") {
         setIsHoliday(true);
         setHolidayName(attendance.remarks || "Holiday");
-        return; // ⛔ stop further dashboard logic
+        return;
       }
 
       if (attendance?.status === "LEAVE") {
         setIsLeave(true);
-        return; // ⛔ stop further dashboard logic
+        return;
       }
 
       setIsLeave(false);
       setIsHoliday(false);
 
-      /* -------------------- 1️⃣ Work Record -------------------- */
+      // ---------- Work Record ----------
       const recordRes = await getTodayWorkRecordAPI();
       const record = recordRes?.data;
 
-      if (record) {
-        setPunchInDone(!!record.punchIn);
-        setPunchedOut(!!record.punchOut);
-      } else {
-        setPunchInDone(false);
-        setPunchedOut(false);
-      }
+      setPunchInDone(!!record?.punchIn);
+      setPunchedOut(!!record?.punchOut);
 
-      /* -------------------- 2️⃣ Report Status -------------------- */
+      // ---------- Report ----------
       const reportRes = await getMyReportsByDateAPI();
       setReportSubmitted(Boolean(reportRes?.data));
     } catch (error) {
@@ -93,36 +105,23 @@ const EmployeeDashboard = () => {
     fetchStatus();
   }, []);
 
-  const handlePunchIn = () => {
-    setPunchInDone(true);
-  };
+  // ------------------ Handlers ------------------
+  const handlePunchIn = () => setPunchInDone(true);
 
-  const handlePunchOutAttempt = async () => {
-    if (!reportSubmitted) return false;
-    return true;
-  };
+  const handlePunchOutAttempt = async () => reportSubmitted;
 
-  const handleReportSubmitted = () => {
-    setReportSubmitted(true);
-  };
+  const handleReportSubmitted = () => setReportSubmitted(true);
 
-  const handlePunchOutSuccess = () => {
-    setPunchedOut(true);
-  };
+  const handlePunchOutSuccess = () => setPunchedOut(true);
 
+  // ------------------ UI ------------------
   if (loading) return <Loader />;
 
-  if (isHoliday) {
-    return <HolidayCard holidayName={holidayName} />;
-  }
+  if (isHoliday) return <HolidayCard holidayName={holidayName} />;
 
-  if (isLeave) {
-    return <LeaveCard />;
-  }
+  if (isLeave) return <LeaveCard />;
 
-  if (isWeekend) {
-    return <WeekendCard day={istDay} />;
-  }
+  if (isWeekend) return <WeekendCard day={istDay} />;
 
   return (
     <div className="masterContainer">

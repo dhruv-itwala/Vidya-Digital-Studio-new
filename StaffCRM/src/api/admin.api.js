@@ -19,3 +19,8 @@ export const downloadAllReportsPDF = (date) =>
     params: { date },
     responseType: "blob",
   });
+
+// Quotes
+export const getAllQuotesAPI = () => api.get("/quotation");
+
+export const deleteQuoteAPI = (id) => api.delete(`/quotation/${id}`);
