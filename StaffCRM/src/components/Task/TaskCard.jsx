@@ -19,7 +19,7 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
     : "-";
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${styles[task.priority?.toLowerCase()]}`}>
       <div className={styles.header}>
         <h3 className={styles.taskName}>{task.name}</h3>
         <TaskStatusBadge status={task.status} />
@@ -35,12 +35,14 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
         <span>
           Priority: <strong>{task.priority.toUpperCase()}</strong>
         </span>
-        <span>
-          Start: <strong>{formattedStart}</strong>
-        </span>
-        <span>
-          Due: <strong>{formattedEnd}</strong>
-        </span>
+        <div className={styles.dateInfo}>
+          <span>
+            Start: <strong>{formattedStart}</strong>
+          </span>
+          <span>
+            Due: <strong>{formattedEnd}</strong>
+          </span>
+        </div>
       </div>
       <div className={styles.assigned}>
         Assigned to:{" "}
