@@ -120,9 +120,9 @@ export const markAttendanceStatusAPI = async (data) => {
   }
 };
 
-export const getLiveEmployeesStatusAPI = async () => {
+export const getLiveEmployeesStatusAPI = async (date) => {
   try {
-    return await api.get("/attendance/live-status");
+    return await api.get("/attendance/live-status/date", { params: { date } });
   } catch (error) {
     handleError(error);
   }

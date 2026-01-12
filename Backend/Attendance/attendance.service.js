@@ -243,12 +243,11 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
   });
 };
 
-export const getLiveEmployeesStatusService = async () => {
-  const today = todayISTUTC();
+export const getLiveEmployeesStatusByDateService = async (date) => {
+  const day = parseISTDateOnly(date);
 
   const users = await userModel.find({ role: { $ne: "admin" } });
-
-  const records = await workRecordModel.find({ date: today });
+  const records = await workRecordModel.find({ date: day });
 
   return users.map((u) => {
     const record = records.find((r) => r.user.equals(u._id));
@@ -262,19 +261,15 @@ export const getLiveEmployeesStatusService = async () => {
         breakSeconds: 0,
       };
     }
-    const lastBreak = record.breaks.at(-1);
-    const onBreak = lastBreak && !lastBreak.out;
-
-    let status = "WORKING";
-    if (record.punchOut) status = "COMPLETED";
-    else if (onBreak) status = "ON_BREAK";
 
     return {
       userId: u._id,
       name: u.name,
-      status,
+      status: record.punchOut ? "COMPLETED" : "WORKED",
       workedSeconds: calcLiveNetSeconds(record),
       breakSeconds: calcLiveBreakSeconds(record),
+      punchIn: record.punchIn,
+      punchOut: record.punchOut,
     };
   });
 };
@@ -317,16 +312,12 @@ export const getTodayWorkRecordService = async (userId) => {
   };
 };
 
-export const calcLiveBreakSeconds = (record) => {
-  let breakSeconds = (record.totalBreakMinutes || 0) * 60;
+export const calcLiveBreakSeconds = (record, now = new Date()) => {
+  if (!record?.breaks) return 0;
 
-  const lastBreak = record.breaks?.at(-1);
-  if (lastBreak && !lastBreak.out) {
-    // currently on break → add live duration
-    breakSeconds += Math.floor(
-      (Date.now() - new Date(lastBreak.in).getTime()) / 1000
-    );
-  }
-
-  return breakSeconds;
+  return record.breaks.reduce((sum, b) => {
+    if (!b.in) return sum;
+    const end = b.out || now;
+    return sum + Math.floor((end - new Date(b.in)) / 1000);
+  }, 0);
 };

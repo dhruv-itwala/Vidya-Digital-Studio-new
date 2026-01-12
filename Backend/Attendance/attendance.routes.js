@@ -40,7 +40,7 @@ attendanceRoutes.get(
 );
 
 attendanceRoutes.get(
-  "/live-status",
+  "/live-status/date",
   roleCheck("admin", "hr"),
   ctrl.getLiveEmployeesStatus
 );

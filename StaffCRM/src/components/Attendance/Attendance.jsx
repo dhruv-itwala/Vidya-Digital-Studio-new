@@ -17,6 +17,7 @@ import Loader from "../../components/Loader/Loader";
 
 export default function Attendance() {
   const today = new Date().toISOString().split("T")[0];
+  const [liveDate, setLiveDate] = useState(today);
 
   const [date, setDate] = useState(today);
   const [daily, setDaily] = useState([]);
@@ -79,7 +80,7 @@ export default function Attendance() {
 
   /* ================= LIVE ================= */
   const fetchLive = async () => {
-    const res = await getLiveEmployeesStatusAPI();
+    const res = await getLiveEmployeesStatusAPI(liveDate);
     setLive(res.data || []);
   };
 
@@ -87,6 +88,24 @@ export default function Attendance() {
     fetchLive();
     const i = setInterval(fetchLive, 60000);
     return () => clearInterval(i);
+  }, [liveDate]);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setLive((prev) =>
+        prev.map((e) => {
+          if (e.status === "WORKED") {
+            return { ...e, workedSeconds: e.workedSeconds + 1 };
+          }
+          if (e.status === "ON_BREAK") {
+            return { ...e, breakSeconds: e.breakSeconds + 1 };
+          }
+          return e;
+        })
+      );
+    }, 1000);
+
+    return () => clearInterval(t);
   }, []);
 
   /* ================= RANGE ================= */
@@ -214,6 +233,12 @@ export default function Attendance() {
 
           {open.live && (
             <div className={styles.accordionBody}>
+              <input
+                type="date"
+                value={liveDate}
+                onChange={(e) => setLiveDate(e.target.value)}
+              />
+
               <div className={styles.tableWrapper}>
                 <table>
                   <thead>

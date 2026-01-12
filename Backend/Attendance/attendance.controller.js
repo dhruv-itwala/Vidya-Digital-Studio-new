@@ -137,7 +137,8 @@ export const markAttendanceStatus = async (req, res) => {
 
 export const getLiveEmployeesStatus = async (req, res) => {
   try {
-    const data = await service.getLiveEmployeesStatusService();
+    const { date } = req.query;
+    const data = await service.getLiveEmployeesStatusByDateService(date);
     res.json(data);
   } catch (e) {
     res.status(400).json({ message: e.message });
