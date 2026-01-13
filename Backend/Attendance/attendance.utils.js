@@ -76,6 +76,8 @@ export const calcLiveBreakSeconds = (record, now = new Date()) => {
   }, 0);
 };
 
+import workRecordModel from "./workRecord.model.js";
+
 export const getTodayWorkRecordService = async (userId) => {
   const today = todayISTUTC();
   const yesterday = new Date(today.getTime() - 86400000);

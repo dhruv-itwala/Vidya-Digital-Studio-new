@@ -32,8 +32,8 @@ export default function Attendance() {
 
   const [open, setOpen] = useState({
     daily: true,
-    live: true,
-    range: true,
+    live: false,
+    range: false,
   });
 
   const toggle = (k) => setOpen((p) => ({ ...p, [k]: !p[k] }));
