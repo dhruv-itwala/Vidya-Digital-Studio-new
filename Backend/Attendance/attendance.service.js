@@ -7,14 +7,16 @@ import {
   parseISTDateOnly,
   calcWorkMinutes,
   suggestAttendanceStatus,
-  calcLiveNetSeconds,
   isWithinOfficeHoursIST,
+  calcLiveNetSeconds,
+  calcLiveBreakSeconds,
 } from "./attendance.utils.js";
 import userModel from "../Users/user.model.js";
 import holidayModel from "../Holidays/holiday.model.js";
 import attendanceModel from "./attendance.model.js";
 import workRecordModel from "./workRecord.model.js";
 import leaveModel from "../Leaves/leave.model.js";
+import { parseIST, toISTDateKey } from "../utils/date.utils.js";
 
 /* ========== EMPLOYEE ========== */
 
@@ -243,11 +245,62 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
   });
 };
 
-export const getLiveEmployeesStatusByDateService = async (date) => {
-  const day = parseISTDateOnly(date);
+// export const getLiveEmployeesStatusByDateService = async () => {
+//   const today = todayISTUTC();
+
+//   const users = await userModel.find({ role: { $ne: "admin" } });
+//   const records = await workRecordModel.find({ date: today });
+
+//   return users.map((u) => {
+//     const record = records.find((r) => r.user.equals(u._id));
+
+//     // Not punched in yet
+//     if (!record) {
+//       return {
+//         userId: u._id,
+//         name: u.name,
+//         status: "NOT_STARTED",
+//         workedSeconds: 0,
+//         breakSeconds: 0,
+//       };
+//     }
+
+//     const lastBreak = record.breaks?.at(-1);
+//     const onBreak = lastBreak && !lastBreak.out;
+
+//     let status = "WORKING";
+
+//     if (record.punchOut) {
+//       status = "COMPLETED";
+//     } else if (onBreak) {
+//       status = "ON_BREAK";
+//     }
+
+//     return {
+//       userId: u._id,
+//       name: u.name,
+//       status,
+//       workedSeconds: calcLiveNetSeconds(record),
+//       breakSeconds: calcLiveBreakSeconds(record),
+//       punchIn: record.punchIn,
+//       punchOut: record.punchOut,
+//     };
+//   });
+// };
+
+/* ================ Live status ================= */
+
+export const getLiveEmployeesStatusByDateService = async (dateStr) => {
+  const todayKey = toISTDateKey(new Date());
+  const selectedKey = dateStr ? dateStr : todayKey;
+
+  const isToday = selectedKey === todayKey;
+
+  // Convert YYYY-MM-DD → Mongo Date
+  const mongoDate = parseIST(selectedKey);
 
   const users = await userModel.find({ role: { $ne: "admin" } });
-  const records = await workRecordModel.find({ date: day });
+  const records = await workRecordModel.find({ date: mongoDate });
 
   return users.map((u) => {
     const record = records.find((r) => r.user.equals(u._id));
@@ -262,10 +315,31 @@ export const getLiveEmployeesStatusByDateService = async (date) => {
       };
     }
 
+    // 🟡 Past date — calculate from timestamps
+    if (!isToday) {
+      return {
+        userId: u._id,
+        name: u.name,
+        status: record.punchOut ? "COMPLETED" : "WORKING",
+        workedSeconds: calcLiveNetSeconds(record),
+        breakSeconds: calcLiveBreakSeconds(record),
+        punchIn: record.punchIn,
+        punchOut: record.punchOut,
+      };
+    }
+
+    // 🔴 Today → live state
+    const lastBreak = record.breaks?.at(-1);
+    const onBreak = lastBreak && !lastBreak.out;
+
+    let status = "WORKING";
+    if (record.punchOut) status = "COMPLETED";
+    else if (onBreak) status = "ON_BREAK";
+
     return {
       userId: u._id,
       name: u.name,
-      status: record.punchOut ? "COMPLETED" : "WORKED",
+      status,
       workedSeconds: calcLiveNetSeconds(record),
       breakSeconds: calcLiveBreakSeconds(record),
       punchIn: record.punchIn,
@@ -278,46 +352,4 @@ export const getLiveEmployeesStatusByDateService = async (date) => {
 export const getDayAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);
   return attendanceModel.find({ date: day }).populate("user", "name email");
-};
-
-/* ================= HELPERS ================= */
-export const getTodayWorkRecordService = async (userId) => {
-  const today = todayISTUTC();
-  const yesterday = new Date(today.getTime() - 86400000);
-
-  let record = await workRecordModel.findOne({
-    user: userId,
-    date: today,
-  });
-
-  if (!record) {
-    record = await workRecordModel.findOne({
-      user: userId,
-      date: yesterday,
-      punchOut: { $exists: false },
-    });
-  }
-
-  if (!record) return null;
-
-  const lastBreak = record.breaks.at(-1);
-  const onBreak = lastBreak && !lastBreak.out;
-
-  return {
-    ...record.toObject(),
-    liveNetSeconds: calcLiveNetSeconds(record),
-    serverNow: new Date(),
-    isRunning: !!record.punchIn && !record.punchOut && !onBreak,
-    onBreak,
-  };
-};
-
-export const calcLiveBreakSeconds = (record, now = new Date()) => {
-  if (!record?.breaks) return 0;
-
-  return record.breaks.reduce((sum, b) => {
-    if (!b.in) return sum;
-    const end = b.out || now;
-    return sum + Math.floor((end - new Date(b.in)) / 1000);
-  }, 0);
 };

@@ -32,7 +32,9 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
 
-    /* ---------- New Fields ---------- */
+    salary: {
+      type: Number,
+    },
 
     joiningDate: {
       type: Date,

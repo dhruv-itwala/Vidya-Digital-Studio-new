@@ -65,3 +65,44 @@ export const calcLiveNetSeconds = (record, now = new Date()) => {
 
   return Math.max(totalSeconds - breakSeconds, 0);
 };
+
+export const calcLiveBreakSeconds = (record, now = new Date()) => {
+  if (!record?.breaks) return 0;
+
+  return record.breaks.reduce((sum, b) => {
+    if (!b.in) return sum;
+    const end = b.out || now;
+    return sum + Math.floor((end - new Date(b.in)) / 1000);
+  }, 0);
+};
+
+export const getTodayWorkRecordService = async (userId) => {
+  const today = todayISTUTC();
+  const yesterday = new Date(today.getTime() - 86400000);
+
+  let record = await workRecordModel.findOne({
+    user: userId,
+    date: today,
+  });
+
+  if (!record) {
+    record = await workRecordModel.findOne({
+      user: userId,
+      date: yesterday,
+      punchOut: { $exists: false },
+    });
+  }
+
+  if (!record) return null;
+
+  const lastBreak = record.breaks.at(-1);
+  const onBreak = lastBreak && !lastBreak.out;
+
+  return {
+    ...record.toObject(),
+    liveNetSeconds: calcLiveNetSeconds(record),
+    serverNow: new Date(),
+    isRunning: !!record.punchIn && !record.punchOut && !onBreak,
+    onBreak,
+  };
+};

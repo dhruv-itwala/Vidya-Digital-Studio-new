@@ -145,6 +145,25 @@ tbody tr:hover {
   font-weight: 600;
 }
 
+.notstarted {
+  color: #999;
+}
+
+.working {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.onbreak {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.completed {
+  color: #2196f3;
+  font-weight: 600;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .accordionHeader {

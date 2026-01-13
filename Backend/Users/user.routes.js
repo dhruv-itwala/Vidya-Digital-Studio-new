@@ -7,6 +7,8 @@ import {
   updateUser,
   deleteUser,
   getEmployeeBirthdays,
+  mySalaryDeduction,
+  employeeSalaryDeduction,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
@@ -21,6 +23,8 @@ userRoutes.use(protect);
 userRoutes.get("/me", getProfile);
 userRoutes.get("/", getAllUsers);
 userRoutes.get("/birthdays", getEmployeeBirthdays);
+userRoutes.get("/salary/my", mySalaryDeduction); // Employee
+userRoutes.get("/salary/employee", employeeSalaryDeduction); // HR / Admin
 
 // HR & Admin
 userRoutes.post("/", createUser);

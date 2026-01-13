@@ -1,5 +1,6 @@
 // Backend/Attendance/attendance.controller.js
 import * as service from "./attendance.service.js";
+import { getTodayWorkRecordService } from "./attendance.utils.js";
 import { downloadAttendancePDFService } from "./attendancePdf.service.js";
 import { downloadAttendanceWithPunchPDFService } from "./attendancePdfWithPunch.js";
 
@@ -7,7 +8,7 @@ import { downloadAttendanceWithPunchPDFService } from "./attendancePdfWithPunch.
 
 export const getTodayWorkRecord = async (req, res) => {
   try {
-    const data = await service.getTodayWorkRecordService(req.user.id);
+    const data = await getTodayWorkRecordService(req.user.id);
     res.json(data);
   } catch (e) {
     res.status(400).json({ message: e.message });

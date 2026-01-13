@@ -6,6 +6,7 @@ import {
   updateUserService,
   deleteUserService,
   getEmployeeBirthdaysService,
+  salaryDeductionService,
 } from "./user.service.js";
 import { signToken } from "../utils/jwt.util.js";
 
@@ -62,4 +63,48 @@ export const getAllUsers = async (req, res) => {
 export const getEmployeeBirthdays = async (req, res) => {
   const birthdays = await getEmployeeBirthdaysService();
   res.json(birthdays);
+};
+
+export const mySalaryDeduction = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+
+    if (!from || !to) {
+      throw new Error("from and to are required");
+    }
+
+    const data = await salaryDeductionService(req.user.id, from, to);
+
+    res.json({
+      success: true,
+      user: req.user.id,
+      ...data,
+    });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+// HR/Admin → View any employee salary
+export const employeeSalaryDeduction = async (req, res) => {
+  try {
+    if (req.user.role === "employee") {
+      throw new Error("Access denied");
+    }
+
+    const { userId, from, to } = req.query;
+    if (!userId || !from || !to) {
+      throw new Error("userId, from, to are required");
+    }
+
+    const data = await salaryDeductionService(userId, from, to);
+
+    res.json({
+      success: true,
+      user: userId,
+      ...data,
+    });
+  } catch (e) {
+    res.status(403).json({ message: e.message });
+  }
 };

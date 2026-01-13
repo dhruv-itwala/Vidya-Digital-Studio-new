@@ -20,6 +20,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     address: user.address || "",
     personalEmail: user.personalEmail || "",
     role: user.role || "employee",
+    salary: user.salary || "",
     isActive: user.isActive ?? true,
   });
 
@@ -74,7 +75,8 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 required
               />
             </div>
-
+          </div>
+          <div className={styles.formRow}>
             <div className={styles.inputGroup}>
               <label>Work Email</label>
               <input
@@ -84,6 +86,15 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 disabled={isEdit}
                 onChange={(e) => handleChange("email", e.target.value)}
                 required
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label>Personal Email</label>
+              <input
+                type="email"
+                placeholder="jethalalgada@gmail.com"
+                value={form.personalEmail}
+                onChange={(e) => handleChange("personalEmail", e.target.value)}
               />
             </div>
           </div>
@@ -149,14 +160,13 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 required
               />
             </div>
-
             <div className={styles.inputGroup}>
-              <label>Personal Email</label>
+              <label>Salary</label>
               <input
-                type="email"
-                placeholder="jethalalgada@gmail.com"
-                value={form.personalEmail}
-                onChange={(e) => handleChange("personalEmail", e.target.value)}
+                type="number"
+                placeholder="50000"
+                value={form.salary}
+                onChange={(e) => handleChange("salary", e.target.value)}
               />
             </div>
           </div>

@@ -94,12 +94,13 @@ export default function Attendance() {
     const t = setInterval(() => {
       setLive((prev) =>
         prev.map((e) => {
-          if (e.status === "WORKED") {
+          if (e.status === "WORKING") {
             return { ...e, workedSeconds: e.workedSeconds + 1 };
           }
           if (e.status === "ON_BREAK") {
             return { ...e, breakSeconds: e.breakSeconds + 1 };
           }
+
           return e;
         })
       );
@@ -258,7 +259,13 @@ export default function Attendance() {
                             styles[e.status?.toLowerCase().replace("_", "")]
                           }
                         >
-                          {e.status.replace("_", " ")}
+                          {e.status === "NOT_STARTED"
+                            ? "Not Started"
+                            : e.status === "WORKING"
+                            ? "Working"
+                            : e.status === "ON_BREAK"
+                            ? "On Break"
+                            : "Completed"}
                         </td>
                         <td>{formatDuration(e.workedSeconds)}</td>
                         <td>{formatDuration(e.breakSeconds)}</td>
