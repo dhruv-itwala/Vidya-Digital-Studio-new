@@ -16,8 +16,7 @@ import EmployeeLeaves from "./pages/Employee/EmployeeLeaves";
 import NavigateBasedOnRole from "./routes/NavigateBasedOnRole";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import HRLayout from "./layouts/HRLayout";
-import { Toaster } from "react-hot-toast";
-import "./App.css";
+
 import Reports from "./components/Reports/Reports";
 import Holiday from "./components/Holidays/Holiday";
 import LeaveApproval from "./components/LeaveApproval/LeaveApproval";
@@ -25,6 +24,10 @@ import Attendance from "./components/Attendance/Attendance";
 import Profile from "./components/Profile/Profile";
 import TodoList from "./components/TodoList/TodoList";
 import AllQuotations from "./pages/Admin/AllQuotations";
+import Client from "./components/Client/Client";
+
+import { Toaster } from "react-hot-toast";
+import "./App.css";
 
 export default function App() {
   return (
@@ -104,6 +107,8 @@ export default function App() {
           <Route path="hrLeaveApproval" element={<LeaveApproval />} />
           <Route path="hrReports" element={<Reports />} />
           <Route path="hrHoliday" element={<HRHoliday />} />
+
+          <Route path="client" element={<Client />} />
         </Route>
 
         {/* FALLBACK */}

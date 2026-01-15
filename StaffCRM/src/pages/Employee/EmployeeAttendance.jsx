@@ -1,118 +1,44 @@
 import { useEffect, useState } from "react";
 import { getMyAttendanceAPI } from "../../api/attendance.api";
-import styles from "./EmployeeAttendance.module.css";
 import Loader from "../../components/Loader/Loader";
-import toast from "react-hot-toast";
-
-const getToday = () => new Date().toISOString().split("T")[0];
+import AttendanceCalendar from "../../components/Attendance/AttendanceCalendar";
 
 export default function EmployeeAttendance() {
-  const [fromDate, setFromDate] = useState(getToday());
-  const [toDate, setToDate] = useState(getToday());
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const fetchAttendance = async () => {
-    if (!fromDate || !toDate) {
-      toast.error("Please select date range");
+  /* ================= FETCH ================= */
+  useEffect(() => {
+    if (!(currentMonth instanceof Date) || isNaN(currentMonth.getTime())) {
       return;
     }
 
-    try {
-      setLoading(true);
-      const res = await getMyAttendanceAPI({
-        from: fromDate,
-        to: toDate,
-      });
+    const loadAttendance = async () => {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
 
-      const data = res.data || [];
-      setRecords(data);
+      const from = new Date(year, month, 1).toISOString();
+      const to = new Date(year, month + 1, 0).toISOString();
 
-      if (data.length === 0) {
-        toast("No attendance found for this range", { icon: "📭" });
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load attendance");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const res = await getMyAttendanceAPI({ from, to });
+      setRecords(res.data.data || []);
+    };
 
-  useEffect(() => {
-    fetchAttendance();
-  }, [fromDate, toDate]);
+    loadAttendance();
+  }, [currentMonth]);
 
   return (
-    <div className="masterContainer" style={{ flexDirection: "column" }}>
-      <div className={styles.container}>
-        <h2>My Attendance</h2>
-
-        {/* Filters */}
-        <div className={styles.filterRow}>
-          <div>
-            <label>From</label>
-            <input
-              type="date"
-              value={fromDate}
-              max={getToday()}
-              onChange={(e) => setFromDate(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>To</label>
-            <input
-              type="date"
-              value={toDate}
-              min={fromDate}
-              max={getToday()}
-              onChange={(e) => setToDate(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className={styles.tableWrapper}>
-          {loading ? (
-            <Loader />
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {records.length === 0 ? (
-                  <tr>
-                    <td colSpan="2" className={styles.empty}>
-                      No records found
-                    </td>
-                  </tr>
-                ) : (
-                  records.map((r) => (
-                    <tr key={r._id}>
-                      <td>{new Date(r.date).toISOString().split("T")[0]}</td>
-                      <td
-                        className={
-                          styles[
-                            `status${r.status.toLowerCase().replace("_", "")}`
-                          ]
-                        }
-                      >
-                        {r.status}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
+    <div className="masterContainer">
+      {loading ? (
+        <Loader />
+      ) : (
+        <AttendanceCalendar
+          records={records}
+          currentMonth={currentMonth}
+          onMonthChange={setCurrentMonth}
+        />
+      )}
     </div>
   );
 }

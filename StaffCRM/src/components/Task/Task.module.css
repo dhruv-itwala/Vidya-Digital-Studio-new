@@ -12,7 +12,7 @@
 
 /* ================= CARD ================= */
 .card {
-  background: #ffffff;
+  background: #ffffff !important;
   border-radius: 14px;
   padding: 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
@@ -242,14 +242,17 @@
 }
 
 .low {
+  background: #ecfeff;
   color: #0f766e;
 }
 
 .medium {
+  background: #fef3c7;
   color: #92400e;
 }
 
 .high {
+  background: #fee2e2;
   color: #991b1b;
 }
 

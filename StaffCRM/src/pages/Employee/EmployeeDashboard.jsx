@@ -14,6 +14,9 @@ import LeaveCard from "../../components/Cards/LeaveCard";
 import HolidayCard from "../../components/Cards/HolidayCard";
 import BirthdayCard from "../../components/Cards/BirthdayCard";
 import { getEmployeeBirthdaysAPI } from "../../api/admin.api";
+import toast from "react-hot-toast";
+import { getHolidaysAPI } from "../../api/holiday.api";
+import { getAllLeavesAPI } from "../../api/leave.api";
 
 const EmployeeDashboard = () => {
   const [punchInDone, setPunchInDone] = useState(false);
@@ -26,76 +29,101 @@ const EmployeeDashboard = () => {
   const [isHoliday, setIsHoliday] = useState(false);
   const [holidayName, setHolidayName] = useState("");
 
-  // ------------------ IST Helpers ------------------
-  const getISTDateObj = () => {
-    return new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
-    );
-  };
+  const [isWeekend, setIsWeekend] = useState(false);
+  const [istDay, setIstDay] = useState(null);
 
-  const istDate = getISTDateObj();
-  const istDay = istDate.getDay();
-  const isWeekend = [0, 6].includes(istDay);
+  // ------------------ IST Helpers ------------------
+  const getISTDateObj = () =>
+    new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+  const getISTDateString = (date = new Date()) =>
+    new Date(date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
+      .toISOString()
+      .split("T")[0];
 
   // ------------------ Main API Load ------------------
   const fetchStatus = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
+      const istDate = getISTDateObj();
+      const todayIST = getISTDateString(istDate);
+      const day = istDate.getDay();
 
-      const today = istDate.toISOString().split("T")[0]; // YYYY-MM-DD
+      setIstDay(day);
 
-      // ---------- Attendance ----------
-      const attendanceRes = await getMyAttendanceByDateAPI(today);
-      const attendance = attendanceRes?.data;
+      // ---------- Birthday (parallel safe) ----------
+      getEmployeeBirthdaysAPI()
+        .then((res) => {
+          const todayDay = istDate.getDate();
+          const todayMonth = istDate.getMonth() + 1;
 
-      // ---------- Birthday ----------
-      try {
-        const bdayRes = await getEmployeeBirthdaysAPI();
-        const allBirthdays = bdayRes?.data || [];
+          const todayBirthdays =
+            res?.data?.filter((emp) => {
+              const dob = new Date(emp.dateOfBirth);
+              return (
+                dob.getDate() === todayDay && dob.getMonth() + 1 === todayMonth
+              );
+            }) || [];
 
-        const todayDay = istDate.getDate();
-        const todayMonth = istDate.getMonth() + 1;
+          setBirthdays(todayBirthdays);
+        })
+        .catch(() => setBirthdays([]));
 
-        const todayBirthdays = allBirthdays.filter((emp) => {
-          const dob = new Date(emp.dateOfBirth);
-          return (
-            dob.getDate() === todayDay && dob.getMonth() + 1 === todayMonth
-          );
-        });
+      // ---------- Holiday ----------
+      const holidayRes = await getHolidaysAPI();
+      const holidays = holidayRes?.data?.data || [];
 
-        setBirthdays(todayBirthdays);
-        console.log(birthdays);
-      } catch (e) {
-        setBirthdays([]);
-      }
+      const todayHoliday = holidays.find(
+        (h) => getISTDateString(new Date(h.date)) === todayIST
+      );
 
-      // ---------- Holiday / Leave ----------
-      if (attendance?.status === "HOLIDAY") {
+      if (todayHoliday) {
         setIsHoliday(true);
-        setHolidayName(attendance.remarks || "Holiday");
+        setHolidayName(todayHoliday.name || "Holiday");
         return;
       }
 
-      if (attendance?.status === "LEAVE") {
+      setIsHoliday(false);
+      setHolidayName("");
+
+      // ---------- Leave ----------
+      const leaveRes = await getAllLeavesAPI();
+      const leaves = leaveRes?.data?.data || [];
+
+      const todayLeave = leaves.find((leave) => {
+        if (leave.status !== "APPROVED") return false;
+
+        const fromIST = getISTDateString(new Date(leave.fromDate));
+        const toIST = getISTDateString(new Date(leave.toDate));
+
+        return todayIST >= fromIST && todayIST <= toIST;
+      });
+
+      if (todayLeave) {
         setIsLeave(true);
         return;
       }
 
       setIsLeave(false);
-      setIsHoliday(false);
 
-      // ---------- Work Record ----------
-      const recordRes = await getTodayWorkRecordAPI();
-      const record = recordRes?.data;
+      // ---------- Weekend ----------
+      const isWeekendToday = [0, 6].includes(day);
+      setIsWeekend(isWeekendToday);
 
-      setPunchInDone(!!record?.punchIn);
-      setPunchedOut(!!record?.punchOut);
+      // ---------- Attendance / Work / Report ----------
+      const [attendanceRes, recordRes, reportRes] = await Promise.all([
+        getMyAttendanceByDateAPI(todayIST),
+        getTodayWorkRecordAPI(),
+        getMyReportsByDateAPI(),
+      ]);
 
-      // ---------- Report ----------
-      const reportRes = await getMyReportsByDateAPI();
-      setReportSubmitted(Boolean(reportRes?.data));
+      setPunchInDone(!!recordRes?.data?.data?.punchIn);
+      setPunchedOut(!!recordRes?.data?.data?.punchOut);
+      setReportSubmitted(Boolean(reportRes?.data?.data));
     } catch (error) {
       console.error("Dashboard fetch error:", error);
+      toast.error("Failed to load dashboard");
     } finally {
       setLoading(false);
     }

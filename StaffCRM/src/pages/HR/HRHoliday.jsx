@@ -18,7 +18,7 @@ export default function HRHoliday() {
     try {
       setLoading(true);
       const res = await getHolidaysAPI();
-      setHolidays(res?.data || []);
+      setHolidays(res?.data?.data || []);
     } catch (error) {
       toast.error("Failed to fetch holidays");
     } finally {

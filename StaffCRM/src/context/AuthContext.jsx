@@ -7,61 +7,53 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [allEmployees, setAllEmployees] = useState([]);
-  const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
+  const token = localStorage.getItem("token");
+
   const fetchProfile = async () => {
-    try {
-      const res = await getMyProfileAPI();
-      setUser(res.data);
-      return res.data;
-    } catch {
-      logout();
-    }
+    const res = await getMyProfileAPI();
+    setUser(res.data.user || res.data);
+    return res.data.user || res.data;
   };
 
   const fetchAllUsers = async () => {
-    try {
-      const res = await getAllUsersAPI();
-      setAllEmployees(res.data);
-    } catch {
-      setAllEmployees([]);
-    }
+    const res = await getAllUsersAPI();
+    setAllEmployees(res.data.users || res.data);
   };
 
   useEffect(() => {
-    const initAuth = async () => {
+    const init = async () => {
       if (!token) {
         setLoading(false);
         return;
       }
 
-      setLoading(true);
-      const profile = await fetchProfile();
+      try {
+        const profile = await fetchProfile();
 
-      if (profile) {
-        await fetchAllUsers();
+        if (["admin", "hr"].includes(profile.role)) {
+          await fetchAllUsers();
+        }
+      } catch {
+        logout();
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
-    initAuth();
+    init();
   }, [token]);
 
-  const login = ({ token, user }) => {
+  const login = ({ token }) => {
     localStorage.setItem("token", token);
-    setToken(token);
-    setUser(user);
     setLoading(true);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
     setUser(null);
     setAllEmployees([]);
-    setToken(null);
     setLoading(false);
   };
 
@@ -69,10 +61,9 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        token,
         allEmployees,
         loading,
-        isAuthenticated: Boolean(token),
+        isAuthenticated: Boolean(user),
         isAdmin: user?.role === "admin",
         isHR: user?.role === "hr",
         login,

@@ -22,7 +22,6 @@ export default function TodoList() {
     try {
       const res = await getTodoByDateAPI(date);
       setTodo(res.data);
-      toast.success("To-do loaded");
     } catch (e) {
       toast.error(e.message);
     }

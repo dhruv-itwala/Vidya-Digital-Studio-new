@@ -25,19 +25,11 @@ export default function Login() {
 
       const res = await loginAPI(data);
 
-      // ✅ store token
+      // ✅ ONLY store token
       login({ token: res.data.token });
 
-      // ✅ get role correctly
-      const role = res.data.user.role.toLowerCase();
-
-      if (role === "admin") {
-        navigate("/admin/attendance");
-      } else if (role === "employee" || role === "hr") {
-        navigate("/employee/dashboard");
-      } else {
-        navigate("/login");
-      }
+      // ✅ Go to neutral route
+      navigate("/");
     } catch (err) {
       setServerError(
         err.response?.data?.message || "Invalid email or password"
@@ -48,7 +40,6 @@ export default function Login() {
   return (
     <div className={styles.page}>
       <form className={styles.card} onSubmit={handleSubmit(onSubmit)}>
-        {/* Logo */}
         <div className={styles.logoWrapper}>
           <img src={Images.login_logo} alt="CRM Logo" className={styles.logo} />
         </div>
@@ -56,7 +47,6 @@ export default function Login() {
         <h2 className={styles.title}>Welcome Back</h2>
         <p className={styles.subtitle}>Login to your CRM dashboard</p>
 
-        {/* Email */}
         <div className={styles.field}>
           <label>Email</label>
           <input
@@ -75,7 +65,6 @@ export default function Login() {
           )}
         </div>
 
-        {/* Password */}
         <div className={styles.field}>
           <label>Password</label>
 

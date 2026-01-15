@@ -1,0 +1,180 @@
+/* ================= WRAPPER ================= */
+.wrapper {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.85),
+    rgba(243, 244, 246, 0.6)
+  );
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  width: 100%;
+}
+
+/* ================= HEADER ================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.header h2 {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.navBtn {
+  background: var(--color-button);
+  color: #fff;
+  padding: 6px 16px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.navBtn:hover {
+  transform: translateY(-1px);
+}
+
+/* ================= WEEK ================= */
+.weekDay {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+}
+
+/* ================= GRID ================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+/* ================= CELL ================= */
+.cell {
+  position: relative;
+  min-width: 115px;
+  min-height: 115px;
+  padding: 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cell:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ================= DATE ================= */
+.date {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+/* ================= STATUS TEXT ================= */
+.statusText {
+  margin-top: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  width: fit-content;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* ================= TODAY ================= */
+.today {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* ================= STATUS ACCENTS ================= */
+.cell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  width: 100%;
+  border-radius: 14px 14px 0 0;
+  opacity: 0;
+}
+
+.present::before {
+  background: var(--color-primary);
+  opacity: 1;
+}
+
+.absent::before {
+  background: #ef4444;
+  opacity: 1;
+}
+
+.half_day::before {
+  background: #facc15;
+  opacity: 1;
+}
+
+.holiday::before {
+  background: #a855f7;
+  opacity: 1;
+}
+
+.leave::before {
+  background: #3b82f6;
+  opacity: 1;
+}
+
+.incomplete::before {
+  background: #111827;
+  opacity: 1;
+}
+
+.wfh::before {
+  background: var(--color-primary);
+  opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .cell {
+    min-width: 90px;
+    min-height: 90px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cell {
+    min-height: 75px;
+    min-width: 75px;
+    padding: 6px;
+  }
+}
+@media (max-width: 600px) {
+  .weekDay {
+    font-size: 0.55rem;
+  }
+
+  .date {
+    font-size: 0.6rem;
+  }
+
+  .statusText {
+    font-size: 0.55rem;
+    padding: 3px 6px;
+  }
+}
+.wrapper {
+  overflow-x: auto;
+}

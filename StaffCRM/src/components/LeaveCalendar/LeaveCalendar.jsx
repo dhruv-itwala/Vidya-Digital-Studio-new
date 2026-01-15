@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAllLeavesAPI } from "../../api/leave.api";
 import { getHolidaysAPI } from "../../api/holiday.api";
-import styles from "./LeaveCalendar.module.css";
 import { getEmployeeBirthdaysAPI } from "../../api/admin.api";
+import styles from "./LeaveCalendar.module.css";
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -23,9 +23,9 @@ export default function LeaveCalendar() {
         getEmployeeBirthdaysAPI(),
       ]);
 
-      setLeaves((leaveRes.data || []).filter((l) => l.status === "APPROVED"));
-      setHolidays(holidayRes.data || []);
-      setBirthdays(birthdayRes.data || []);
+      setLeaves((leaveRes?.data || []).filter((l) => l.status === "APPROVED"));
+      setHolidays(holidayRes.data?.data || []);
+      setBirthdays(birthdayRes.data?.data || []);
     };
 
     load();

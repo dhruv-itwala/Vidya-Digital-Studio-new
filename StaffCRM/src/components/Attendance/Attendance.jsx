@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getAllEmployeesAttendanceAPI,
   getLiveEmployeesStatusAPI,
   getAllEmployeesAttendanceByDateRangeAPI,
   markAttendanceStatusAPI,
-  downloadAttendancePDFAPI,
   downloadAttendancePDFWithPunchAPI,
 } from "../../api/attendance.api";
 
@@ -16,10 +15,15 @@ import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
 
 export default function Attendance() {
-  const today = new Date().toISOString().split("T")[0];
-  const [liveDate, setLiveDate] = useState(today);
+  /* ================= DATES (IST SAFE) ================= */
+  const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
 
   const [date, setDate] = useState(today);
+  const [liveDate, setLiveDate] = useState(today);
+
+  /* ================= STATE ================= */
   const [daily, setDaily] = useState([]);
   const [dailyLoading, setDailyLoading] = useState(false);
 
@@ -36,14 +40,20 @@ export default function Attendance() {
     range: false,
   });
 
+  const liveFetchRef = useRef(null);
+  const liveTickRef = useRef(null);
+
   const toggle = (k) => setOpen((p) => ({ ...p, [k]: !p[k] }));
 
   /* ================= HELPERS ================= */
-  const formatDateIST = (d) => new Date(d).toLocaleDateString("en-IN");
+  const formatDateIST = (d) =>
+    new Date(d).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
+
   const formatTime = (d) =>
     new Date(d).toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "Asia/Kolkata",
     });
 
   const formatDuration = (s = 0) =>
@@ -56,7 +66,7 @@ export default function Attendance() {
     try {
       setDailyLoading(true);
       const res = await getAllEmployeesAttendanceAPI(date);
-      setDaily(res.data || []);
+      setDaily(res.data?.data || []);
     } catch {
       toast.error("Failed to load attendance");
     } finally {
@@ -65,8 +75,8 @@ export default function Attendance() {
   };
 
   useEffect(() => {
-    fetchDaily();
-  }, [date]);
+    if (open.daily) fetchDaily();
+  }, [date, open.daily]);
 
   const updateStatus = async (id, status) => {
     try {
@@ -80,18 +90,21 @@ export default function Attendance() {
 
   /* ================= LIVE ================= */
   const fetchLive = async () => {
-    const res = await getLiveEmployeesStatusAPI(liveDate);
-    setLive(res.data || []);
+    try {
+      const res = await getLiveEmployeesStatusAPI(liveDate);
+      setLive(res.data.data || []);
+    } catch {
+      toast.error("Failed to load live status");
+    }
   };
 
   useEffect(() => {
-    fetchLive();
-    const i = setInterval(fetchLive, 60000);
-    return () => clearInterval(i);
-  }, [liveDate]);
+    if (!open.live) return;
 
-  useEffect(() => {
-    const t = setInterval(() => {
+    fetchLive();
+
+    liveFetchRef.current = setInterval(fetchLive, 60000);
+    liveTickRef.current = setInterval(() => {
       setLive((prev) =>
         prev.map((e) => {
           if (e.status === "WORKING") {
@@ -100,14 +113,16 @@ export default function Attendance() {
           if (e.status === "ON_BREAK") {
             return { ...e, breakSeconds: e.breakSeconds + 1 };
           }
-
           return e;
         })
       );
     }, 1000);
 
-    return () => clearInterval(t);
-  }, []);
+    return () => {
+      clearInterval(liveFetchRef.current);
+      clearInterval(liveTickRef.current);
+    };
+  }, [open.live, liveDate]);
 
   /* ================= RANGE ================= */
   const fetchRange = async () => {
@@ -124,33 +139,37 @@ export default function Attendance() {
     }
   };
 
-  const employees = Array.from(
-    new Map(
-      range.map((a) => [a.userId, { id: a.userId, name: a.name }])
-    ).values()
-  );
+  const employees = useMemo(() => {
+    return Array.from(
+      new Map(
+        range.map((a) => [a.userId, { id: a.userId, name: a.name }])
+      ).values()
+    );
+  }, [range]);
 
-  const byDate = range.reduce((acc, cur) => {
-    const key = formatDateIST(cur.date);
-    if (!acc[key]) acc[key] = {};
-    acc[key][cur.userId] = cur;
-    return acc;
-  }, {});
+  const byDate = useMemo(() => {
+    return range.reduce((acc, cur) => {
+      const key = formatDateIST(cur.date);
+      if (!acc[key]) acc[key] = {};
+      acc[key][cur.userId] = cur;
+      return acc;
+    }, {});
+  }, [range]);
 
   /* ================= DOWNLOAD ================= */
-  const download = async (withPunch) => {
+  const download = async () => {
     if (!fromDate || !toDate) return toast.error("Select both dates");
-    const api = withPunch
-      ? downloadAttendancePDFWithPunchAPI
-      : downloadAttendancePDFAPI;
+    const api = downloadAttendancePDFWithPunchAPI;
+
     const res = await api(fromDate, toDate);
     const url = URL.createObjectURL(new Blob([res.data]));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "attendance.pdf";
+    a.download = `Attendance ${fromDate} to ${toDate}.pdf`;
     a.click();
   };
 
+  /* ================= UI ================= */
   return (
     <div className="masterContainer">
       <div className={styles.container}>
@@ -310,17 +329,17 @@ export default function Attendance() {
                 <button onClick={fetchRange} className={styles.primaryBtn}>
                   Get
                 </button>
-                <button
+                {/* <button
                   onClick={() => download(false)}
                   className={styles.primaryBtn}
                 >
                   Download
-                </button>
+                </button> */}
                 <button
                   onClick={() => download(true)}
                   className={styles.primaryBtn}
                 >
-                  Download with Punch
+                  Download
                 </button>
               </div>
 

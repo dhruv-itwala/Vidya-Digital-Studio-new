@@ -21,7 +21,7 @@ export default function LeaveApproval() {
     try {
       setLoading(true);
       const res = await getAllLeavesAPI();
-      setLeaves(res.data || []);
+      setLeaves(res.data);
     } finally {
       setLoading(false);
     }

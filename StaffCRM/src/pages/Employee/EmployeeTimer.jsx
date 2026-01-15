@@ -35,7 +35,7 @@ export default function EmployeeTimer({ onPunchIn, onPunchOutAttempt }) {
   const syncFromServer = async () => {
     try {
       const res = await getTodayWorkRecordAPI();
-      const record = res?.data;
+      const record = res?.data?.data;
 
       if (!record) {
         setWorkSeconds(0);

@@ -26,7 +26,7 @@ export default function Reports() {
     setLoading(true);
     try {
       const res = await getAllReportsByDate(date);
-      setReports(res.data || []);
+      setReports(res?.data?.data || []);
     } catch (error) {
       toast.error(error.message || "Failed to load reports");
     } finally {

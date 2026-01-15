@@ -15,9 +15,13 @@ export default function Holiday() {
     try {
       setLoading(true);
       const res = await getUpcomingHolidaysAPI();
-      setHolidays(res?.data || []);
+
+      const list = Array.isArray(res?.data?.data) ? res.data.data : [];
+
+      setHolidays(list);
     } catch (error) {
-      console.error("Failed to fetch holidays");
+      console.error("Failed to fetch holidays", error);
+      setHolidays([]);
     } finally {
       setLoading(false);
     }
@@ -25,6 +29,7 @@ export default function Holiday() {
 
   /* ===== SORT BY DATE ===== */
   const sortedHolidays = useMemo(() => {
+    if (!Array.isArray(holidays)) return [];
     return [...holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [holidays]);
 
