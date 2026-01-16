@@ -114,7 +114,7 @@ export const downloadAttendancePDFWithPunchAPI = async (from, to) => {
 
 export const markAttendanceStatusAPI = async (data) => {
   try {
-    return await api.post("/attendance/mark", data);
+    return await api.put("/attendance/mark", data);
   } catch (error) {
     handleError(error);
   }
