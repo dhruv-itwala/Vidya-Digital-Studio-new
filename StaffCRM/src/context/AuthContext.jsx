@@ -31,7 +31,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
+        const profile = await fetchProfile();
         await fetchAllUsers();
+        if (["admin", "hr"].includes(profile.role)) {
+          await fetchAllUsers();
+        }
       } catch {
         logout();
       } finally {
