@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchAllUsers = async () => {
     const res = await getAllUsersAPI();
+    console.log(res.data.users, "all users");
     setAllEmployees(res.data.users || res.data);
   };
 
@@ -30,11 +31,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const profile = await fetchProfile();
-
-        if (["admin", "hr"].includes(profile.role)) {
-          await fetchAllUsers();
-        }
+        await fetchAllUsers();
       } catch {
         logout();
       } finally {
