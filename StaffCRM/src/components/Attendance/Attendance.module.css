@@ -87,26 +87,26 @@
   -webkit-overflow-scrolling: touch;
 }
 
-table {
+.table {
   width: 100%;
   min-width: 700px;
   border-collapse: collapse;
 }
 
-thead {
+.headerRow {
   background: var(--color-primary);
   color: #fff;
 }
 
-th,
-td {
+.table th,
+.table td {
   padding: 12px;
   border-bottom: 1px solid #e5e7eb;
   white-space: nowrap;
   font-size: 0.9rem;
 }
 
-tbody tr:hover {
+.table tbody tr:hover {
   background: #f9fafb;
 }
 

@@ -22,3 +22,16 @@ export const holidayFormatDate = (date) => {
     year: "numeric",
   });
 };
+
+export const formatToIST = (utcDate) => {
+  if (!utcDate) return "-";
+
+  return new Date(utcDate).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};

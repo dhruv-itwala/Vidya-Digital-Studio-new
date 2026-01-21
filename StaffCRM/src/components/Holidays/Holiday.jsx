@@ -49,12 +49,12 @@ export default function Holiday() {
 
         {!loading && sortedHolidays.length > 0 && (
           <div className={styles.tableWrapper}>
-            <table>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Day</th>
-                  <th>Date</th>
-                  <th>Holiday</th>
+                  <th className={styles.headerRow}>Day</th>
+                  <th className={styles.headerRow}>Date</th>
+                  <th className={styles.headerRow}>Holiday</th>
                 </tr>
               </thead>
 

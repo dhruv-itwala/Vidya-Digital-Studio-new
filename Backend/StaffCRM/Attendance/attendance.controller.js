@@ -66,7 +66,7 @@ export const getAllEmployeesAttendanceByDateRange = asyncHandler(
       count: data.length,
       data,
     });
-  }
+  },
 );
 
 // ================= MARK ATTENDANCE STATUS ================= */
@@ -76,7 +76,7 @@ export const markAttendanceStatus = asyncHandler(async (req, res) => {
   const attendance = await service.markAttendanceStatusService(
     userId,
     date,
-    status
+    status,
   );
 
   res.json({
@@ -108,4 +108,11 @@ export const downloadAttendancePDF = asyncHandler(async (req, res) => {
 // ================ DOWNLOAD ATTENDANCE WITH PUNCH PDF ================= */
 export const downloadAttendanceWithPunchPDF = asyncHandler(async (req, res) => {
   await downloadAttendanceWithPunchPDFService(req, res);
+});
+
+// ================ DELETE ATTENDANCE BY ID ================= */
+export const deleteAttendanceById = asyncHandler(async (req, res) => {
+  const { attendanceId } = req.params;
+  await service.deleteAttendanceByIdService(attendanceId);
+  res.json({ success: true, message: "Attendance record deleted" });
 });

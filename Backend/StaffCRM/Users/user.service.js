@@ -10,7 +10,7 @@ import mongoose from "mongoose";
 /* ================= LOGIN ================= */
 export const loginService = async (email, password) => {
   const user = await User.findOne({ email, isActive: true }).select(
-    "+password"
+    "+password",
   );
   if (!user) throw new AppError("Invalid credentials", 401);
 
@@ -86,7 +86,7 @@ export const getEmployeeBirthdaysService = async () => {
 
 /* ================= USERS ================= */
 export const getAllUsersService = async () => {
-  return User.find({ isActive: true })
+  return User.find()
     .select("-password")
     .lean()
     .then((users) =>
@@ -95,7 +95,7 @@ export const getAllUsersService = async () => {
         return (
           priority[a.role] - priority[b.role] || a.name.localeCompare(b.name)
         );
-      })
+      }),
     );
 };
 
@@ -184,7 +184,7 @@ export const salaryDeductionService = async (userId, from, to) => {
 
   const absentDays = Object.values(dateMap).reduce(
     (sum, d) => sum + d.weight,
-    0
+    0,
   );
 
   const perDaySalary = user.salary / workingDays.length;

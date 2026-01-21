@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
 
   const fetchAllUsers = async () => {
     const res = await getAllUsersAPI();
-    console.log(res.data.users, "all users");
     setAllEmployees(res.data.users || res.data);
   };
 
@@ -65,6 +64,7 @@ export const AuthProvider = ({ children }) => {
         allEmployees,
         loading,
         isAuthenticated: Boolean(user),
+        role: user?.role,
         isAdmin: user?.role === "admin",
         isHR: user?.role === "hr",
         login,

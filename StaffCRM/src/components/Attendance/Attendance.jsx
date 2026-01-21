@@ -58,7 +58,7 @@ export default function Attendance() {
 
   const formatDuration = (s = 0) =>
     `${String(Math.floor(s / 3600)).padStart(2, "0")}h ${String(
-      Math.floor((s % 3600) / 60)
+      Math.floor((s % 3600) / 60),
     ).padStart(2, "0")}m`;
 
   /* ================= DAILY ================= */
@@ -114,7 +114,7 @@ export default function Attendance() {
             return { ...e, breakSeconds: e.breakSeconds + 1 };
           }
           return e;
-        })
+        }),
       );
     }, 1000);
 
@@ -131,7 +131,7 @@ export default function Attendance() {
       setRangeLoading(true);
       const res = await getAllEmployeesAttendanceByDateRangeAPI(
         fromDate,
-        toDate
+        toDate,
       );
       setRange(res.data?.data || []);
     } finally {
@@ -142,8 +142,8 @@ export default function Attendance() {
   const employees = useMemo(() => {
     return Array.from(
       new Map(
-        range.map((a) => [a.userId, { id: a.userId, name: a.name }])
-      ).values()
+        range.map((a) => [a.userId, { id: a.userId, name: a.name }]),
+      ).values(),
     );
   }, [range]);
 
@@ -200,12 +200,12 @@ export default function Attendance() {
                 <Loader />
               ) : (
                 <div className={styles.tableWrapper}>
-                  <table>
+                  <table className={styles.table}>
                     <thead>
                       <tr>
-                        <th>Employee</th>
-                        <th>Email</th>
-                        <th>Status</th>
+                        <th className={styles.headerRow}>Employee</th>
+                        <th className={styles.headerRow}>Email</th>
+                        <th className={styles.headerRow}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -260,13 +260,13 @@ export default function Attendance() {
               />
 
               <div className={styles.tableWrapper}>
-                <table>
-                  <thead>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
                     <tr>
-                      <th>Employee</th>
-                      <th>Status</th>
-                      <th>Worked</th>
-                      <th>Break</th>
+                      <th className={styles.headerRow}>Employee</th>
+                      <th className={styles.headerRow}>Status</th>
+                      <th className={styles.headerRow}>Worked</th>
+                      <th className={styles.headerRow}>Break</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -281,10 +281,10 @@ export default function Attendance() {
                           {e.status === "NOT_STARTED"
                             ? "Not Started"
                             : e.status === "WORKING"
-                            ? "Working"
-                            : e.status === "ON_BREAK"
-                            ? "On Break"
-                            : "Completed"}
+                              ? "Working"
+                              : e.status === "ON_BREAK"
+                                ? "On Break"
+                                : "Completed"}
                         </td>
                         <td>{formatDuration(e.workedSeconds)}</td>
                         <td>{formatDuration(e.breakSeconds)}</td>
@@ -329,12 +329,6 @@ export default function Attendance() {
                 <button onClick={fetchRange} className={styles.primaryBtn}>
                   Get
                 </button>
-                {/* <button
-                  onClick={() => download(false)}
-                  className={styles.primaryBtn}
-                >
-                  Download
-                </button> */}
                 <button
                   onClick={() => download(true)}
                   className={styles.primaryBtn}
@@ -347,12 +341,14 @@ export default function Attendance() {
                 <Loader />
               ) : (
                 <div className={styles.tableWrapper}>
-                  <table>
+                  <table className={styles.table}>
                     <thead>
                       <tr>
-                        <th>Date</th>
+                        <th className={styles.headerRow}>Date</th>
                         {employees.map((e) => (
-                          <th key={e.id}>{e.name}</th>
+                          <th key={e.id} className={styles.headerRow}>
+                            {e.name}
+                          </th>
                         ))}
                       </tr>
                     </thead>

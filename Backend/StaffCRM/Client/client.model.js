@@ -1,42 +1,152 @@
 import mongoose from "mongoose";
 
-const handleSchema = new mongoose.Schema({
-  platform: { type: String, required: true }, // instagram, facebook, email, custom
-  username: String,
-  password: String,
-  email: String,
-  phone: String,
-});
+/* =========================
+   SUB SCHEMAS
+========================= */
+
+// Payment history
+const transactionSchema = new mongoose.Schema(
+  {
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false },
+);
+
+// Documents
+const documentSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false },
+);
+
+// Credentials
+const credentialSchema = new mongoose.Schema(
+  {
+    platform: {
+      type: String,
+      required: true, // ig, fb, google etc
+    },
+    username: String,
+    password: String,
+    note: String,
+  },
+  { _id: false },
+);
+
+/* =========================
+   MAIN CLIENT SCHEMA
+========================= */
 
 const clientSchema = new mongoose.Schema(
   {
-    clientName: { type: String, required: true },
-    ownerName: String,
-    email: String,
-
-    services: [String],
-
-    payment: {
-      amount: { type: Number, required: true },
-      tenure: {
-        type: String, // in months
-        default: 1,
-      },
-      status: {
-        type: String,
-        enum: ["pending", "paid", "partial"],
-        default: "pending",
-      },
-      method: String,
+    /* ===== BASIC INFO ===== */
+    profilePhoto: {
+      type: String, // cloudinary url
+    },
+    clientName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    ownerName: {
+      type: String,
+      trim: true,
+    },
+    email: {
+      type: String,
+      lowercase: true,
+    },
+    phone: {
+      type: String,
+    },
+    address: {
+      type: String,
     },
 
-    onboardingDate: Date,
+    /* ===== PACKAGE INFO ===== */
+    services: [
+      {
+        type: String,
+      },
+    ],
+    onboardingDate: {
+      type: Date,
+      default: Date.now,
+    },
+    billingType: {
+      type: String,
+      enum: ["one-time", "monthly"],
+      required: true,
+    },
 
-    credentials: [handleSchema],
+    // One-time
+    totalAmount: {
+      type: Number,
+    },
 
-    isActive: { type: Boolean, default: true },
+    // Monthly
+    monthlyAmount: {
+      type: Number,
+    },
+    tenure: {
+      type: Number, // in months
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "partial", "paid"],
+      default: "pending",
+    },
+
+    /* ===== PAYMENT DETAILS ===== */
+    transactions: [transactionSchema],
+
+    /* ===== DOCUMENTS ===== */
+    documents: [documentSchema],
+
+    /* ===== CREDENTIALS ===== */
+    credentials: [credentialSchema],
+
+    // add inside main schema
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+    },
+
+    // Monthly helper
+    paidMonths: {
+      type: Number,
+      default: 0,
+    },
+
+    /* ===== META ===== */
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  },
 );
 
 export default mongoose.model("Client", clientSchema);

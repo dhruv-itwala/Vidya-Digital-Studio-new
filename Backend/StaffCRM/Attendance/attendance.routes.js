@@ -22,25 +22,31 @@ attendanceRoutes.get("/my/date", ctrl.myAttendanceByDate);
 attendanceRoutes.get(
   "/all/date",
   roleCheck("admin", "hr"),
-  ctrl.getAllEmployeesAttendanceByDateRange
+  ctrl.getAllEmployeesAttendanceByDateRange,
 );
 
 attendanceRoutes.get(
   "/all",
   roleCheck("admin", "hr"),
-  ctrl.getAllEmployeesAttendance
+  ctrl.getAllEmployeesAttendance,
 );
 
 attendanceRoutes.put(
   "/mark",
   roleCheck("admin", "hr"),
-  ctrl.markAttendanceStatus
+  ctrl.markAttendanceStatus,
 );
 
 attendanceRoutes.get(
   "/live-status/date",
   roleCheck("admin", "hr"),
-  ctrl.getLiveEmployeesStatus
+  ctrl.getLiveEmployeesStatus,
+);
+
+attendanceRoutes.delete(
+  "/user/:attendanceId",
+  roleCheck("admin", "hr"),
+  ctrl.deleteAttendanceById,
 );
 
 /* ================= ADMIN ================= */
@@ -49,13 +55,13 @@ attendanceRoutes.get("/day", roleCheck("admin"), ctrl.dayAttendance);
 attendanceRoutes.get(
   "/download/pdf",
   roleCheck("admin", "hr"),
-  ctrl.downloadAttendancePDF
+  ctrl.downloadAttendancePDF,
 );
 
 attendanceRoutes.get(
   "/download/timepdf",
   roleCheck("admin", "hr"),
-  ctrl.downloadAttendanceWithPunchPDF
+  ctrl.downloadAttendanceWithPunchPDF,
 );
 
 export default attendanceRoutes;

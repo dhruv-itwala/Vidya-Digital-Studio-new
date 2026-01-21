@@ -1,21 +1,40 @@
 import express from "express";
+import upload from "../../config/multer.config.js";
+import { protect } from "../middleware/auth.middleware.js";
+import { roleCheck } from "../middleware/role.middleware.js";
 import {
   createClient,
-  getAllClients,
-  getClient,
   updateClient,
+  getAllClients,
+  getClientById,
   deleteClient,
 } from "./client.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
 
-const clientRoutes = express.Router();
+const router = express.Router();
 
-clientRoutes.use(protect);
+router.use(protect);
+router.use(roleCheck("admin", "hr"));
 
-clientRoutes.post("/", createClient);
-clientRoutes.get("/", getAllClients);
-clientRoutes.get("/:id", getClient);
-clientRoutes.put("/:id", updateClient);
-clientRoutes.delete("/:id", deleteClient);
+router.post(
+  "/",
+  upload.fields([
+    { name: "profilePhoto", maxCount: 1 },
+    { name: "documents", maxCount: 10 },
+  ]),
+  createClient,
+);
 
-export default clientRoutes;
+router.put(
+  "/:id",
+  upload.fields([
+    { name: "profilePhoto", maxCount: 1 },
+    { name: "documents", maxCount: 10 },
+  ]),
+  updateClient,
+);
+
+router.get("/", getAllClients);
+router.get("/:id", getClientById);
+router.delete("/:id", deleteClient);
+
+export default router;

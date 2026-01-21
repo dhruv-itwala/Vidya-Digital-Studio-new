@@ -1,6 +1,24 @@
 .container {
-  padding: var(--container-padding);
-  background: var(--color-background);
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.createBtn {
+  background: var(--color-primary);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.createBtn:hover {
+  background-color: var(--color-button-hover);
+  transform: translateY(-1px);
 }
 
 .title {
@@ -24,7 +42,7 @@
   overflow: hidden;
 }
 
-th {
+.table th {
   background: var(--color-primary);
   color: white;
   font-size: 12px;
@@ -32,7 +50,7 @@ th {
   text-align: left;
 }
 
-td {
+.table td {
   padding: 12px;
   border-top: 1px solid var(--color-border);
   font-size: 13px;

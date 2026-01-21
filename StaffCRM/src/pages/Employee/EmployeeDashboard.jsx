@@ -3,10 +3,7 @@ import EmployeeTimer from "./EmployeeTimer";
 import EmployeeReport from "./EmployeeReport";
 import EmployeeTasks from "./EmployeeTasks";
 import styles from "./EmployeeDashboard.module.css";
-import {
-  getMyAttendanceByDateAPI,
-  getTodayWorkRecordAPI,
-} from "../../api/attendance.api";
+import { getTodayWorkRecordAPI } from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
 import Loader from "../../components/Loader/Loader";
 import WeekendCard from "../../components/Cards/WeekendCard";
@@ -19,40 +16,36 @@ import { getHolidaysAPI } from "../../api/holiday.api";
 import { getAllLeavesAPI } from "../../api/leave.api";
 
 const EmployeeDashboard = () => {
-  const [punchInDone, setPunchInDone] = useState(false);
-  const [punchedOut, setPunchedOut] = useState(false);
-  const [reportSubmitted, setReportSubmitted] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [birthdays, setBirthdays] = useState([]);
+  const [state, setState] = useState({
+    loading: true,
+    punchInDone: false,
+    punchedOut: false,
+    reportSubmitted: false,
+    birthdays: [],
+    isLeave: false,
+    isHoliday: false,
+    holidayName: "",
+    isWeekend: false,
+    istDay: null,
+  });
 
-  const [isLeave, setIsLeave] = useState(false);
-  const [isHoliday, setIsHoliday] = useState(false);
-  const [holidayName, setHolidayName] = useState("");
-
-  const [isWeekend, setIsWeekend] = useState(false);
-  const [istDay, setIstDay] = useState(null);
-
-  // ------------------ IST Helpers ------------------
+  // ---------- IST helpers ----------
   const getISTDateObj = () =>
     new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
 
-  const getISTDateString = (date = new Date()) =>
+  const getISTDateString = (date) =>
     new Date(date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
       .toISOString()
       .split("T")[0];
 
-  // ------------------ Main API Load ------------------
   const fetchStatus = async () => {
-    setLoading(true);
-
     try {
       const istDate = getISTDateObj();
       const todayIST = getISTDateString(istDate);
       const day = istDate.getDay();
+      const isWeekendToday = [0, 6].includes(day);
 
-      setIstDay(day);
-
-      // ---------- Birthday (parallel safe) ----------
+      // 🔹 Start birthdays in background (NON-BLOCKING)
       getEmployeeBirthdaysAPI()
         .then((res) => {
           const todayDay = istDate.getDate();
@@ -66,31 +59,35 @@ const EmployeeDashboard = () => {
               );
             }) || [];
 
-          setBirthdays(todayBirthdays);
+          setState((prev) => ({ ...prev, birthdays: todayBirthdays }));
         })
-        .catch(() => setBirthdays([]));
+        .catch(() => {});
+
+      // 🔹 Run Holiday + Leave together
+      const [holidayRes, leaveRes] = await Promise.all([
+        getHolidaysAPI(),
+        getAllLeavesAPI(),
+      ]);
 
       // ---------- Holiday ----------
-      const holidayRes = await getHolidaysAPI();
       const holidays = holidayRes?.data?.data || [];
-
       const todayHoliday = holidays.find(
-        (h) => getISTDateString(new Date(h.date)) === todayIST
+        (h) => getISTDateString(new Date(h.date)) === todayIST,
       );
 
       if (todayHoliday) {
-        setIsHoliday(true);
-        setHolidayName(todayHoliday.name || "Holiday");
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          isHoliday: true,
+          holidayName: todayHoliday.name || "Holiday",
+          istDay: day,
+        }));
         return;
       }
 
-      setIsHoliday(false);
-      setHolidayName("");
-
       // ---------- Leave ----------
-      const leaveRes = await getAllLeavesAPI();
       const leaves = leaveRes?.data?.data || [];
-
       const todayLeave = leaves.find((leave) => {
         if (leave.status !== "APPROVED") return false;
 
@@ -101,31 +98,44 @@ const EmployeeDashboard = () => {
       });
 
       if (todayLeave) {
-        setIsLeave(true);
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          isLeave: true,
+          istDay: day,
+        }));
         return;
       }
 
-      setIsLeave(false);
-
       // ---------- Weekend ----------
-      const isWeekendToday = [0, 6].includes(day);
-      setIsWeekend(isWeekendToday);
+      if (isWeekendToday) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          isWeekend: true,
+          istDay: day,
+        }));
+        return;
+      }
 
-      // ---------- Attendance / Work / Report ----------
-      const [attendanceRes, recordRes, reportRes] = await Promise.all([
-        getMyAttendanceByDateAPI(todayIST),
+      // ---------- Attendance / Work / Report (parallel) ----------
+      const [recordRes, reportRes] = await Promise.all([
         getTodayWorkRecordAPI(),
         getMyReportsByDateAPI(),
       ]);
 
-      setPunchInDone(!!recordRes?.data?.data?.punchIn);
-      setPunchedOut(!!recordRes?.data?.data?.punchOut);
-      setReportSubmitted(Boolean(reportRes?.data?.data));
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        istDay: day,
+        punchInDone: !!recordRes?.data?.data?.punchIn,
+        punchedOut: !!recordRes?.data?.data?.punchOut,
+        reportSubmitted: Boolean(reportRes?.data?.data),
+      }));
     } catch (error) {
-      console.error("Dashboard fetch error:", error);
+      console.error(error);
       toast.error("Failed to load dashboard");
-    } finally {
-      setLoading(false);
+      setState((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -133,43 +143,37 @@ const EmployeeDashboard = () => {
     fetchStatus();
   }, []);
 
-  // ------------------ Handlers ------------------
-  const handlePunchIn = () => setPunchInDone(true);
-
-  const handlePunchOutAttempt = async () => reportSubmitted;
-
-  const handleReportSubmitted = () => setReportSubmitted(true);
-
-  const handlePunchOutSuccess = () => setPunchedOut(true);
-
-  // ------------------ UI ------------------
-  if (loading) return <Loader />;
-
-  if (isHoliday) return <HolidayCard holidayName={holidayName} />;
-
-  if (isLeave) return <LeaveCard />;
-
-  if (isWeekend) return <WeekendCard day={istDay} />;
+  // ---------- UI ----------
+  if (state.loading) return <Loader />;
+  if (state.isHoliday) return <HolidayCard holidayName={state.holidayName} />;
+  if (state.isLeave) return <LeaveCard />;
+  if (state.isWeekend) return <WeekendCard day={state.istDay} />;
 
   return (
     <div className="masterContainer">
       <div className={styles.container}>
-        {birthdays.length > 0 && <BirthdayCard people={birthdays} />}
+        {state.birthdays.length > 0 && (
+          <BirthdayCard people={state.birthdays} />
+        )}
 
         <div className={styles.topRow}>
           <EmployeeTimer
-            onPunchIn={handlePunchIn}
-            onPunchOutAttempt={handlePunchOutAttempt}
-            onPunchOut={handlePunchOutSuccess}
+            onPunchIn={() => setState((p) => ({ ...p, punchInDone: true }))}
+            onPunchOutAttempt={() => state.reportSubmitted}
+            onPunchOut={() => setState((p) => ({ ...p, punchedOut: true }))}
           />
 
-          <EmployeeReport onSubmitted={handleReportSubmitted} />
+          <EmployeeReport
+            onSubmitted={() =>
+              setState((p) => ({ ...p, reportSubmitted: true }))
+            }
+          />
         </div>
 
-        {punchInDone && (
+        {state.punchInDone && (
           <EmployeeTasks
-            showTasks={punchInDone}
-            disableTasksAfterPunchOut={punchedOut}
+            showTasks
+            disableTasksAfterPunchOut={state.punchedOut}
           />
         )}
       </div>

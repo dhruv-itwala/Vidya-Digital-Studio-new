@@ -76,6 +76,9 @@
   letter-spacing: 0.05em;
 }
 
+.headerRow {
+  background-color: var(--color-primary);
+}
 .reportsTable tbody tr:hover {
   background: rgba(15, 92, 68, 0.05);
 }

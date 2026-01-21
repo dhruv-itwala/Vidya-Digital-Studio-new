@@ -51,26 +51,33 @@ export default function AdminNavbar() {
 
             {open && (
               <div className={styles.dropdown}>
-                <button onClick={() => goTo("/admin/employees")}>
+                <button onClick={() => navigate("/admin/employees")}>
                   Employees
                 </button>
-                <button onClick={() => goTo("/admin/quotations")}>
+                <button onClick={() => navigate("/admin/quotations")}>
                   Quotations
+                </button>
+                <button onClick={() => navigate("/admin/clients")}>
+                  Clients
                 </button>
                 <button onClick={() => navigate("/admin/profile")}>
                   Profile
                 </button>
-                <button onClick={() => goTo("/admin/tasks")}>Tasks</button>
-                <button onClick={() => goTo("/admin/todo")}>To Do List</button>
+                <button onClick={() => navigate("/admin/tasks")}>Tasks</button>
+                <button onClick={() => navigate("/admin/todo")}>
+                  To Do List
+                </button>
                 <hr />
-                <button onClick={() => goTo("/admin/attendance")}>
+                <button onClick={() => navigate("/admin/attendance")}>
                   Attendance
                 </button>
-                <button onClick={() => goTo("/admin/holidays")}>
+                <button onClick={() => navigate("/admin/holidays")}>
                   Holidays
                 </button>
-                <button onClick={() => goTo("/admin/reports")}>Reports</button>
-                <button onClick={() => goTo("/admin/leaves")}>
+                <button onClick={() => navigate("/admin/reports")}>
+                  Reports
+                </button>
+                <button onClick={() => navigate("/admin/leaves")}>
                   Leave Approvals
                 </button>
 

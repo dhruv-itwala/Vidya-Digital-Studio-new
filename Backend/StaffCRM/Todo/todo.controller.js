@@ -5,24 +5,28 @@ import {
   deleteTodoItemService,
 } from "./todo.service.js";
 
+// Helper function to get today's date in YYYY-MM-DD format
 const today = () => new Date().toISOString().split("T")[0];
 
+// Controller functions
 export const getTodayTodo = async (req, res) => {
   const todo = await getTodoByDateService(req.user.id, today());
   res.json(todo);
 };
 
+// Get todo items for a specific date
 export const getTodoByDate = async (req, res) => {
   const todo = await getTodoByDateService(req.user.id, req.params.date);
   res.json(todo);
 };
 
+// Add a new todo item
 export const addTodoItem = async (req, res) => {
   try {
     const todo = await addTodoItemService(
       req.user.id,
       req.body.date || today(),
-      req.body.text
+      req.body.text,
     );
     res.json(todo);
   } catch (err) {
@@ -30,6 +34,7 @@ export const addTodoItem = async (req, res) => {
   }
 };
 
+// Toggle the completion status of a todo item
 export const toggleTodoItem = async (req, res) => {
   try {
     const todo = await toggleTodoItemService(req.user.id, req.params.itemId);
@@ -39,6 +44,7 @@ export const toggleTodoItem = async (req, res) => {
   }
 };
 
+//  Delete a todo item
 export const deleteTodoItem = async (req, res) => {
   try {
     const todo = await deleteTodoItemService(req.user.id, req.params.itemId);

@@ -1,36 +1,80 @@
 import Client from "./client.model.js";
+import AppError from "../utils/AppError.js";
 
-export const createClientService = async (data) => {
-  if (!data.clientName) throw new Error("Client name is required");
-  if (!data.payment?.amount) throw new Error("Payment amount is required");
+/* =========================
+   PAYMENT STATUS CALC
+========================= */
+const calculatePaymentStatus = (client) => {
+  const totalPaid = client.transactions.reduce((sum, t) => sum + t.amount, 0);
 
-  return Client.create(data);
+  // ONE TIME
+  if (client.billingType === "one-time") {
+    if (!client.totalAmount) return "pending";
+    if (totalPaid === 0) return "pending";
+    if (totalPaid < client.totalAmount) return "partial";
+    return "paid";
+  }
+
+  // MONTHLY
+  if (client.billingType === "monthly") {
+    const expectedTotal = client.monthlyAmount * client.tenure;
+
+    client.paidMonths = Math.floor(totalPaid / client.monthlyAmount);
+
+    if (totalPaid === 0) return "pending";
+    if (totalPaid < expectedTotal) return "partial";
+    return "paid";
+  }
 };
 
+/* =========================
+   CREATE CLIENT
+========================= */
+export const createClientService = async (payload) => {
+  const client = await Client.create(payload);
+  return client;
+};
+
+/* =========================
+   UPDATE CLIENT
+========================= */
+export const updateClientService = async (id, payload) => {
+  const client = await Client.findOne({ _id: id, isDeleted: false });
+  if (!client) throw new AppError("Client not found", 404);
+
+  Object.assign(client, payload);
+
+  // auto update payment status
+  client.paymentStatus = calculatePaymentStatus(client);
+
+  await client.save();
+  return client;
+};
+
+/* =========================
+   GET ALL CLIENTS
+========================= */
 export const getAllClientsService = async () => {
-  return Client.find({ isActive: true }).sort({ createdAt: -1 });
+  return Client.find({ isDeleted: false }).sort({ createdAt: -1 });
 };
 
+/* =========================
+   GET CLIENT BY ID
+========================= */
 export const getClientByIdService = async (id) => {
-  const client = await Client.findById(id);
-  if (!client) throw new Error("Client not found");
+  const client = await Client.findOne({ _id: id, isDeleted: false });
+  if (!client) throw new AppError("Client not found", 404);
   return client;
 };
 
-export const updateClientService = async (id, data) => {
-  const client = await Client.findByIdAndUpdate(id, data, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!client) throw new Error("Client not found");
-  return client;
-};
-
+/* =========================
+   SOFT DELETE CLIENT
+========================= */
 export const deleteClientService = async (id) => {
   const client = await Client.findById(id);
-  if (!client) throw new Error("Client not found");
+  if (!client) throw new AppError("Client not found", 404);
 
-  client.isActive = false;
+  client.isDeleted = true;
+  client.deletedAt = new Date();
   await client.save();
 };

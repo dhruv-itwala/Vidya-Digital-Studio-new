@@ -24,10 +24,14 @@ import Attendance from "./components/Attendance/Attendance";
 import Profile from "./components/Profile/Profile";
 import TodoList from "./components/TodoList/TodoList";
 import AllQuotations from "./pages/Admin/AllQuotations";
-import Client from "./components/Client/Client";
+
+import CreateClient from "./components/Client/CreateClient";
+import ClientList from "./components/Client/ClientList";
+import ClientView from "./components/Client/ClientView";
 
 import { Toaster } from "react-hot-toast";
 import "./App.css";
+import EditClient from "./components/Client/EditClient";
 
 export default function App() {
   return (
@@ -65,7 +69,13 @@ export default function App() {
           <Route path="attendance" element={<Attendance />} />
           <Route path="reports" element={<Reports />} />
           <Route path="todo" element={<TodoList />} />
+
           <Route path="quotations" element={<AllQuotations />} />
+
+          <Route path="clients" element={<ClientList />} />
+          <Route path="clients/create" element={<CreateClient />} />
+          <Route path="clients/:id" element={<ClientView />} />
+          <Route path="clients/:id/edit" element={<EditClient />} />
         </Route>
 
         {/* EMPLOYEE ROUTES */}
@@ -98,7 +108,8 @@ export default function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<EmployeeDashboard />} />
-          <Route path="attendance" element={<Attendance />} />
+          <Route path="attendance" element={<EmployeeAttendance />} />
+          <Route path="mark-attendance" element={<Attendance />} />
           <Route path="profile" element={<Profile />} />
           <Route path="leaves" element={<EmployeeLeaves />} />
           <Route path="tasks" element={<EmployeeTasks />} />
@@ -108,7 +119,10 @@ export default function App() {
           <Route path="hrReports" element={<Reports />} />
           <Route path="hrHoliday" element={<HRHoliday />} />
 
-          <Route path="client" element={<Client />} />
+          <Route path="clients" element={<ClientList />} />
+          <Route path="clients/create" element={<CreateClient />} />
+          <Route path="clients/:id" element={<ClientView />} />
+          <Route path="clients/:id/edit" element={<EditClient />} />
         </Route>
 
         {/* FALLBACK */}

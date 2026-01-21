@@ -67,7 +67,7 @@ export default function Reports() {
       const res = await downloadCustomReportsPDF(
         selectedEmployees,
         fromDate,
-        toDate
+        toDate,
       );
       downloadBlob(res.data, `Work_Report_${fromDate}_to_${toDate}.pdf`);
       toast.success("Custom report downloaded", { id: toastId });
@@ -79,7 +79,7 @@ export default function Reports() {
   /* ================= UTILITY ================= */
   const downloadBlob = (data, filename) => {
     const url = URL.createObjectURL(
-      new Blob([data], { type: "application/pdf" })
+      new Blob([data], { type: "application/pdf" }),
     );
     const link = document.createElement("a");
     link.href = url;
@@ -117,9 +117,9 @@ export default function Reports() {
             <table className={styles.reportsTable}>
               <thead>
                 <tr>
-                  <th>Employee</th>
-                  <th>Status</th>
-                  <th>Work Points</th>
+                  <th className={styles.headerRow}>Employee</th>
+                  <th className={styles.headerRow}>Status</th>
+                  <th className={styles.headerRow}>Work Points</th>
                 </tr>
               </thead>
               <tbody>
@@ -196,7 +196,7 @@ export default function Reports() {
                     setSelectedEmployees((prev) =>
                       e.target.checked
                         ? [...prev, emp._id]
-                        : prev.filter((id) => id !== emp._id)
+                        : prev.filter((id) => id !== emp._id),
                     )
                   }
                 />

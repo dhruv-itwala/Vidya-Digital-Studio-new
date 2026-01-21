@@ -64,7 +64,7 @@ export const punchInService = async (userId) => {
   const record = await WorkRecord.findOneAndUpdate(
     { user: userId, date },
     { $setOnInsert: { punchIn: now } },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 
   return record;
@@ -98,7 +98,7 @@ export const punchOutService = async (userId) => {
   if (attendance?.status === "INCOMPLETE") {
     throw new AppError(
       "Attendance already auto-closed as INCOMPLETE. Contact HR.",
-      403
+      403,
     );
   }
 
@@ -114,7 +114,7 @@ export const punchOutService = async (userId) => {
       status: suggestAttendanceStatus(record.netWorkMinutes),
       source: "SYSTEM",
     },
-    { upsert: true }
+    { upsert: true },
   );
 
   return record;
@@ -163,7 +163,7 @@ export const getAllEmployeesAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);
 
   const [users, records, holiday] = await Promise.all([
-    User.find({ role: { $ne: "admin" } }).lean(),
+    User.find({ role: { $ne: "admin" }, isActive: true }).lean(),
     Attendance.find({ date: day }).lean(),
     Holiday.findOne({ date: day }),
   ]);
@@ -201,7 +201,7 @@ export const markAttendanceStatusService = async (userId, date, status) => {
   if (approvedLeave && status !== "LEAVE") {
     throw new AppError(
       "Employee is on approved leave. Cancel leave before marking attendance.",
-      409
+      409,
     );
   }
 
@@ -209,14 +209,14 @@ export const markAttendanceStatusService = async (userId, date, status) => {
   if (isHoliday && status !== "HOLIDAY") {
     throw new AppError(
       "This day is a holiday. Attendance cannot be changed.",
-      403
+      403,
     );
   }
 
   return Attendance.findOneAndUpdate(
     { user: userId, date: day },
     { status, source: "HR" },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 };
 
@@ -244,9 +244,12 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
 
   const [attendance, workRecords] = await Promise.all([
     Attendance.find({ date: { $gte: fromDate, $lte: toDate } })
+      .sort({ date: 1 })
       .populate("user", "name email")
       .lean(),
-    WorkRecord.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
+    WorkRecord.find({ date: { $gte: fromDate, $lte: toDate } })
+      .sort({ date: 1 })
+      .lean(),
   ]);
 
   const workMap = new Map();
@@ -280,7 +283,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   const mongoDate = parseIST(selectedKey);
 
   const [users, records] = await Promise.all([
-    User.find({ role: { $ne: "admin" } }).lean(),
+    User.find({ role: { $ne: "admin" }, isActive: true }).lean(),
     WorkRecord.find({ date: mongoDate }).lean(),
   ]);
 
@@ -321,7 +324,11 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
 
 // ================= DAY ATTENDANCE ================= */
 
-export const getDayAttendanceService = async (date) => {
-  const day = parseISTDateOnly(date);
-  return Attendance.find({ date: day }).populate("user", "name email");
+export const getDayAttendanceService = async (id) => {
+  return Attendance.find({ id });
+};
+
+// ================ DELETE ATTENDANCE BY ID ================= */
+export const deleteAttendanceByIdService = async (attendanceId) => {
+  return Attendance.findByIdAndDelete(attendanceId);
 };

@@ -24,7 +24,7 @@ export default function AdminEmployees() {
     try {
       setLoading(true);
       const res = await getAllUsersAPI();
-      setUsers(res.data || []);
+      setUsers(res.data.users || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load employees");
@@ -36,9 +36,8 @@ export default function AdminEmployees() {
   const indexOfLastUser = currentPage * rowsPerPage;
   const currentUsers = users.slice(
     indexOfLastUser - rowsPerPage,
-    indexOfLastUser
+    indexOfLastUser,
   );
-
   const totalPages = Math.ceil(users.length / rowsPerPage);
 
   useEffect(() => {
