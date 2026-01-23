@@ -7,7 +7,7 @@ import { getISTDayRange, normalizeDate } from "../utils/date.utils.js";
 import {
   deductForApprovedLeave,
   refundForCancelledLeave,
-} from "../leaveBalance/leavebalance.service.js";
+} from "../leaveBalance/leaveBalance.service.js";
 
 // ---------- HELPERS ----------
 const getDateRange = (from, to) => {

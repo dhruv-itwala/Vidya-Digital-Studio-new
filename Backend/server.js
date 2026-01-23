@@ -25,7 +25,7 @@ import leaveRoutes from "./StaffCRM/Leaves/leave.routes.js";
 import todoRoutes from "./StaffCRM/Todo/todo.routes.js";
 import clientRoutes from "./StaffCRM/Client/client.routes.js";
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
-import LeaveBalanceRoutes from "./StaffCRM/leaveBalance/leavebalance.routes.js";
+import LeaveBalanceRoutes from "./StaffCRM/leaveBalance/leaveBalance.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
