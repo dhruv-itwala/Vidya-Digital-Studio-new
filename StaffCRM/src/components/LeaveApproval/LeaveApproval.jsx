@@ -16,6 +16,12 @@ export default function LeaveApproval() {
   const [historyPage, setHistoryPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  /* =========== HELPER ============= */
+  const formatDateIST = (d) =>
+    new Date(d).toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
+
   /* ================= FETCH ================= */
   const fetchLeaves = async () => {
     try {
@@ -34,15 +40,15 @@ export default function LeaveApproval() {
   /* ================= DERIVED ================= */
   const pendingLeaves = useMemo(
     () => leaves.filter((l) => l.status === "PENDING"),
-    [leaves]
+    [leaves],
   );
 
   const historyLeaves = useMemo(
     () =>
       leaves.filter((l) =>
-        ["APPROVED", "DECLINED", "CANCELLED"].includes(l.status)
+        ["APPROVED", "DECLINED", "CANCELLED"].includes(l.status),
       ),
-    [leaves]
+    [leaves],
   );
 
   const paginate = (items, page) =>
@@ -95,8 +101,9 @@ export default function LeaveApproval() {
                 <tr key={l._id}>
                   <td>{l.user?.name}</td>
                   <td>
-                    {l.fromDate.slice(0, 10)} → {l.toDate.slice(0, 10)}
+                    {formatDateIST(l.fromDate)} → {formatDateIST(l.toDate)}
                   </td>
+
                   <td>{l.type}</td>
                   <td>{l.isHalfDay ? "Yes" : "No"}</td>
                   <td>{l.reason}</td>
@@ -156,8 +163,9 @@ export default function LeaveApproval() {
                 <tr key={l._id}>
                   <td>{l.user?.name}</td>
                   <td>
-                    {l.fromDate.slice(0, 10)} → {l.toDate.slice(0, 10)}
+                    {formatDateIST(l.fromDate)} → {formatDateIST(l.toDate)}
                   </td>
+
                   <td>{l.type}</td>
                   <td>{l.isHalfDay ? "Yes" : "No"}</td>
                   <td className={styles[`status${l.status}`]}>{l.status}</td>
