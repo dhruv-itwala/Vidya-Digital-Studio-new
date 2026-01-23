@@ -14,6 +14,15 @@ export default function LeaveCalendar() {
 
   const normalize = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
+  const todayIST = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+  );
+
+  const isToday = (date) => {
+    if (!date) return false;
+    return date.toDateString() === todayIST.toDateString();
+  };
+
   /* ================= FETCH ================= */
   useEffect(() => {
     const load = async () => {
@@ -139,7 +148,7 @@ export default function LeaveCalendar() {
           return (
             <div
               key={idx}
-              className={`${styles.cell} ${holiday ? styles.holidayCell : ""}`}
+              className={`${styles.cell} ${holiday ? styles.holidayCell : ""}${isToday(date) ? styles.todayCell : ""}`}
             >
               {date && (
                 <>
@@ -149,6 +158,9 @@ export default function LeaveCalendar() {
                     }`}
                   >
                     {date.getDate()}
+                    {isToday(date) && (
+                      <span className={styles.todayBadge}>Today</span>
+                    )}
                   </div>
 
                   {holiday && (

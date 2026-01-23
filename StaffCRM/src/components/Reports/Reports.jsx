@@ -9,7 +9,8 @@ import Loader from "../../components/Loader/Loader";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
-const today = () => new Date().toISOString().split("T")[0];
+const today = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
 export default function Reports() {
   const { allEmployees } = useAuth();

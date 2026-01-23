@@ -29,7 +29,9 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .navBtn:hover {
@@ -169,6 +171,31 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ================= TODAY HIGHLIGHT ================= */
+
+.todayCell {
+  border: 2px solid var(--color-primary);
+  background: linear-gradient(135deg, #f0f9ff, #ffffff);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.todayDate {
+  font-weight: 800;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.todayBadge {
+  font-size: 0.65rem;
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-weight: 600;
 }
 
 /* ================= RESPONSIVE ================= */

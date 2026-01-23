@@ -38,7 +38,9 @@ export const getMyAllReportsAPI = async () => {
 
 // Get my reports by date
 const getTodayDate = () => {
-  return new Date().toISOString().split("T")[0];
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
 };
 
 export const getMyReportsByDateAPI = async (date = getTodayDate()) => {
@@ -74,7 +76,7 @@ export const downloadAllReportsByDatePDF = async (date) => {
 export const downloadCustomReportsPDF = async (
   employeeIds,
   fromDate,
-  toDate
+  toDate,
 ) => {
   try {
     return await api.post(
@@ -86,7 +88,7 @@ export const downloadCustomReportsPDF = async (
       },
       {
         responseType: "blob",
-      }
+      },
     );
   } catch (error) {
     handleError(error);
