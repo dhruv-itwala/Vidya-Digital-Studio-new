@@ -149,9 +149,23 @@ export default function Attendance() {
 
   const byDate = useMemo(() => {
     return range.reduce((acc, cur) => {
-      const key = formatDateIST(cur.date);
+      const base = cur.punchIn || cur.date; // Prefer punch date
+      const key = new Date(base).toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      });
+
       if (!acc[key]) acc[key] = {};
-      acc[key][cur.userId] = cur;
+
+      // If duplicate exists, prefer PRESENT over LEAVE
+      if (!acc[key][cur.userId]) {
+        acc[key][cur.userId] = cur;
+      } else {
+        const prev = acc[key][cur.userId];
+        if (prev.status === "LEAVE" && cur.status !== "LEAVE") {
+          acc[key][cur.userId] = cur;
+        }
+      }
+
       return acc;
     }, {});
   }, [range]);

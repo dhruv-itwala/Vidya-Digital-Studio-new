@@ -4,6 +4,10 @@ import holidayModel from "../Holidays/holiday.model.js";
 import attendanceModel from "../Attendance/attendance.model.js";
 import AppError from "../utils/AppError.js";
 import { getISTDayRange, normalizeDate } from "../utils/date.utils.js";
+import {
+  deductForApprovedLeave,
+  refundForCancelledLeave,
+} from "../leaveBalance/leavebalance.service.js";
 
 // ---------- HELPERS ----------
 const getDateRange = (from, to) => {
@@ -87,7 +91,7 @@ export const approveLeaveService = async (leaveId, adminId) => {
   leave.status = "APPROVED";
   leave.actionBy = adminId;
   await leave.save();
-
+  await deductForApprovedLeave(leave);
   const dates = getDateRange(leave.fromDate, leave.toDate);
 
   for (const date of dates) {
@@ -104,7 +108,7 @@ export const approveLeaveService = async (leaveId, adminId) => {
       {
         status: leave.isHalfDay ? "HALF_DAY" : "LEAVE",
       },
-      { upsert: true }
+      { upsert: true },
     );
   }
 
@@ -136,6 +140,7 @@ export const cancelLeaveService = async (leaveId, userId) => {
 
   // revert attendance if approved
   if (leave.status === "APPROVED") {
+    await refundForCancelledLeave(leave);
     const dates = getDateRange(leave.fromDate, leave.toDate);
 
     for (const date of dates) {
@@ -143,7 +148,7 @@ export const cancelLeaveService = async (leaveId, userId) => {
 
       await attendanceModel.findOneAndUpdate(
         { user: userId, date: { $gte: start, $lt: end } },
-        { status: "ABSENT" }
+        { status: "ABSENT" },
       );
     }
   }

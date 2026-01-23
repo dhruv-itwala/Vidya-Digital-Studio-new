@@ -3,7 +3,7 @@ import cron from "node-cron";
 // Attendance crons
 import "../StaffCRM/Attendance/attendance.cron.js";
 import "../StaffCRM/Attendance/attendanceHoliday.cron.js";
-
+import "../StaffCRM/leaveBalance/leaveCredit.cron.js";
 console.log("🕒 Cron jobs initialized");
 
 // Optional: monitor cron health

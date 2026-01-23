@@ -41,7 +41,9 @@ function buildAttendanceMatrixWithPunch(data = []) {
   data.forEach((att) => {
     if (!att.userId || !att.name) return;
 
-    const dateKey = dayjs.utc(att.date).tz(IST).format("DD/MM/YYYY");
+    const baseDate = att.punchIn || att.date;
+    const dateKey = dayjs.utc(baseDate).tz(IST).format("DD/MM/YYYY");
+
     const empKey = att.userId;
     const empName = att.name;
 
@@ -59,11 +61,18 @@ function buildAttendanceMatrixWithPunch(data = []) {
       employees.push({ id: empKey, name: empName });
     }
 
-    if (!dateMap[dateKey]) {
-      dateMap[dateKey] = {};
-    }
+    if (!dateMap[dateKey]) dateMap[dateKey] = {};
 
-    dateMap[dateKey][empKey] = { status, punchIn, punchOut };
+    const existing = dateMap[dateKey][empKey];
+
+    if (!existing) {
+      dateMap[dateKey][empKey] = { status, punchIn, punchOut };
+    } else {
+      // Prevent LEAVE overwriting PRESENT / HALF_DAY / IC
+      if (existing.status === "L" && status !== "L") {
+        dateMap[dateKey][empKey] = { status, punchIn, punchOut };
+      }
+    }
   });
 
   const rows = Object.keys(dateMap)
@@ -93,7 +102,7 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="attendance_punch.pdf"`
+      `attachment; filename="attendance_punch.pdf"`,
     );
 
     doc.pipe(res);
@@ -119,7 +128,7 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
       doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const empColWidth = Math.min(
       120,
-      (usableWidth - dateColWidth) / employees.length
+      (usableWidth - dateColWidth) / employees.length,
     );
 
     /* ---------- HEADER ROW ---------- */
@@ -175,7 +184,7 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
             `${empData.status} | ${empData.punchIn} | ${empData.punchOut}`,
             x,
             startY + 7,
-            { width: empColWidth, align: "center" }
+            { width: empColWidth, align: "center" },
           )
           .fillColor("black");
       });
@@ -198,7 +207,7 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
       .fillColor("black")
       .text(
         "Legend: P = Present | A = Absent | H-D = Half Day | L = Leave | WFH = Work From Home | H = Holiday | IC = Incomplete",
-        { width: legendWidth, align: "center", lineBreak: false }
+        { width: legendWidth, align: "center", lineBreak: false },
       );
 
     doc.fillColor("black");
