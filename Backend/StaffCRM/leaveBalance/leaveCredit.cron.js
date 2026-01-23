@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import leaveBalanceModel from "./leaveBalance.model.js";
 import { ensureMonthlyCredit } from "./leavebalance.service.js";
+import leaveBalanceModel from "./leaveBalance.model.js";
 
 // Runs every 1st day of month at 00:00 UTC
 cron.schedule("0 0 1 * *", async () => {
