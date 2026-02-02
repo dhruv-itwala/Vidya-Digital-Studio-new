@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+import dns from "dns";
+
+// Force Cloudflare + Google DNS (Fixes Windows MongoDB DNS bug)
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
 export const connectDB = async () => {
   try {
@@ -9,7 +13,9 @@ export const connectDB = async () => {
 
     const URI = `mongodb+srv://${user}:${pass}@${cluster}/${dbName}`;
 
-    await mongoose.connect(URI);
+    await mongoose.connect(URI, {
+      serverSelectionTimeoutMS: 10000,
+    });
 
     console.log("✅ MongoDB Connected Successfully");
   } catch (error) {

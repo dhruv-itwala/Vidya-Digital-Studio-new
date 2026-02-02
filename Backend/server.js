@@ -14,7 +14,7 @@ import { getLocalIP } from "./config/ip.config.js";
 import bodyParser from "body-parser";
 
 // Import Routes
-import servicePricesRoute from "./Quotation/ServicePrices/routes/ServicePrice.routes.js";
+import servicePricesRoute from "./Quotation/ServicePrices/ServicePrice.routes.js";
 import quotationRoutes from "./Quotation/Quote/routes/Quote.routes.js";
 import userRoutes from "./StaffCRM/Users/user.routes.js";
 import attendenceRoutes from "./StaffCRM/Attendance/attendance.routes.js";
@@ -22,10 +22,10 @@ import reportRoutes from "./StaffCRM/Report/report.routes.js";
 import holidayRoutes from "./StaffCRM/Holidays/holiday.routes.js";
 import taskRoutes from "./StaffCRM/Tasks/task.routes.js";
 import leaveRoutes from "./StaffCRM/Leaves/leave.routes.js";
+import LeaveBalanceRoutes from "./StaffCRM/leaveBalance/leaveBalance.routes.js";
 import todoRoutes from "./StaffCRM/Todo/todo.routes.js";
 import clientRoutes from "./StaffCRM/Client/client.routes.js";
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
-import LeaveBalanceRoutes from "./StaffCRM/leaveBalance/leaveBalance.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;

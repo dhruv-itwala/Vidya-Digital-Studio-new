@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
-import { getAllUsersAPI } from "../../api/admin.api";
+import {
+  deleteUserAPI,
+  getAllUsersAPI,
+  inactiveUserAPI,
+} from "../../api/admin.api";
 import EmployeeModal from "./EmployeeModal";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./AdminEmployees.module.css";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
+import { FaUserEdit } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 
 export default function AdminEmployees() {
   const { user } = useAuth();
@@ -71,7 +77,7 @@ export default function AdminEmployees() {
                 <th>Email</th>
                 <th>Role</th>
                 <th>Status</th>
-                <th>Edit</th>
+                <th colSpan={3}>Actions</th>
               </tr>
             </thead>
 
@@ -86,13 +92,60 @@ export default function AdminEmployees() {
                   </td>
                   <td>
                     <button
-                      disabled={user.role === "hr" && u.role === "admin"}
+                      disabled={
+                        (user.role === "hr" && u.role === "admin") ||
+                        u._id === user.id
+                      }
                       onClick={() => setEditingUser(u)}
                       className={styles.editBtn}
                     >
-                      Edit
+                      <FaUserEdit />
                     </button>
                   </td>
+
+                  <td>
+                    <label className={styles.toggle}>
+                      <input
+                        type="checkbox"
+                        checked={u.isActive}
+                        disabled={user.role === "hr" && u.role === "admin"}
+                        onChange={async () => {
+                          const action = u.isActive ? "Deactivate" : "Activate";
+                          const ok = confirm(`${action} ${u.name}?`);
+                          if (!ok) return;
+
+                          await inactiveUserAPI(u._id);
+
+                          toast.success(
+                            `${u.name} ${u.isActive ? "deactivated" : "activated"}`,
+                          );
+
+                          load();
+                        }}
+                      />
+                      <span className={styles.slider}></span>
+                      <span className={styles.labelText}>
+                        {u.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </label>
+                  </td>
+
+                  {user.role === "admin" && (
+                    <td>
+                      <button
+                        disabled={u.role === "admin"}
+                        onClick={async () => {
+                          if (!confirm(`Delete ${u.name} permanently?`)) return;
+                          await deleteUserAPI(u._id);
+                          toast.success("User deleted permanently");
+                          load();
+                        }}
+                        className={styles.deleteBtn}
+                      >
+                        <MdDelete />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

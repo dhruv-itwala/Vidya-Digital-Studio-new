@@ -28,10 +28,10 @@ import AllQuotations from "./pages/Admin/AllQuotations";
 import CreateClient from "./components/Client/CreateClient";
 import ClientList from "./components/Client/ClientList";
 import ClientView from "./components/Client/ClientView";
+import EditClient from "./components/Client/EditClient";
 
 import { Toaster } from "react-hot-toast";
 import "./App.css";
-import EditClient from "./components/Client/EditClient";
 
 export default function App() {
   return (

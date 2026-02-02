@@ -73,6 +73,65 @@ h2 {
   background-color: rgba(242, 92, 5, 0.05);
 }
 
+/* ================= TOGGLE ================= */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.toggle input {
+  display: none;
+}
+
+.slider {
+  width: 42px;
+  height: 22px;
+  background-color: #d1d5db;
+  border-radius: 999px;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle input:checked + .slider {
+  background-color: var(--color-button); /* primary color */
+}
+
+.toggle input:checked + .slider::before {
+  transform: translateX(20px);
+}
+.labelText {
+  font-size: 13px;
+  color: #555;
+}
+
+.checkboxContainer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkboxContainer input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  padding: 20px;
+}
+
 /* ================= STATUS ================= */
 .active {
   color: var(--deep-forest) !important;
@@ -87,6 +146,22 @@ h2 {
 /* ================= EDIT BUTTON ================= */
 .editBtn {
   padding: 6px 14px;
+  color: #20b3e4;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.editBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* DELETE BUTTON =================   */
+.deleteBtn {
+  padding: 6px 14px;
   background-color: var(--color-secondary);
   color: #fff;
   border: none;
@@ -97,16 +172,10 @@ h2 {
   transition: all 0.25s ease;
 }
 
-.editBtn:hover:not(:disabled) {
-  background-color: var(--color-accent);
-  transform: translateY(-1px);
-}
-
-.editBtn:disabled {
+.deleteBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 /* ================= PAGINATION ================= */
 .pagination {
   display: flex;

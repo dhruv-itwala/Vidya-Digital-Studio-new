@@ -1,30 +1,35 @@
-// controllers/ServicePrice.controller.js
-import {
-  getAllServicePrices,
-  getServicesByCategory,
-} from "../services/ServicePrice.service.js";
+// routes/ServicePrice.routes.js
+import { Router } from "express";
+import mongoose from "mongoose";
 
-export const fetchAllServicePrices = async (req, res) => {
+const servicePricesRoute = Router();
+
+const getCollection = () => mongoose.connection.collection("service_prices");
+
+// GET all services
+servicePricesRoute.get("/", async (req, res) => {
   try {
-    const data = await getAllServicePrices();
+    const data = await getCollection().find({}).toArray();
+
     return res.status(200).json({
       success: true,
       count: data.length,
       data,
     });
-  } catch (error) {
+  } catch (err) {
     return res.status(500).json({
       success: false,
       message: "Error fetching service prices",
-      error: error.message,
+      error: err.message,
     });
   }
-};
+});
 
-export const fetchServicePricesByCategory = async (req, res) => {
+// GET by category
+servicePricesRoute.get("/:category", async (req, res) => {
   try {
     const { category } = req.params;
-    const data = await getServicesByCategory(category);
+    const data = await getCollection().find({ category }).toArray();
 
     if (!data.length) {
       return res.status(404).json({
@@ -38,11 +43,13 @@ export const fetchServicePricesByCategory = async (req, res) => {
       count: data.length,
       data,
     });
-  } catch (error) {
+  } catch (err) {
     return res.status(500).json({
       success: false,
       message: "Error fetching service prices",
-      error: error.message,
+      error: err.message,
     });
   }
-};
+});
+
+export default servicePricesRoute;

@@ -127,6 +127,11 @@ textarea {
 .toggle input:checked + .slider::before {
   transform: translateX(20px);
 }
+.labelText {
+  font-size: 13px;
+  color: #555;
+}
+
 .checkboxContainer {
   display: flex;
   justify-content: flex-start;

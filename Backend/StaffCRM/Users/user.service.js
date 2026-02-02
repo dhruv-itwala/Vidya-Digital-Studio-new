@@ -1,11 +1,10 @@
-// Backend/StaffCRM/Users/user.service.js
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import User from "./user.model.js";
 import Attendance from "../Attendance/attendance.model.js";
 import Leave from "../Leaves/leave.model.js";
 import Holiday from "../Holidays/holiday.model.js";
 import { toISTDateKey, parseIST } from "../utils/date.utils.js";
-import mongoose from "mongoose";
 
 /* ================= LOGIN ================= */
 export const loginService = async (email, password) => {
@@ -23,7 +22,7 @@ export const loginService = async (email, password) => {
 /* ================= CREATE ================= */
 export const createUserService = async (data) => {
   data.password = await bcrypt.hash(data.password, 10);
-  return User.create(data); // rely on unique index + error middleware
+  return User.create(data);
 };
 
 /* ================= UPDATE ================= */
@@ -35,14 +34,17 @@ export const updateUserService = async (loggedInUser, userId, data) => {
   const targetUser = await User.findById(userId);
   if (!targetUser) throw new AppError("User not found", 404);
 
+  // HR cannot modify Admin
   if (loggedInUser.role === "hr" && targetUser.role === "admin") {
     throw new AppError("HR cannot modify Admin", 403);
   }
 
+  // Only Admin can change role
   if (loggedInUser.role !== "admin") {
     delete data.role;
   }
 
+  // Hash password if changed
   if (data.password) {
     data.password = await bcrypt.hash(data.password, 10);
   }
@@ -51,6 +53,36 @@ export const updateUserService = async (loggedInUser, userId, data) => {
     new: true,
     runValidators: true,
   }).select("-password");
+};
+
+/* ================= TOGGLE ACTIVE ================= */
+export const inactiveUserService = async (loggedInUser, targetUserId) => {
+  if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+    throw new AppError("Invalid user id", 400);
+  }
+
+  const user = await User.findById(targetUserId);
+  if (!user) throw new AppError("User not found", 404);
+
+  // Prevent self toggle
+  if (String(loggedInUser.id) === String(targetUserId)) {
+    throw new AppError("You cannot change your own status", 403);
+  }
+
+  // HR cannot toggle Admin
+  if (loggedInUser.role === "hr" && user.role === "admin") {
+    throw new AppError("HR cannot modify Admin status", 403);
+  }
+
+  // Employee cannot toggle
+  if (loggedInUser.role === "employee") {
+    throw new AppError("Access denied", 403);
+  }
+
+  user.isActive = !user.isActive;
+  await user.save();
+
+  return user;
 };
 
 /* ================= DELETE ================= */
@@ -62,43 +94,46 @@ export const deleteUserService = async (loggedInUser, targetUserId) => {
   const user = await User.findById(targetUserId);
   if (!user) throw new AppError("User not found", 404);
 
+  // Prevent self delete
+  if (String(loggedInUser.id) === String(targetUserId)) {
+    throw new AppError("You cannot delete yourself", 403);
+  }
+
+  // HR cannot delete Admin
   if (loggedInUser.role === "hr" && user.role === "admin") {
     throw new AppError("HR cannot delete Admin", 403);
   }
 
+  // Employee cannot delete
   if (loggedInUser.role === "employee") {
     throw new AppError("Access denied", 403);
   }
 
-  user.isActive = false;
-  await user.save();
+  await User.deleteOne({ _id: targetUserId });
+
+  return { deletedUserId: targetUserId };
 };
 
-// ================= Birthday  ================= */
+/* ================= BIRTHDAYS ================= */
 export const getEmployeeBirthdaysService = async () => {
-  return User.find({
-    isActive: true,
-    dateOfBirth: { $exists: true },
-  })
+  return User.find({ isActive: true, dateOfBirth: { $exists: true } })
     .select("name dateOfBirth -_id")
     .sort({ dateOfBirth: 1 });
 };
 
 /* ================= USERS ================= */
 export const getAllUsersService = async () => {
-  return User.find()
-    .select("-password")
-    .lean()
-    .then((users) =>
-      users.sort((a, b) => {
-        const priority = { admin: 1, hr: 2, employee: 3 };
-        return (
-          priority[a.role] - priority[b.role] || a.name.localeCompare(b.name)
-        );
-      }),
-    );
+  const users = await User.find().select("-password").lean();
+
+  const priority = { admin: 1, hr: 2, employee: 3 };
+
+  return users.sort(
+    (a, b) =>
+      priority[a.role] - priority[b.role] || a.name.localeCompare(b.name),
+  );
 };
 
+/* ================= PROFILE ================= */
 export const getProfileService = async (userId) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     throw new AppError("Invalid user id", 400);
@@ -112,15 +147,26 @@ export const getProfileService = async (userId) => {
 
 /* ================= PAYROLL ================= */
 export const salaryDeductionService = async (userId, from, to) => {
-  const user = await User.findById(userId);
-  if (!user || !user.salary) {
+  const user = await User.findById(userId).select("salary");
+  if (!user?.salary) {
     throw new AppError("User or salary not found", 404);
   }
 
   const start = parseIST(from);
   const end = parseIST(to);
 
-  const holidays = await Holiday.find({ date: { $gte: start, $lte: end } });
+  // Fetch in parallel
+  const [holidays, attendance, leaves] = await Promise.all([
+    Holiday.find({ date: { $gte: start, $lte: end } }),
+    Attendance.find({ user: userId, date: { $gte: start, $lte: end } }),
+    Leave.find({
+      user: userId,
+      status: "APPROVED",
+      fromDate: { $lte: end },
+      toDate: { $gte: start },
+    }),
+  ]);
+
   const holidaySet = new Set(holidays.map((h) => toISTDateKey(h.date)));
 
   const dateMap = {};
@@ -128,17 +174,20 @@ export const salaryDeductionService = async (userId, from, to) => {
 
   for (
     let d = new Date(start);
-    d.getTime() <= end.getTime();
+    d <= end;
     d = new Date(d.getTime() + 86400000)
   ) {
     const day = d.getUTCDay();
     const key = toISTDateKey(d);
 
+    // Skip weekends
     if (day === 0 || day === 6) continue;
 
+    const isHoliday = holidaySet.has(key);
+
     dateMap[key] = {
-      weight: holidaySet.has(key) ? 0 : 0,
-      type: holidaySet.has(key) ? "HOLIDAY" : "PRESENT",
+      weight: 0,
+      type: isHoliday ? "HOLIDAY" : "PRESENT",
     };
 
     workingDays.push(key);
@@ -148,29 +197,21 @@ export const salaryDeductionService = async (userId, from, to) => {
     throw new AppError("Invalid payroll cycle", 400);
   }
 
-  const attendance = await Attendance.find({
-    user: userId,
-    date: { $gte: start, $lte: end },
-  });
-
-  attendance.forEach((a) => {
+  // Attendance mapping
+  for (const a of attendance) {
     const key = toISTDateKey(a.date);
-    if (!dateMap[key]) return;
+    if (!dateMap[key]) continue;
 
-    if (a.status === "HALF_DAY") dateMap[key].weight = 0.5;
-  });
+    if (a.status === "HALF_DAY") {
+      dateMap[key].weight = 0.5;
+    }
+  }
 
-  const leaves = await Leave.find({
-    user: userId,
-    status: "APPROVED",
-    fromDate: { $lte: end },
-    toDate: { $gte: start },
-  });
-
-  leaves.forEach((leave) => {
+  // Leave mapping
+  for (const leave of leaves) {
     for (
       let d = new Date(leave.fromDate);
-      d.getTime() <= leave.toDate.getTime();
+      d <= leave.toDate;
       d = new Date(d.getTime() + 86400000)
     ) {
       const key = toISTDateKey(d);
@@ -180,7 +221,7 @@ export const salaryDeductionService = async (userId, from, to) => {
         dateMap[key].weight = leave.isHalfDay ? 0.5 : 1;
       }
     }
-  });
+  }
 
   const absentDays = Object.values(dateMap).reduce(
     (sum, d) => sum + d.weight,

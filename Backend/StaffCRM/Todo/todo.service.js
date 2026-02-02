@@ -7,16 +7,57 @@ const getYesterday = (date) => {
   return d.toISOString().split("T")[0];
 };
 
+// export const getTodoByDateService = async (userId, date) => {
+//   let todo = await Todo.findOne({ user: userId, date });
+
+//   const yesterday = getYesterday(date);
+//   const yesterdayTodo = await Todo.findOne({
+//     user: userId,
+//     date: yesterday,
+//   });
+
+//   // 1️⃣ Create today's todo if missing
+//   if (!todo) {
+//     todo = await Todo.create({
+//       user: userId,
+//       date,
+//       title: "Today",
+//       items: [],
+//     });
+//   }
+
+//   // 2️⃣ Carry forward ONLY if:
+//   // - today has no items
+//   // - yesterday exists
+//   // - yesterday has pending tasks
+//   if (
+//     todo.items.length === 0 &&
+//     yesterdayTodo &&
+//     yesterdayTodo.items.some((item) => !item.done)
+//   ) {
+//     const pendingItems = yesterdayTodo.items.filter((item) => !item.done);
+
+//     todo.items.push(
+//       ...pendingItems.map((item) => ({
+//         text: item.text,
+//         done: false,
+//         carriedFrom: yesterday, // optional but recommended
+//       })),
+//     );
+
+//     await todo.save();
+//   }
+
+//   return todo;
+// };
+
+// Add a new todo item
+
 export const getTodoByDateService = async (userId, date) => {
+  const today = new Date().toISOString().split("T")[0];
+
   let todo = await Todo.findOne({ user: userId, date });
 
-  const yesterday = getYesterday(date);
-  const yesterdayTodo = await Todo.findOne({
-    user: userId,
-    date: yesterday,
-  });
-
-  // 1️⃣ Create today's todo if missing
   if (!todo) {
     todo = await Todo.create({
       user: userId,
@@ -26,32 +67,38 @@ export const getTodoByDateService = async (userId, date) => {
     });
   }
 
-  // 2️⃣ Carry forward ONLY if:
-  // - today has no items
-  // - yesterday exists
-  // - yesterday has pending tasks
-  if (
-    todo.items.length === 0 &&
-    yesterdayTodo &&
-    yesterdayTodo.items.some((item) => !item.done)
-  ) {
-    const pendingItems = yesterdayTodo.items.filter((item) => !item.done);
+  // 🔒 IMPORTANT:
+  // Carry forward ONLY if requested date is TODAY
+  if (date === today) {
+    const yesterday = getYesterday(date);
 
-    todo.items.push(
-      ...pendingItems.map((item) => ({
-        text: item.text,
-        done: false,
-        carriedFrom: yesterday, // optional but recommended
-      })),
-    );
+    const yesterdayTodo = await Todo.findOne({
+      user: userId,
+      date: yesterday,
+    });
 
-    await todo.save();
+    if (
+      todo.items.length === 0 &&
+      yesterdayTodo &&
+      yesterdayTodo.items.some((item) => !item.done)
+    ) {
+      const pendingItems = yesterdayTodo.items.filter((item) => !item.done);
+
+      todo.items.push(
+        ...pendingItems.map((item) => ({
+          text: item.text,
+          done: false,
+          carriedFrom: yesterday,
+        })),
+      );
+
+      await todo.save();
+    }
   }
 
   return todo;
 };
 
-// Add a new todo item
 export const addTodoItemService = async (userId, date, text) => {
   const todo = await getTodoByDateService(userId, date);
 

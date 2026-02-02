@@ -3,15 +3,20 @@ import api from "./axios";
 // USERS
 export const getAllUsersAPI = () => api.get("/users");
 
+// CREATE USER
 export const createUserAPI = (data) => api.post("/users", data);
 
+// UPDATE USER
 export const updateUserAPI = (id, data) => api.put(`/users/${id}`, data);
+
+// INACTIVE (Soft delete)
+export const inactiveUserAPI = (id) => api.patch(`/users/${id}/inactive`);
+
+// DELETE (Hard delete)
+export const deleteUserAPI = (id) => api.delete(`/users/${id}`);
 
 // BIRTHDAYS
 export const getEmployeeBirthdaysAPI = () => api.get("/users/birthdays");
-
-// DELETE (Soft delete)
-export const deleteUserAPI = (id) => api.delete(`/users/${id}`);
 
 // REPORTS
 export const downloadAllReportsPDF = (date) =>

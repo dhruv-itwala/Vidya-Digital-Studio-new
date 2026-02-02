@@ -71,10 +71,9 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ isActive: 1, role: 1 });
 
 export default mongoose.model("User", userSchema);
