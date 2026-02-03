@@ -133,3 +133,19 @@
   border: none;
   cursor: pointer;
 }
+.imageWrapper {
+  position: relative;
+  width: fit-content;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border-radius: 6px;
+}

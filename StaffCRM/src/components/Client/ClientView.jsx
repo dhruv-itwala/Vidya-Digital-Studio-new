@@ -15,18 +15,19 @@ const ClientView = () => {
   const [loading, setLoading] = useState(true);
 
   const copyToClipboard = async (text) => {
+    if (!text) return;
+
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Password copied");
+      toast.success("Copied");
     } catch {
-      // fallback
       const textarea = document.createElement("textarea");
       textarea.value = text;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      toast.success("Password copied");
+      toast.success("Copied");
     }
   };
 
@@ -35,9 +36,9 @@ const ClientView = () => {
       setLoading(true);
       const res = await getClientById(id);
       setClient(res.data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load client");
-      navigate("/admin/clients");
+      navigate(`/${role}/clients`);
     } finally {
       setLoading(false);
     }
@@ -48,10 +49,10 @@ const ClientView = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    const confirm = window.confirm(
+    const confirmDelete = window.confirm(
       "Are you sure you want to delete this client?",
     );
-    if (!confirm) return;
+    if (!confirmDelete) return;
 
     try {
       await deleteClient(id);
@@ -62,19 +63,24 @@ const ClientView = () => {
     }
   };
 
-  const totalPaid = client?.transactions.reduce(
-    (sum, txn) => sum + txn.amount,
-    0,
-  );
-  const remainingAmount = client?.totalAmount - totalPaid;
-  const paidMonths = Math.floor(totalPaid / client?.monthlyAmount);
-  const remainingMonths = client?.tenure - paidMonths;
-
   if (loading) {
     return <div className={styles.loader}>Loading client...</div>;
   }
 
   if (!client) return null;
+
+  const totalPaid =
+    client.transactions?.reduce((sum, txn) => sum + txn.amount, 0) || 0;
+
+  const remainingAmount = (client.totalAmount || 0) - totalPaid;
+
+  const paidMonths =
+    client.billingType === "monthly" && client.monthlyAmount
+      ? Math.floor(totalPaid / client.monthlyAmount)
+      : 0;
+
+  const remainingMonths =
+    client.billingType === "monthly" ? (client.tenure || 0) - paidMonths : null;
 
   return (
     <div className="masterContainer">
@@ -82,11 +88,6 @@ const ClientView = () => {
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <img
-              src={client.profilePhoto || "/avatar.png"}
-              alt="profile"
-              className={styles.avatar}
-            />
             <div className={styles.headerText}>
               <h2 className={styles.clientName}>{client.clientName}</h2>
               <p className={styles.ownerName}>{client.ownerName}</p>
@@ -121,9 +122,11 @@ const ClientView = () => {
             <Info label="Phone" value={client.phone} />
             <Info
               label="Onboarding Date"
-              value={new Date(client.onboardingDate).toLocaleDateString(
-                "en-GB",
-              )}
+              value={
+                client.onboardingDate
+                  ? new Date(client.onboardingDate).toLocaleDateString("en-GB")
+                  : "-"
+              }
             />
             <Info label="Billing Type" value={client.billingType} />
             <Info label="Payment Status" value={client.paymentStatus} />
@@ -136,7 +139,7 @@ const ClientView = () => {
         <section className={styles.section}>
           <h3>Services</h3>
           <div className={styles.services}>
-            {client.services.map((service, i) => (
+            {client.services?.map((service, i) => (
               <span key={i} className={styles.servicePill}>
                 {service}
               </span>
@@ -149,7 +152,7 @@ const ClientView = () => {
           <h3>Payment Details</h3>
 
           <div className={styles.grid}>
-            <Info label="Total Amount" value={`₹ ${client.totalAmount}`} />
+            <Info label="Total Amount" value={`₹ ${client.totalAmount || 0}`} />
             <Info label="Paid Amount" value={`₹ ${totalPaid}`} />
             <Info label="Remaining Amount" value={`₹ ${remainingAmount}`} />
 
@@ -157,9 +160,9 @@ const ClientView = () => {
               <>
                 <Info
                   label="Monthly Amount"
-                  value={`₹ ${client.monthlyAmount}`}
+                  value={`₹ ${client.monthlyAmount || 0}`}
                 />
-                <Info label="Tenure" value={`${client.tenure} months`} />
+                <Info label="Tenure" value={`${client.tenure || 0} months`} />
                 <Info label="Paid Months" value={paidMonths} />
                 <Info label="Remaining Months" value={remainingMonths} />
               </>
@@ -171,12 +174,12 @@ const ClientView = () => {
         <section className={styles.section}>
           <h3>Transaction History</h3>
 
-          {client.transactions.length === 0 ? (
+          {!client.transactions || client.transactions.length === 0 ? (
             <p className={styles.empty}>No transactions found</p>
           ) : (
             <div className={styles.tableWrapper}>
               <table className={styles.table}>
-                <thead className={styles.tableHead}>
+                <thead>
                   <tr className={styles.tableRow}>
                     <th className={styles.tableHeader}>Date</th>
                     <th className={styles.tableHeader}>Amount</th>
@@ -197,36 +200,11 @@ const ClientView = () => {
           )}
         </section>
 
-        {/* DOCUMENTS */}
-        <section className={styles.section}>
-          <h3>Documents</h3>
-
-          {client.documents.length === 0 ? (
-            <p className={styles.empty}>No documents uploaded</p>
-          ) : (
-            <div className={styles.documentGrid}>
-              {client.documents.map((doc, i) => (
-                <a
-                  key={i}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.documentCard}
-                >
-                  <div className={styles.documentIcon}>📄</div>
-                  <div className={styles.documentName}>{doc.name}</div>
-                  <div className={styles.documentAction}>View</div>
-                </a>
-              ))}
-            </div>
-          )}
-        </section>
-
         {/* CREDENTIALS */}
         <section className={styles.section}>
           <h3>Credentials</h3>
 
-          {client.credentials.length === 0 ? (
+          {!client.credentials || client.credentials.length === 0 ? (
             <p className={styles.empty}>No credentials added</p>
           ) : (
             <div className={styles.tableWrapper}>
@@ -246,24 +224,15 @@ const ClientView = () => {
                       <td className={styles.tableCell}>
                         <div className={styles.passwordCell}>
                           {c.username}
-                          <FaCopy
-                            onClick={() => copyToClipboard(c.username)}
-                            title="Click to copy"
-                            style={{ cursor: "pointer" }}
-                          />
+                          <FaCopy onClick={() => copyToClipboard(c.username)} />
                         </div>
                       </td>
                       <td className={styles.tableCell}>
                         <div className={styles.passwordCell}>
                           {c.password}
-                          <FaCopy
-                            onClick={() => copyToClipboard(c.password)}
-                            title="Click to copy"
-                            style={{ cursor: "pointer" }}
-                          />
+                          <FaCopy onClick={() => copyToClipboard(c.password)} />
                         </div>
                       </td>
-
                       <td className={styles.tableCell}>{c.note}</td>
                     </tr>
                   ))}

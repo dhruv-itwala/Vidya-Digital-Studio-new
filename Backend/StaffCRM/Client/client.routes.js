@@ -1,38 +1,29 @@
 import express from "express";
-import upload from "../../config/multer.config.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
+import upload from "../../config/multer.config.js";
 import {
   createClient,
   updateClient,
   getAllClients,
   getClientById,
   deleteClient,
+  updateClientProfilePhoto,
 } from "./client.controller.js";
 
 const router = express.Router();
 
-router.use(protect);
-router.use(roleCheck("admin", "hr"));
+// router.use(protect);
+// router.use(roleCheck("admin", "hr"));
 
-router.post(
-  "/",
-  upload.fields([
-    { name: "profilePhoto", maxCount: 1 },
-    { name: "documents", maxCount: 10 },
-  ]),
-  createClient,
-);
+// ✅ Enable image upload
+router.post("/", upload.single("profilePhoto"), createClient);
 
-router.patch(
-  "/:id",
-  upload.fields([
-    { name: "profilePhoto", maxCount: 1 },
-    { name: "documents", maxCount: 10 },
-  ]),
-  updateClient,
-);
+router.post("/:id", upload.single("profilePhoto"), updateClient);
 
+router.post("/:id/profile-photo", updateClientProfilePhoto);
+
+// ❌ No Multer for read-only routes
 router.get("/", getAllClients);
 router.get("/:id", getClientById);
 router.delete("/:id", deleteClient);

@@ -10,9 +10,6 @@ import { connectDB } from "./config/db.config.js";
 import corsOptions from "./config/cors.config.js";
 import { getLocalIP } from "./config/ip.config.js";
 
-// Middleware
-import bodyParser from "body-parser";
-
 // Import Routes
 import servicePricesRoute from "./Quotation/ServicePrices/ServicePrice.routes.js";
 import quotationRoutes from "./Quotation/Quote/routes/Quote.routes.js";
@@ -35,14 +32,14 @@ const VERSION = process.env.VERSION || "v1.0";
 connectDB();
 
 // Middleware
-app.use(express.json());
+// app.use(express.json());
 app.use(cors(corsOptions));
-app.use(bodyParser.json({ limit: "15mb" }));
-app.use(bodyParser.urlencoded({ extended: true }));
+// 🔥 Increase JSON limits for base64 uploads
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 app.use((req, res, next) => {
   console.log(`📨 ${req.method} ${req.url}`);
-  console.log("Body size:", JSON.stringify(req.body).length);
   next();
 });
 

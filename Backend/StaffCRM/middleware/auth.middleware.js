@@ -15,7 +15,7 @@ export const protect = (req, res, next) => {
     const decoded = verifyToken(token); // { id, role }
     req.user = decoded;
     next();
-  } catch {
+  } catch (err) {
     throw new AppError("Invalid or expired token", 401);
   }
 };

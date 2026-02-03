@@ -14,7 +14,7 @@ export const parseISTDateOnly = (dateStr) => {
 // Today IST → UTC
 export const todayISTUTC = () =>
   parseISTDateOnly(
-    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" })
+    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
   );
 
 export const isWithinOfficeHoursIST = (dateUTC) => {
@@ -23,9 +23,9 @@ export const isWithinOfficeHoursIST = (dateUTC) => {
       timeZone: "Asia/Kolkata",
       hour: "2-digit",
       hour12: false,
-    })
+    }),
   );
-  return hour >= 10 && hour < 19;
+  return hour >= 8 && hour < 19;
 };
 
 export const calcWorkMinutes = (record) => {
@@ -34,7 +34,7 @@ export const calcWorkMinutes = (record) => {
   const total = (record.punchOut - record.punchIn) / 60000;
   const breaks = record.breaks.reduce(
     (sum, b) => sum + (b.out && b.in ? (b.out - b.in) / 60000 : 0),
-    0
+    0,
   );
 
   const net = Math.max(total - breaks, 0);

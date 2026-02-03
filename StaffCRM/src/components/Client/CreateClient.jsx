@@ -8,7 +8,6 @@ import BasicInfoSection from "./subcomponents/BasicInfoSection";
 import ServicesSection from "./subcomponents/ServicesSection";
 import PaymentSection from "./subcomponents/PaymentSection";
 import TransactionsTable from "./subcomponents/TransactionsTable";
-import DocumentsTable from "./subcomponents/DocumentsTable";
 import CredentialsTable from "./subcomponents/CredentialsTable";
 import { useNavigate } from "react-router-dom";
 import styles from "./CreateClient.module.css";
@@ -24,129 +23,85 @@ const CreateClient = () => {
       billingType: "one-time",
       paymentStatus: "pending",
       transactions: [],
-      documents: [],
       credentials: [],
     },
   });
+
   const navigate = useNavigate();
   const { handleSubmit, register, watch, control } = form;
 
-  // const onSubmit = async (data) => {
-  //   console.log("SUBMIT DATA", data);
-
-  //   const fd = new FormData();
-
-  //   Object.entries(data).forEach(([key, val]) => {
-  //     if (val === undefined || val === null) return;
-
-  //     // SERVICES (comma separated → array)
-  //     if (key === "servicesText") {
-  //       val
-  //         .split(",")
-  //         .map((s) => s.trim())
-  //         .filter(Boolean)
-  //         .forEach((s) => fd.append("services[]", s));
-  //       return;
-  //     }
-
-  //     // DOCUMENTS
-  //     if (key === "documents") {
-  //       const meta = [];
-  //       val.forEach((d) => {
-  //         if (!d?.file?.[0]) return;
-  //         meta.push({ name: d.name });
-  //         fd.append("documents", d.file[0]);
-  //       });
-  //       if (meta.length) {
-  //         fd.append("documentsMeta", JSON.stringify(meta));
-  //       }
-  //       return;
-  //     }
-
-  //     // PROFILE PHOTO
-  //     if (key === "profilePhoto") {
-  //       if (val?.[0]) fd.append("profilePhoto", val[0]);
-  //       return;
-  //     }
-
-  //     // ARRAYS / OBJECTS (transactions, credentials)
-  //     if (typeof val === "object") {
-  //       fd.append(key, JSON.stringify(val));
-  //       return;
-  //     }
-
-  //     // ✅ PRIMITIVES (VERY IMPORTANT)
-  //     fd.append(key, val);
-  //   });
-
-  //   await createClient(fd);
-  //   alert("Client Created");
-  // };
   const onSubmit = async (data) => {
     if (loading) return;
+
+    console.group("🟢 CREATE CLIENT SUBMIT");
+    console.log("📄 Raw form data:", data);
 
     try {
       setLoading(true);
 
       const fd = new FormData();
 
-      Object.entries(data).forEach(([key, val]) => {
-        if (val === undefined || val === null) return;
+      Object.entries(data).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
 
-        // SERVICES
+        // SERVICES: convert servicesText → services[]
         if (key === "servicesText") {
-          val
+          const services = value
             .split(",")
             .map((s) => s.trim())
-            .filter(Boolean)
-            .forEach((s) => fd.append("services[]", s));
+            .filter(Boolean);
+
+          services.forEach((s) => fd.append("services", s));
           return;
         }
 
-        // DOCUMENTS
-        if (key === "documents") {
-          const meta = [];
-          val.forEach((d) => {
-            if (!d?.file?.[0]) return;
-            meta.push({ name: d.name });
-            fd.append("documents", d.file[0]);
-          });
-          if (meta.length) {
-            fd.append("documentsMeta", JSON.stringify(meta));
+        // PROFILE PHOTO (FILE)
+        if (key === "profilePhoto") {
+          if (value?.[0]) {
+            fd.append("profilePhoto", value[0]);
+            console.log("🖼 Profile photo:", value[0]);
           }
           return;
         }
 
-        // PROFILE PHOTO
-        if (key === "profilePhoto") {
-          if (val?.[0]) fd.append("profilePhoto", val[0]);
-          return;
-        }
-
         // ARRAYS / OBJECTS
-        if (typeof val === "object") {
-          fd.append(key, JSON.stringify(val));
+        if (typeof value === "object") {
+          fd.append(key, JSON.stringify(value));
           return;
         }
 
         // PRIMITIVES
-        fd.append(key, val);
+        fd.append(key, value);
       });
 
-      await createClient(fd);
+      console.log("📤 FormData entries:");
+      for (const pair of fd.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      const response = await createClient(fd);
+      console.log("✅ API response:", response);
 
       toast.success("Client created successfully");
       navigate(`/${role}/clients`);
     } catch (err) {
-      toast.error("Failed to create client");
+      console.error("❌ Create client failed:", err);
+      toast.error(err.response?.data?.message || "Failed to create client");
     } finally {
       setLoading(false);
+      console.groupEnd();
     }
   };
 
   return (
     <div className="masterContainer">
-      <form className={styles.container} onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className={styles.container}
+        onSubmit={handleSubmit(onSubmit, (errors) => {
+          console.error("❌ FORM VALIDATION ERRORS:", errors);
+          toast.error("Please fix validation errors");
+        })}
+      >
         {/* HEADER */}
         <div className={styles.header}>
           <h2>Create Client</h2>
@@ -164,11 +119,11 @@ const CreateClient = () => {
             </button>
           </div>
         </div>
+
         <BasicInfoSection register={register} errors={form.formState.errors} />
         <ServicesSection register={register} />
         <PaymentSection register={register} watch={watch} />
         <TransactionsTable control={control} register={register} />
-        <DocumentsTable control={control} register={register} />
         <CredentialsTable control={control} register={register} />
       </form>
     </div>

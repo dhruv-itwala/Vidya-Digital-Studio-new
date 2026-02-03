@@ -3,7 +3,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+
 import { getClientById, updateClient } from "../../api/client.api";
+import api from "../../api/axios";
+
 import { createClientSchema } from "./validations/client.schema";
 import styles from "./CreateClient.module.css";
 
@@ -11,17 +14,18 @@ import BasicInfoSection from "./subcomponents/BasicInfoSection";
 import ServicesSection from "./subcomponents/ServicesSection";
 import PaymentSection from "./subcomponents/PaymentSection";
 import TransactionsTable from "./subcomponents/TransactionsTable";
-import DocumentsTable from "./subcomponents/DocumentsTable";
 import CredentialsTable from "./subcomponents/CredentialsTable";
+
 import { useAuth } from "../../context/AuthContext";
 
 const EditClient = () => {
   const { role } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [client, setClient] = useState(null);
 
+  const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(createClientSchema),
@@ -29,7 +33,6 @@ const EditClient = () => {
       billingType: "one-time",
       paymentStatus: "pending",
       transactions: [],
-      documents: [],
       credentials: [],
     },
   });
@@ -37,140 +40,124 @@ const EditClient = () => {
   const { handleSubmit, register, watch, control, reset } = form;
 
   /* =========================
+     HELPERS
+  ========================= */
+  const fileToBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  /* =========================
      FETCH CLIENT
   ========================= */
-  const fetchClient = async () => {
+  useEffect(() => {
+    const fetchClient = async () => {
+      try {
+        const res = await getClientById(id);
+        const c = res.data;
+
+        setClient(c);
+
+        reset({
+          clientName: c.clientName,
+          ownerName: c.ownerName,
+          email: c.email,
+          phone: c.phone,
+          address: c.address,
+          onboardingDate: c.onboardingDate?.split("T")[0],
+          servicesText: c.services.join(", "),
+          billingType: c.billingType,
+          paymentStatus: c.paymentStatus,
+          totalAmount: c.totalAmount,
+          monthlyAmount: c.monthlyAmount,
+          tenure: c.tenure,
+          transactions: c.transactions.map((t) => ({
+            ...t,
+            date: t.date?.split("T")[0] || "",
+          })),
+          credentials: c.credentials || [],
+        });
+      } catch {
+        toast.error("Failed to load client");
+        navigate(`/${role}/clients`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClient();
+  }, [id, navigate, reset, role]);
+
+  /* =========================
+     PROFILE PHOTO (IMMEDIATE)
+  ========================= */
+  const uploadProfilePhoto = async (file) => {
     try {
-      const res = await getClientById(id);
-      const clientData = res.data;
+      const base64 = await fileToBase64(file);
 
-      setClient(clientData); // ✅ STORE CLIENT
+      await api.post(
+        `/clients/${id}/profile-photo`,
+        { image: base64 },
+        { headers: { "Content-Type": "application/json" } },
+      );
 
-      reset({
-        clientName: clientData.clientName,
-        ownerName: clientData.ownerName,
-        email: clientData.email,
-        phone: clientData.phone,
-        address: clientData.address,
-        onboardingDate: clientData.onboardingDate?.split("T")[0],
+      toast.success("Profile photo updated");
 
-        servicesText: clientData.services.join(", "),
-
-        billingType: clientData.billingType,
-        paymentStatus: clientData.paymentStatus,
-
-        totalAmount: clientData.totalAmount,
-        monthlyAmount: clientData.monthlyAmount,
-        tenure: clientData.tenure,
-
-        // ✅ FIX DATE FORMAT HERE TOO
-        transactions: clientData.transactions.map((t) => ({
-          ...t,
-          date: t.date ? t.date.split("T")[0] : "",
-        })),
-
-        credentials: clientData.credentials || [],
-        documents: clientData.documents.map((doc) => ({
-          _id: doc._id, // IMPORTANT
-          name: doc.name,
-          url: doc.url,
-          file: null, // replacement file
-          existing: true,
-          removed: false,
-        })),
-      });
-    } catch {
-      toast.error("Failed to load client");
-      navigate(`/${role}/clients`);
-    } finally {
-      setLoading(false);
+      // Update preview instantly
+      setClient((prev) => ({
+        ...prev,
+        profilePhoto: base64,
+      }));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload profile photo");
     }
   };
 
-  useEffect(() => {
-    fetchClient();
-  }, [id]);
-
   /* =========================
-     SUBMIT
+     SUBMIT (DATA ONLY)
   ========================= */
   const onSubmit = async (data) => {
+    if (submitting) return;
+    setSubmitting(true);
+
     try {
       const fd = new FormData();
 
-      Object.entries(data).forEach(([key, val]) => {
-        if (val === undefined || val === null) return;
+      Object.entries(data).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
 
         // SERVICES
         if (key === "servicesText") {
-          const servicesArray = val
+          value
             .split(",")
             .map((s) => s.trim())
-            .filter(Boolean);
-
-          fd.append("services", JSON.stringify(servicesArray)); // ✅ Send as JSON string
-          return;
-        }
-
-        if (key === "documents") {
-          const keepDocs = [];
-          const replaceDocs = [];
-          const newDocs = [];
-
-          val.forEach((doc) => {
-            if (doc.removed) return;
-
-            // EXISTING DOC
-            if (doc.existing) {
-              keepDocs.push({
-                _id: doc._id,
-                name: doc.name,
-              });
-
-              // replacement file
-              if (doc.file?.[0]) {
-                replaceDocs.push({
-                  _id: doc._id,
-                  name: doc.name,
-                });
-                fd.append("documents", doc.file[0]);
-              }
-            }
-
-            // NEW DOC
-            if (!doc.existing && doc.file?.[0]) {
-              newDocs.push({ name: doc.name });
-              fd.append("documents", doc.file[0]);
-            }
-          });
-          fd.append("keepDocuments", JSON.stringify(keepDocs));
-          fd.append("replaceDocuments", JSON.stringify(replaceDocs));
-          fd.append("newDocuments", JSON.stringify(newDocs));
-
-          return;
-        }
-
-        // PROFILE PHOTO
-        if (key === "profilePhoto") {
-          if (val?.[0]) fd.append("profilePhoto", val[0]);
+            .filter(Boolean)
+            .forEach((s) => fd.append("services", s));
           return;
         }
 
         // ARRAYS / OBJECTS
-        if (typeof val === "object") {
-          fd.append(key, JSON.stringify(val));
+        if (typeof value === "object") {
+          fd.append(key, JSON.stringify(value));
           return;
         }
 
         // PRIMITIVES
-        fd.append(key, val);
+        fd.append(key, value);
       });
 
       await updateClient(id, fd);
+
       toast.success("Client updated successfully");
-      navigate(`/admin/clients/${id}`);
-    } catch {
-      toast.error("Failed to update client");
+      navigate(`/${role}/clients/${id}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update client");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -180,7 +167,7 @@ const EditClient = () => {
 
   return (
     <div className="masterContainer">
-      <form className={styles.container} onSubmit={handleSubmit(onSubmit)}>
+      <div className={styles.container}>
         {/* HEADER */}
         <div className={styles.header}>
           <h2>Edit Client</h2>
@@ -188,24 +175,34 @@ const EditClient = () => {
             <button
               type="button"
               className={styles.createBtn}
-              onClick={() => navigate("/admin/clients")}
+              onClick={() => navigate(`/${role}/clients`)}
+              disabled={submitting}
             >
               Back
             </button>
-            <button className={styles.submit}>Update Client</button>
+            <button
+              type="button"
+              className={styles.submit}
+              disabled={submitting}
+              onClick={handleSubmit(onSubmit)}
+            >
+              {submitting ? "Updating..." : "Update Client"}
+            </button>
           </div>
         </div>
+
         <BasicInfoSection
           register={register}
           errors={form.formState.errors}
           existingPhoto={client.profilePhoto}
+          onProfileChange={uploadProfilePhoto}
         />
+
         <ServicesSection register={register} />
         <PaymentSection register={register} watch={watch} />
         <TransactionsTable control={control} register={register} />
-        <DocumentsTable control={control} register={register} />
         <CredentialsTable control={control} register={register} />
-      </form>
+      </div>
     </div>
   );
 };

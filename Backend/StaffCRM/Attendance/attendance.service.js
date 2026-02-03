@@ -45,7 +45,7 @@ export const punchInService = async (userId) => {
   const now = nowUTC();
 
   if (!isWithinOfficeHoursIST(now)) {
-    throw new AppError("Punch in allowed between 10AM–7PM IST", 400);
+    throw new AppError("Punch in allowed between 08AM–07PM IST", 400);
   }
 
   const date = todayISTUTC();

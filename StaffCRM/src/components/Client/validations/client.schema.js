@@ -5,7 +5,12 @@ export const createClientSchema = z
     clientName: z.string().min(2, "Client name is required"),
     ownerName: z.string().optional(),
     email: z.string().email("Invalid email").optional().or(z.literal("")),
-    phone: z.string().optional(),
+
+    phone: z
+      .string()
+      .regex(/^[6-9]\d{9}$/, "Invalid phone number")
+      .optional(),
+
     address: z.string().optional(),
 
     servicesText: z
@@ -22,13 +27,13 @@ export const createClientSchema = z
 
     billingType: z.enum(["one-time", "monthly"]),
 
+    // 👇 IMPORTANT: no .positive() here
     totalAmount: z.coerce.number().optional(),
     monthlyAmount: z.coerce.number().optional(),
     tenure: z.coerce.number().optional(),
 
     paymentStatus: z.enum(["paid", "pending", "partial"]).optional(),
     onboardingDate: z.string().optional(),
-    profilePhoto: z.any().optional(),
 
     transactions: z
       .array(
@@ -49,31 +54,10 @@ export const createClientSchema = z
         }),
       )
       .optional(),
-
-    documents: z
-      .array(
-        z.object({
-          name: z.string().optional(),
-          file: z.any().optional(),
-        }),
-      )
-      .optional()
-      .superRefine((docs, ctx) => {
-        docs?.forEach((doc, index) => {
-          // If file selected → name required
-          if (doc.file?.length && !doc.name?.trim()) {
-            ctx.addIssue({
-              path: [index, "name"],
-              message: "Document name required",
-            });
-          }
-        });
-      }),
   })
   .superRefine((data, ctx) => {
-    // ✅ BILLING LOGIC VALIDATION
     if (data.billingType === "one-time") {
-      if (!data.totalAmount) {
+      if (!data.totalAmount || data.totalAmount <= 0) {
         ctx.addIssue({
           path: ["totalAmount"],
           message: "Total amount is required",
@@ -82,13 +66,14 @@ export const createClientSchema = z
     }
 
     if (data.billingType === "monthly") {
-      if (!data.monthlyAmount) {
+      if (!data.monthlyAmount || data.monthlyAmount <= 0) {
         ctx.addIssue({
           path: ["monthlyAmount"],
           message: "Monthly amount is required",
         });
       }
-      if (!data.tenure) {
+
+      if (!data.tenure || data.tenure <= 0) {
         ctx.addIssue({
           path: ["tenure"],
           message: "Tenure is required",

@@ -1,152 +1,75 @@
 import mongoose from "mongoose";
 
-/* =========================
-   SUB SCHEMAS
-========================= */
-
-// Payment history
-const transactionSchema = new mongoose.Schema(
-  {
-    date: {
-      type: Date,
-      default: Date.now,
-    },
-    amount: {
-      type: Number,
-      required: true,
-    },
-  },
-  { _id: false },
-);
-
-// Documents
-const documentSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    url: {
-      type: String,
-      required: true,
-    },
-  },
-  { _id: false },
-);
-
-// Credentials
-const credentialSchema = new mongoose.Schema(
-  {
-    platform: {
-      type: String,
-      required: true, // ig, fb, google etc
-    },
-    username: String,
-    password: String,
-    note: String,
-  },
-  { _id: false },
-);
-
-/* =========================
-   MAIN CLIENT SCHEMA
-========================= */
-
 const clientSchema = new mongoose.Schema(
   {
-    /* ===== BASIC INFO ===== */
-    profilePhoto: {
-      type: String, // cloudinary url
-    },
-    clientName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    ownerName: {
-      type: String,
-      trim: true,
-    },
-    email: {
-      type: String,
-      lowercase: true,
-    },
-    phone: {
-      type: String,
-    },
-    address: {
-      type: String,
-    },
+    // Basic Info
+    profilePhoto: String,
+    clientName: { type: String, required: true, trim: true },
+    ownerName: { type: String, trim: true },
+    email: { type: String, lowercase: true },
+    phone: String,
+    address: String,
 
-    /* ===== PACKAGE INFO ===== */
-    services: [
-      {
-        type: String,
-      },
-    ],
-    onboardingDate: {
-      type: Date,
-      default: Date.now,
-    },
+    // Package Details
+    services: [String],
+    onboardingDate: { type: Date, default: Date.now },
     billingType: {
       type: String,
       enum: ["one-time", "monthly"],
       required: true,
     },
 
-    // One-time
+    // Billing
     totalAmount: {
       type: Number,
+      required: function () {
+        return (
+          this.billingType === "one-time" || this.billingType === "monthly"
+        );
+      },
     },
-
-    // Monthly
     monthlyAmount: {
       type: Number,
+      required: function () {
+        return this.billingType === "monthly";
+      },
     },
     tenure: {
-      type: Number, // in months
+      type: Number,
+      required: function () {
+        return this.billingType === "monthly";
+      },
     },
 
+    // Payment
     paymentStatus: {
       type: String,
       enum: ["pending", "partial", "paid"],
       default: "pending",
     },
 
-    /* ===== PAYMENT DETAILS ===== */
-    transactions: [transactionSchema],
+    transactions: [
+      {
+        date: { type: Date, default: Date.now },
+        amount: { type: Number, required: true },
+      },
+    ],
 
-    /* ===== DOCUMENTS ===== */
-    documents: [documentSchema],
+    // Credentials
+    credentials: [
+      {
+        platform: String,
+        username: String,
+        password: String,
+        note: String,
+      },
+    ],
 
-    /* ===== CREDENTIALS ===== */
-    credentials: [credentialSchema],
-
-    // add inside main schema
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
-
-    deletedAt: {
-      type: Date,
-    },
-
-    // Monthly helper
-    paidMonths: {
-      type: Number,
-      default: 0,
-    },
-
-    /* ===== META ===== */
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+    // Meta
+    isActive: { type: Boolean, default: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
 export default mongoose.model("Client", clientSchema);

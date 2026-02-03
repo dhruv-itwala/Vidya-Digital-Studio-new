@@ -1,23 +1,59 @@
+import { useState } from "react";
 import styles from "../CreateClient.module.css";
-const BasicInfoSection = ({ register, errors, existingPhoto }) => {
+
+const BasicInfoSection = ({
+  register,
+  errors,
+  existingPhoto,
+  onProfileChange,
+}) => {
+  const [preview, setPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Local preview (instant UX)
+    const localUrl = URL.createObjectURL(file);
+    setPreview(localUrl);
+
+    try {
+      setUploading(true);
+      await onProfileChange(file); // 🔥 parent handles base64 + API call
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <section className={styles.section}>
       <h3 className={styles.h3}>Basic Information</h3>
-      {existingPhoto && (
-        <div>
+
+      {/* IMAGE PREVIEW */}
+      {(preview || existingPhoto) && (
+        <div className={styles.imageWrapper}>
           <img
             className={styles.imagePreview}
-            src={existingPhoto}
+            src={preview || existingPhoto}
             alt="Profile"
           />
+          {uploading && <div className={styles.imageOverlay}>Uploading…</div>}
         </div>
       )}
 
+      {/* FILE INPUT */}
       <label className={styles.label}>
         {existingPhoto ? "Change Profile Photo" : "Profile Photo"}
       </label>
-      <input type="file" accept="image/*" {...register("profilePhoto")} />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        disabled={uploading}
+      />
 
+      {/* FORM FIELDS */}
       <label className={styles.label}>Client Name *</label>
       <input placeholder="Client Name" {...register("clientName")} />
       <p>{errors.clientName?.message}</p>

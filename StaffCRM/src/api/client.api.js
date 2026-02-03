@@ -1,39 +1,36 @@
 import api from "./axios";
 
+// CREATE CLIENT
 export const createClient = async (data) => {
-  const res = await api.post("/clients", data, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  // data can be FormData OR JSON
+  const res = await api.post("/clients", data);
   return res.data;
 };
 
+// UPDATE CLIENT
 export const updateClient = async (clientId, data) => {
-  const res = await api.put(`/clients/${clientId}`, data, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return res.data;
+  return api
+    .post(`/clients/${clientId}`, data, {
+      // 🚫 DO NOT set Content-Type manually
+      // Axios will set multipart boundary automatically
+    })
+    .then((res) => res.data);
 };
 
+// GET ALL
 export const getAllClients = async () => {
   const res = await api.get("/clients");
   return res.data;
 };
 
+// GET ONE
 export const getClientById = async (clientId) => {
   const res = await api.get(`/clients/${clientId}`);
   return res.data;
 };
 
+// DELETE
 export const deleteClient = async (clientId) => {
   const res = await api.delete(`/clients/${clientId}`);
-  return res.data;
-};
-
-export const addClientTransaction = async (clientId, payload) => {
-  const res = await api.post(`/clients/${clientId}/transactions`, payload);
   return res.data;
 };

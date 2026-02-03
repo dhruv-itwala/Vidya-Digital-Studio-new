@@ -1,92 +1,137 @@
 import Client from "./client.model.js";
 import AppError from "../utils/AppError.js";
+import {
+  deleteFromCloudinary,
+  uploadImageToCloudinary,
+} from "../utils/cloudinaryUpload.js";
+import {
+  deleteClientImageByPublicId,
+  uploadClientImageFromBuffer,
+} from "./clientCloudinary.service.js";
 
 /* =========================
-   PAYMENT STATUS CALC
+   HELPERS
 ========================= */
-const calculatePaymentStatus = (client) => {
-  const totalPaid = client.transactions.reduce((sum, t) => sum + t.amount, 0);
-
-  // ONE TIME
-  if (client.billingType === "one-time") {
-    if (!client.totalAmount) return "pending";
-    if (totalPaid === 0) return "pending";
-    if (totalPaid < client.totalAmount) return "partial";
-    return "paid";
-  }
-
-  // MONTHLY
-  if (client.billingType === "monthly") {
-    const expectedTotal = client.monthlyAmount * client.tenure;
-
-    client.paidMonths = Math.floor(totalPaid / client.monthlyAmount);
-
-    if (totalPaid === 0) return "pending";
-    if (totalPaid < expectedTotal) return "partial";
-    return "paid";
-  }
+const parseJSON = (value) => {
+  if (typeof value === "string") return JSON.parse(value);
+  return value;
 };
 
 /* =========================
-   CREATE CLIENT
+   SERVICES
 ========================= */
-export const createClientService = async (payload) => {
-  const client = await Client.create(payload);
-  return client;
+export const createClientService = async (data, userId, file) => {
+  let profilePhoto;
+
+  if (file) {
+    const result = await uploadImageToCloudinary(
+      file,
+      "Vidya Digital Studio/clients/profile-photos",
+    );
+
+    profilePhoto = result.secure_url;
+  }
+
+  return Client.create({
+    ...data,
+    profilePhoto,
+    services: parseJSON(data.services),
+    transactions: parseJSON(data.transactions),
+    credentials: parseJSON(data.credentials),
+    createdBy: userId,
+  });
 };
 
-/* =========================
-   UPDATE CLIENT
-========================= */
-export const updateClientService = async (id, payload) => {
-  const client = await Client.findOne({ _id: id, isDeleted: false });
+export const updateClientService = async (id, data, file) => {
+  const client = await Client.findById(id);
   if (!client) throw new AppError("Client not found", 404);
 
-  // ✅ Handle services array properly
-  if (payload.services && Array.isArray(payload.services)) {
-    client.services = payload.services;
-    delete payload.services;
+  // Upload new image if provided
+  if (file) {
+    // Delete old image (optional but recommended)
+    if (client.profilePhoto) {
+      const publicId = client.profilePhoto
+        .split("/")
+        .slice(-2)
+        .join("/")
+        .split(".")[0];
+
+      await deleteFromCloudinary(publicId);
+    }
+
+    const result = await uploadImageToCloudinary(
+      file,
+      "Vidya Digital Studio/clients/profile-photos",
+    );
+
+    data.profilePhoto = result.secure_url;
   }
 
-  // ✅ Handle documents array properly
-  if (payload.documents && Array.isArray(payload.documents)) {
-    client.documents = payload.documents;
-    delete payload.documents;
-  }
+  client.set({
+    ...data,
+    services: parseJSON(data.services),
+    transactions: parseJSON(data.transactions),
+    credentials: parseJSON(data.credentials),
+  });
 
-  // ✅ Assign remaining fields
-  Object.assign(client, payload);
-
-  // ✅ Auto update payment status
-  client.paymentStatus = calculatePaymentStatus(client);
-
-  await client.save();
-  return client;
+  return client.save();
 };
-/* =========================
-   GET ALL CLIENTS
-========================= */
+
 export const getAllClientsService = async () => {
-  return Client.find({ isDeleted: false }).sort({ createdAt: -1 });
+  return Client.find({ isActive: true }).sort({ createdAt: -1 });
 };
 
-/* =========================
-   GET CLIENT BY ID
-========================= */
 export const getClientByIdService = async (id) => {
-  const client = await Client.findOne({ _id: id, isDeleted: false });
+  const client = await Client.findById(id);
   if (!client) throw new AppError("Client not found", 404);
   return client;
 };
 
-/* =========================
-   SOFT DELETE CLIENT
-========================= */
 export const deleteClientService = async (id) => {
   const client = await Client.findById(id);
   if (!client) throw new AppError("Client not found", 404);
 
-  client.isDeleted = true;
-  client.deletedAt = new Date();
+  client.isActive = false;
+  return client.save();
+};
+
+export const updateClientProfilePhotoService = async (id, base64Image) => {
+  const client = await Client.findById(id);
+  if (!client) throw new AppError("Client not found", 404);
+
+  if (!base64Image) {
+    throw new AppError("Profile photo is required", 400);
+  }
+
+  // 🔹 Decode base64
+  const matches = base64Image.match(/^data:(.+);base64,(.+)$/);
+  if (!matches) {
+    throw new AppError("Invalid image format", 400);
+  }
+
+  const buffer = Buffer.from(matches[2], "base64");
+
+  // 🔹 Delete old image if exists
+  if (client.profilePhoto) {
+    const publicId = client.profilePhoto
+      .split("/")
+      .slice(-2)
+      .join("/")
+      .split(".")[0];
+
+    try {
+      await deleteClientImageByPublicId(publicId);
+    } catch (e) {
+      console.warn("Old image delete failed:", e.message);
+    }
+  }
+
+  // 🔹 Upload (quotation-style)
+  const filenameBase = `client_${client._id}`;
+  const upload = await uploadClientImageFromBuffer(buffer, filenameBase);
+
+  client.profilePhoto = upload.url;
   await client.save();
+
+  return client;
 };

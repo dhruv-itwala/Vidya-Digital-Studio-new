@@ -1,29 +1,30 @@
 // config/multer.config.js
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "./cloudinary.config.js";
+import AppError from "../StaffCRM/utils/AppError.js";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => {
-    const isImage = file.mimetype.startsWith("image/");
+// Use memory storage (best for Cloudinary)
+const storage = multer.memoryStorage();
 
-    return {
-      folder: "Vidya Digital Studio/Client",
-      resource_type: isImage ? "image" : "raw",
-      public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
-      format: isImage ? "webp" : undefined, // ✅ auto convert images only
-    };
-  },
-});
+// File filter (images only for now)
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(
+      new AppError("Only JPG, PNG, WEBP images are allowed", 400),
+      false,
+    );
+  }
+
+  cb(null, true);
+};
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter(req, file, cb) {
-    const allowed = ["image/jpeg", "image/png", "application/pdf", "video/mp4"];
-    cb(null, allowed.includes(file.mimetype));
-  },
+  fileFilter,
+  // limits: {
+  //   fileSize: 5 * 1024 * 1024, // 5 MB
+  // },
 });
 
 export default upload;
