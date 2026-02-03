@@ -32,9 +32,9 @@ userRoutes.get(
   employeeSalaryDeduction,
 );
 
-userRoutes.post("/", roleCheck("admin"), createUser);
-userRoutes.put("/:id", roleCheck("admin"), updateUser);
+userRoutes.post("/", roleCheck("admin", "hr"), createUser);
+userRoutes.put("/:id", roleCheck("admin", "hr"), updateUser);
 userRoutes.patch("/:id/inactive", roleCheck("admin", "hr"), inactiveUser);
-userRoutes.delete("/:id", roleCheck("admin"), deleteUser);
+userRoutes.delete("/:id", roleCheck("admin", "hr"), deleteUser);
 
 export default userRoutes;

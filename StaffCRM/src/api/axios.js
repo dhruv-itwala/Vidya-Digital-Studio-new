@@ -4,7 +4,6 @@ const api = axios.create({
   baseURL: `${import.meta.env.VITE_BACKEND_URL}/api/${
     import.meta.env.VITE_VERSION
   }`,
-  // headers: { "Content-Type": "application/json" },
 });
 
 api.interceptors.request.use((config) => {
@@ -21,7 +20,7 @@ api.interceptors.response.use(
       localStorage.removeItem("user");
     }
     return Promise.reject(err);
-  }
+  },
 );
 
 export default api;

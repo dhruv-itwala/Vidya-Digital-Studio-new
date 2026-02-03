@@ -123,7 +123,7 @@ export const getEmployeeBirthdaysService = async () => {
 
 /* ================= USERS ================= */
 export const getAllUsersService = async () => {
-  const users = await User.find().select("-password").lean();
+  const users = await User.find({ isActive: true }).select("-password").lean();
 
   const priority = { admin: 1, hr: 2, employee: 3 };
 
