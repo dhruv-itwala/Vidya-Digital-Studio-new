@@ -107,6 +107,16 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   });
 });
 
+export const getAllUsersForAdmin = asyncHandler(async (req, res) => {
+  const users = await getAllUsersForAdminService();
+
+  res.json({
+    success: true,
+    total: users.length,
+    users,
+  });
+});
+
 /* ================= BIRTHDAYS ================= */
 export const getEmployeeBirthdays = asyncHandler(async (req, res) => {
   const birthdays = await getEmployeeBirthdaysService();

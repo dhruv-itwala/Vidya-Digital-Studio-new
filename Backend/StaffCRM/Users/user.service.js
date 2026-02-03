@@ -133,6 +133,17 @@ export const getAllUsersService = async () => {
   );
 };
 
+export const getAllUsersForAdminService = async () => {
+  const users = await User.find().select("-password").lean();
+
+  const priority = { admin: 1, hr: 2, employee: 3 };
+
+  return users.sort(
+    (a, b) =>
+      priority[a.role] - priority[b.role] || a.name.localeCompare(b.name),
+  );
+};
+
 /* ================= PROFILE ================= */
 export const getProfileService = async (userId) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) {

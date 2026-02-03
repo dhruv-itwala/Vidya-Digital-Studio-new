@@ -3,6 +3,9 @@ import api from "./axios";
 // USERS
 export const getAllUsersAPI = () => api.get("/users");
 
+//ALL USERS
+export const getAllUsersForAdminAPI = () => api.get("/users/admin/all");
+
 // CREATE USER
 export const createUserAPI = (data) => api.post("/users", data);
 

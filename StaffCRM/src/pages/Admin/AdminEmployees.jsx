@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   deleteUserAPI,
-  getAllUsersAPI,
+  getAllUsersForAdminAPI,
   inactiveUserAPI,
 } from "../../api/admin.api";
 import EmployeeModal from "./EmployeeModal";
@@ -29,7 +29,7 @@ export default function AdminEmployees() {
   const load = async () => {
     try {
       setLoading(true);
-      const res = await getAllUsersAPI();
+      const res = await getAllUsersForAdminAPI();
       setUsers(res.data.users || []);
     } catch (err) {
       console.error(err);

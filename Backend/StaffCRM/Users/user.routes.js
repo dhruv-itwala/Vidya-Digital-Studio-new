@@ -11,6 +11,7 @@ import {
   mySalaryDeduction,
   employeeSalaryDeduction,
   inactiveUser,
+  getAllUsersForAdmin,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
@@ -31,7 +32,7 @@ userRoutes.get(
   roleCheck("admin", "hr"),
   employeeSalaryDeduction,
 );
-
+userRoutes.get("/admin/all", roleCheck("admin", "hr"), getAllUsersForAdmin);
 userRoutes.post("/", roleCheck("admin", "hr"), createUser);
 userRoutes.put("/:id", roleCheck("admin", "hr"), updateUser);
 userRoutes.patch("/:id/inactive", roleCheck("admin", "hr"), inactiveUser);
