@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import useBackendStatus from "./hooks/useBackendStatus";
 
 import Login from "./pages/Auth/Login";
 import EmployeeLayout from "./layouts/EmployeeLayout";
@@ -30,10 +31,23 @@ import ClientList from "./components/Client/ClientList";
 import ClientView from "./components/Client/ClientView";
 import EditClient from "./components/Client/EditClient";
 
+import Maintenance from "./components/Maintenance/Maintenance";
 import { Toaster } from "react-hot-toast";
 import "./App.css";
 
 export default function App() {
+  const { isDown, loading } = useBackendStatus();
+  if (loading) return null;
+
+  if (isDown) {
+    return (
+      <>
+        <Routes>
+          <Route path="*" element={<Maintenance />} />
+        </Routes>
+      </>
+    );
+  }
   return (
     <>
       <Routes>
@@ -128,6 +142,7 @@ export default function App() {
 
         {/* FALLBACK */}
         <Route path="*" element={<Navigate to="/404" replace />} />
+        <Route path="/maintenance" element={<Maintenance />} />
       </Routes>
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
     </>

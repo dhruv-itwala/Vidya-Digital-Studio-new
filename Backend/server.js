@@ -32,9 +32,7 @@ const VERSION = process.env.VERSION || "v1.0";
 connectDB();
 
 // Middleware
-// app.use(express.json());
 app.use(cors(corsOptions));
-// 🔥 Increase JSON limits for base64 uploads
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
