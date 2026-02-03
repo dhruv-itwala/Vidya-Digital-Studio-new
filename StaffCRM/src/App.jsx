@@ -108,6 +108,7 @@ export default function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<EmployeeDashboard />} />
+          <Route path="employees" element={<AdminEmployees />} />
           <Route path="attendance" element={<EmployeeAttendance />} />
           <Route path="mark-attendance" element={<Attendance />} />
           <Route path="profile" element={<Profile />} />

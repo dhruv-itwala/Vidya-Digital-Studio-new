@@ -42,15 +42,27 @@ export const updateClientService = async (id, payload) => {
   const client = await Client.findOne({ _id: id, isDeleted: false });
   if (!client) throw new AppError("Client not found", 404);
 
+  // ✅ Handle services array properly
+  if (payload.services && Array.isArray(payload.services)) {
+    client.services = payload.services;
+    delete payload.services;
+  }
+
+  // ✅ Handle documents array properly
+  if (payload.documents && Array.isArray(payload.documents)) {
+    client.documents = payload.documents;
+    delete payload.documents;
+  }
+
+  // ✅ Assign remaining fields
   Object.assign(client, payload);
 
-  // auto update payment status
+  // ✅ Auto update payment status
   client.paymentStatus = calculatePaymentStatus(client);
 
   await client.save();
   return client;
 };
-
 /* =========================
    GET ALL CLIENTS
 ========================= */

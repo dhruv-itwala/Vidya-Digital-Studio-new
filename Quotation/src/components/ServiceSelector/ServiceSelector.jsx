@@ -19,6 +19,8 @@ const unitTypes = [
   "perItem",
   "perScreen",
   "perAd",
+  "perRender",
+  "perDesign",
 ];
 
 const ServiceSelector = ({
@@ -84,8 +86,10 @@ const ServiceSelector = ({
     else if (unitTypes.includes(selectedData.priceType))
       t = quantity * selectedData.price;
     else if (selectedData.priceType === "range") t = selectedData.priceRange[0];
+    // else if (selectedData.priceType === "multiOption")
+    // t = selectedData.options[optionKey];
     else if (selectedData.priceType === "multiOption")
-      t = selectedData.options[optionKey];
+      t = selectedData.options?.[optionKey] || 0;
 
     setTotal(Number(t) || 0);
   }, [quantity, optionKey, selectedData]);
@@ -102,7 +106,12 @@ const ServiceSelector = ({
       description: selectedData.description || "",
       quantity: selectedData.priceType === "fixed" ? 1 : Number(quantity),
       option: selectedData.priceType === "multiOption" ? optionKey : null,
-      unitPrice: selectedData.price || 0,
+      // unitPrice: selectedData.price || 0,
+      unitPrice:
+        selectedData.priceType === "multiOption"
+          ? selectedData.options?.[optionKey] || 0
+          : selectedData.price || 0,
+
       total: calculatedTotal,
     };
 
@@ -114,7 +123,7 @@ const ServiceSelector = ({
         it.category === newItem.category &&
         it.service === newItem.service &&
         (it.option || "") === (newItem.option || "") &&
-        it.unitPrice === newItem.unitPrice
+        it.unitPrice === newItem.unitPrice,
     );
 
     if (idx !== -1) {

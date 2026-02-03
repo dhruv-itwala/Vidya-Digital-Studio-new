@@ -103,11 +103,12 @@ const EditClient = () => {
 
         // SERVICES
         if (key === "servicesText") {
-          val
+          const servicesArray = val
             .split(",")
             .map((s) => s.trim())
-            .filter(Boolean)
-            .forEach((s) => fd.append("services[]", s));
+            .filter(Boolean);
+
+          fd.append("services", JSON.stringify(servicesArray)); // ✅ Send as JSON string
           return;
         }
 
@@ -142,7 +143,6 @@ const EditClient = () => {
               fd.append("documents", doc.file[0]);
             }
           });
-
           fd.append("keepDocuments", JSON.stringify(keepDocs));
           fd.append("replaceDocuments", JSON.stringify(replaceDocs));
           fd.append("newDocuments", JSON.stringify(newDocs));

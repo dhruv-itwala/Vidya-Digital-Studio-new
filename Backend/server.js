@@ -39,7 +39,12 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: "15mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(globalErrorHandler);
+
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
+  console.log("Body size:", JSON.stringify(req.body).length);
+  next();
+});
 
 // Routes
 app.get(`/api/${VERSION}`, (req, res) => {
@@ -81,6 +86,8 @@ app.use(`/api/${VERSION}/todo`, todoRoutes);
 
 // Client Routes
 app.use(`/api/${VERSION}/clients`, clientRoutes);
+
+app.use(globalErrorHandler);
 
 // Start server
 app.listen(PORT, "0.0.0.0", () => {

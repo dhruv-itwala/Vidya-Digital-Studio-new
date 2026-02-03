@@ -24,7 +24,7 @@ router.post(
   createClient,
 );
 
-router.put(
+router.patch(
   "/:id",
   upload.fields([
     { name: "profilePhoto", maxCount: 1 },

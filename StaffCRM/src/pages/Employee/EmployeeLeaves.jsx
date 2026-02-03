@@ -6,9 +6,11 @@ import {
 } from "../../api/leave.api";
 import styles from "./EmployeeLeaves.module.css";
 import toast from "react-hot-toast";
+import { getMyLeaveBalanceAPI } from "../../api/leaveBalance.api";
 
 export default function EmployeeLeaves() {
   const [fromDate, setFromDate] = useState("");
+  const [availableLeaves, setAvailableLeaves] = useState(null);
   const [toDate, setToDate] = useState("");
   const [type, setType] = useState("CASUAL");
   const [isHalfDay, setIsHalfDay] = useState(false);
@@ -22,8 +24,18 @@ export default function EmployeeLeaves() {
     setLeaves(res.data || []);
   };
 
+  const fetchLeaveBalance = async () => {
+    try {
+      const res = await getMyLeaveBalanceAPI();
+      setAvailableLeaves(res.data.availableLeaves);
+    } catch {
+      toast.error("Failed to load leave balance");
+    }
+  };
+
   useEffect(() => {
     fetchLeaves();
+    fetchLeaveBalance();
   }, []);
 
   const applyLeave = async () => {
@@ -60,6 +72,7 @@ export default function EmployeeLeaves() {
     if (!window.confirm("Cancel this leave?")) return;
     await cancelLeaveAPI(id);
     fetchLeaves();
+    fetchLeaveBalance();
   };
 
   const formatDate = (value) => {
@@ -72,6 +85,14 @@ export default function EmployeeLeaves() {
     <div className="masterContainer">
       <div className={styles.container}>
         <h2 className={styles.title}>My Leaves</h2>
+        {/* LEAVE BALANCE */}
+        <div className={styles.card} style={{ textAlign: "center" }}>
+          <h3>Available Leaves</h3>
+          <p className={styles.leaveBalance}>
+            {availableLeaves !== null ? availableLeaves : "—"}
+          </p>
+          <small>2 leaves credited every month</small>
+        </div>
 
         {/* APPLY LEAVE FORM */}
         <div className={styles.card}>

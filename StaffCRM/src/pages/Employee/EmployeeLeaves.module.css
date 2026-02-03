@@ -77,6 +77,12 @@ textarea {
   transition: transform 0.3s;
 }
 
+.leaveBalance {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
 .toggle input:checked + .slider {
   background-color: var(--color-button); /* primary color */
 }

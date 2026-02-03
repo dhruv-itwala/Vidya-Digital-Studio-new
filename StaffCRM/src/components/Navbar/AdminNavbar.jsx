@@ -57,9 +57,9 @@ export default function AdminNavbar() {
                 <button onClick={() => navigate("/admin/quotations")}>
                   Quotations
                 </button>
-                <button onClick={() => navigate("/admin/clients")}>
+                {/* <button onClick={() => navigate("/admin/clients")}>
                   Clients
-                </button>
+                </button> */}
                 <button onClick={() => navigate("/admin/profile")}>
                   Profile
                 </button>

@@ -53,11 +53,16 @@ export const createClient = asyncHandler(async (req, res) => {
 ========================= */
 export const updateClient = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { documentsMeta } = req.body;
+  const { keepDocuments, replaceDocuments, newDocuments } = req.body;
 
   const payload = { ...req.body };
 
-  // ✅ FIX: parse JSON fields
+  // ✅ Remove document metadata from payload
+  delete payload.keepDocuments;
+  delete payload.replaceDocuments;
+  delete payload.newDocuments;
+
+  // ✅ Parse JSON fields
   if (typeof payload.transactions === "string") {
     payload.transactions = JSON.parse(payload.transactions);
   }
@@ -66,21 +71,62 @@ export const updateClient = asyncHandler(async (req, res) => {
     payload.credentials = JSON.parse(payload.credentials);
   }
 
-  // profile photo update
+  if (typeof payload.services === "string") {
+    payload.services = JSON.parse(payload.services);
+  }
+
+  // ✅ Handle profile photo update
   if (req.files?.profilePhoto?.[0]) {
     payload.profilePhoto = req.files.profilePhoto[0].path;
   }
 
-  // documents update (append)
-  if (req.files?.documents && documentsMeta) {
-    const meta = JSON.parse(documentsMeta);
+  // ✅ Handle documents properly
+  let finalDocuments = [];
 
-    payload.$push = {
-      documents: req.files.documents.map((file, i) => ({
-        name: meta[i]?.name,
-        url: file.path,
-      })),
-    };
+  // 1. Keep existing documents
+  if (keepDocuments) {
+    const kept = JSON.parse(keepDocuments);
+    finalDocuments.push(...kept);
+  }
+
+  // 2. Handle replacements
+  if (replaceDocuments && req.files?.documents) {
+    const replacements = JSON.parse(replaceDocuments);
+    const uploadedFiles = req.files.documents;
+
+    replacements.forEach((doc, index) => {
+      if (uploadedFiles[index]) {
+        finalDocuments.push({
+          _id: doc._id,
+          name: doc.name,
+          url: uploadedFiles[index].path, // new URL
+        });
+      }
+    });
+  }
+
+  // 3. Add new documents
+  if (newDocuments && req.files?.documents) {
+    const newDocs = JSON.parse(newDocuments);
+    const startIndex = replaceDocuments
+      ? JSON.parse(replaceDocuments).length
+      : 0;
+    const uploadedFiles = req.files.documents;
+
+    newDocs.forEach((doc, index) => {
+      const fileIndex = startIndex + index;
+      if (uploadedFiles[fileIndex]) {
+        finalDocuments.push({
+          name: doc.name,
+          url: uploadedFiles[fileIndex].path,
+        });
+      }
+    });
+  }
+
+  // Only update documents if there were changes
+  if (keepDocuments || replaceDocuments || newDocuments) {
+    payload.documents = finalDocuments;
   }
 
   const client = await updateClientService(id, payload);
