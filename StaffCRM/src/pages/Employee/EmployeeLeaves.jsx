@@ -7,6 +7,7 @@ import {
 import styles from "./EmployeeLeaves.module.css";
 import toast from "react-hot-toast";
 import { getMyLeaveBalanceAPI } from "../../api/leaveBalance.api";
+import { formatToIST } from "../../utils/date.util";
 
 export default function EmployeeLeaves() {
   const [fromDate, setFromDate] = useState("");
@@ -73,12 +74,6 @@ export default function EmployeeLeaves() {
     await cancelLeaveAPI(id);
     fetchLeaves();
     fetchLeaveBalance();
-  };
-
-  const formatDate = (value) => {
-    if (!value) return "—";
-    const d = new Date(value);
-    return isNaN(d.getTime()) ? "—" : d.toISOString().split("T")[0];
   };
 
   return (
@@ -167,7 +162,7 @@ export default function EmployeeLeaves() {
                   leaves.map((l) => (
                     <tr key={l._id}>
                       <td>
-                        {formatDate(l.fromDate)} → {formatDate(l.toDate)}
+                        {formatToIST(l.fromDate)} → {formatToIST(l.toDate)}
                       </td>
                       <td>{l.type}</td>
                       <td>{l.isHalfDay ? "Yes" : "No"}</td>

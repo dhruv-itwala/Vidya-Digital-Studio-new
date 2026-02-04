@@ -8,7 +8,7 @@ import styles from "./LeaveApproval.module.css";
 import Loader from "../../components/Loader/Loader";
 import LeaveCalendar from "../../components/LeaveCalendar/LeaveCalendar";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 25;
 
 export default function LeaveApproval() {
   const [leaves, setLeaves] = useState([]);
