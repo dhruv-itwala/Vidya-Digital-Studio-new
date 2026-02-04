@@ -88,6 +88,11 @@ const ClientView = () => {
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
+            <img
+              src={client.profilePhoto || "/avatar.png"}
+              alt="profile"
+              className={styles.avatar}
+            />
             <div className={styles.headerText}>
               <h2 className={styles.clientName}>{client.clientName}</h2>
               <p className={styles.ownerName}>{client.ownerName}</p>

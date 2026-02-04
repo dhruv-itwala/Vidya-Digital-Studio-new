@@ -8,6 +8,7 @@ import {
   getEmployeeBirthdaysService,
   salaryDeductionService,
   inactiveUserService,
+  getAllUsersForAdminService,
 } from "./user.service.js";
 
 import { signToken } from "../utils/jwt.util.js";
