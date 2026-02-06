@@ -33,7 +33,8 @@ export const declineLeave = asyncHandler(async (req, res) => {
 
 // ---------- CANCEL LEAVE (EMPLOYEE) ----------
 export const cancelLeave = asyncHandler(async (req, res) => {
-  const leave = await service.cancelLeaveService(req.params.id, req.user.id);
+  const leave = await service.cancelLeaveService(req.params.id, req.user);
+
   res.json(leave);
 });
 

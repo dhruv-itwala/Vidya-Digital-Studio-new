@@ -130,30 +130,72 @@ export const declineLeaveService = async (leaveId, adminId) => {
 };
 
 // ---------- CANCEL LEAVE ----------
-export const cancelLeaveService = async (leaveId, userId) => {
-  const leave = await leavesModel.findOne({ _id: leaveId, user: userId });
+// ---------- CANCEL LEAVE ----------
+export const cancelLeaveService = async (leaveId, user) => {
+  const leave = await leavesModel.findById(leaveId);
   if (!leave) throw new AppError("Leave not found", 404);
 
-  if (leave.status === "DECLINED") {
-    throw new AppError("Declined leave cannot be cancelled", 400);
+  const isOwner = leave.user.toString() === user.id;
+  const isAdminOrHR = ["admin", "hr"].includes(user.role);
+
+  // ❌ not allowed
+  if (!isOwner && !isAdminOrHR) {
+    throw new AppError("Not authorized to cancel this leave", 403);
   }
 
-  // revert attendance if approved
+  // ❌ invalid states
+  if (leave.status === "DECLINED")
+    throw new AppError("Declined leave cannot be cancelled", 400);
+
+  if (leave.status === "CANCELLED")
+    throw new AppError("Leave already cancelled", 400);
+
+  const now = new Date();
+
+  const { start, end } = getISTDayRange(leave.fromDate);
+
+  // ===== TIME RULES =====
+
+  // Employee → only before office start (9AM)
+  if (isOwner && !isAdminOrHR) {
+    const officeStart = new Date(start);
+    officeStart.setHours(9, 0, 0, 0);
+
+    if (now >= officeStart) {
+      throw new AppError(
+        "You can cancel leave only before working hours start",
+        400,
+      );
+    }
+  }
+
+  // HR/Admin → only until day end
+  // if (isAdminOrHR) {
+  //   if (now > end) {
+  //     throw new AppError("Leave day has ended. Cannot cancel now", 400);
+  //   }
+  // }
+
+  /* ================= LOGIC ================= */
+
   if (leave.status === "APPROVED") {
     await refundForCancelledLeave(leave);
+
     const dates = getDateRange(leave.fromDate, leave.toDate);
 
     for (const date of dates) {
       const { start, end } = getISTDayRange(date);
 
       await attendanceModel.findOneAndUpdate(
-        { user: userId, date: { $gte: start, $lt: end } },
+        { user: leave.user, date: { $gte: start, $lt: end } },
         { status: "ABSENT" },
       );
     }
   }
 
   leave.status = "CANCELLED";
+  leave.actionBy = user.id;
+
   return leave.save();
 };
 

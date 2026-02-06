@@ -3,6 +3,7 @@ import {
   getAllLeavesAPI,
   approveLeaveAPI,
   declineLeaveAPI,
+  cancelLeaveAPI,
 } from "../../api/leave.api";
 import styles from "./LeaveApproval.module.css";
 import Loader from "../../components/Loader/Loader";
@@ -35,6 +36,9 @@ export default function LeaveApproval() {
 
   useEffect(() => {
     fetchLeaves();
+
+    const interval = setInterval(fetchLeaves, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   /* ================= DERIVED ================= */
@@ -67,6 +71,13 @@ export default function LeaveApproval() {
   const decline = async (id) => {
     updateOptimistic(id, "DECLINED");
     await declineLeaveAPI(id);
+  };
+
+  const cancel = async (id) => {
+    if (!window.confirm("Cancel this leave?")) return;
+
+    updateOptimistic(id, "CANCELLED");
+    await cancelLeaveAPI(id);
   };
 
   return (
@@ -114,11 +125,19 @@ export default function LeaveApproval() {
                     >
                       Approve
                     </button>
+
                     <button
                       className={styles.declineBtn}
                       onClick={() => decline(l._id)}
                     >
                       Decline
+                    </button>
+
+                    <button
+                      className={styles.cancelBtn}
+                      onClick={() => cancel(l._id)}
+                    >
+                      Cancel
                     </button>
                   </td>
                 </tr>
@@ -168,7 +187,21 @@ export default function LeaveApproval() {
 
                   <td>{l.type}</td>
                   <td>{l.isHalfDay ? "Yes" : "No"}</td>
-                  <td className={styles[`status${l.status}`]}>{l.status}</td>
+                  <td>
+                    <span className={styles[`status${l.status}`]}>
+                      {l.status}
+                    </span>
+
+                    {l.status === "APPROVED" && (
+                      <button
+                        className={styles.cancelBtn}
+                        onClick={() => cancel(l._id)}
+                        style={{ marginLeft: 8 }}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

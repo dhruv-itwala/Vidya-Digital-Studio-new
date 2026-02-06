@@ -122,6 +122,19 @@
   border: none;
 }
 
+.cancelBtn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  opacity: 0.9;
+}
+
 /* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
   .container {

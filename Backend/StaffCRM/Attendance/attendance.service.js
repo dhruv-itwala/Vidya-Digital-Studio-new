@@ -191,6 +191,20 @@ export const markAttendanceStatusService = async (userId, date, status) => {
 
   const day = parseISTDateOnly(date);
 
+  // const approvedLeave = await Leave.findOne({
+  //   user: userId,
+  //   status: "APPROVED",
+  //   fromDate: { $lte: day },
+  //   toDate: { $gte: day },
+  // });
+
+  // if (approvedLeave && status !== "LEAVE") {
+  //   throw new AppError(
+  //     "Employee is on approved leave. Cancel leave before marking attendance.",
+  //     409,
+  //   );
+  // }
+
   const approvedLeave = await Leave.findOne({
     user: userId,
     status: "APPROVED",
@@ -198,11 +212,26 @@ export const markAttendanceStatusService = async (userId, date, status) => {
     toDate: { $gte: day },
   });
 
-  if (approvedLeave && status !== "LEAVE") {
-    throw new AppError(
-      "Employee is on approved leave. Cancel leave before marking attendance.",
-      409,
-    );
+  if (approvedLeave) {
+    // FULL DAY LEAVE
+    if (!approvedLeave.isHalfDay && status !== "LEAVE") {
+      throw new AppError(
+        "Employee is on full day approved leave. Cancel leave before marking attendance.",
+        409,
+      );
+    }
+
+    // HALF DAY LEAVE
+    if (approvedLeave.isHalfDay) {
+      const allowedHalfDayStatuses = ["HALF_DAY", "PRESENT", "WFH"];
+
+      if (!allowedHalfDayStatuses.includes(status)) {
+        throw new AppError(
+          "Only HALF_DAY / PRESENT / WFH allowed for half-day leave.",
+          409,
+        );
+      }
+    }
   }
 
   const isHoliday = await Holiday.exists({ date: day });
