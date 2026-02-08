@@ -10,41 +10,15 @@ const BusinessCard = () => {
 
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
-  /* =========================
-     ✅ 1. LOG PAGE VISIT (QR SCAN)
-  ========================== */
   useEffect(() => {
     logScan("vidya-digital-studio-page");
   }, []);
 
-  /* =========================
-     ✅ 2. UNIVERSAL LINK HANDLER
-     (logs + opens correctly)
-  ========================== */
   const openLink = (url, label) => {
     logScan(label); // optional click tracking
     window.location.href = url; // NEVER window.open on mobile
   };
 
-  // /* =========================
-  //    ✅ 3. INSTAGRAM DEEP LINK
-  // ========================== */
-  // const openInstagram = () => {
-  //   const username = "vidyadigitalstudio";
-
-  //   logScan("instagram-click");
-
-  //   const appUrl = `instagram://user?username=${username}`;
-  //   const webUrl = `https://www.instagram.com/${username}/`;
-
-  //   // try app
-  //   window.location.href = appUrl;
-
-  //   // fallback
-  //   setTimeout(() => {
-  //     window.location.href = webUrl;
-  //   }, 1200);
-  // };
   const openInstagram = () => {
     const username = "vidyadigitalstudio";
 
@@ -52,24 +26,24 @@ const BusinessCard = () => {
 
     const ua = navigator.userAgent;
 
-    const androidIntent = `intent://instagram.com/_u/${username}#Intent;package=com.instagram.android;scheme=https;end`;
-    const iosScheme = `instagram://user?username=${username}`;
-    const webUrl = `https://www.instagram.com/${username}/`;
-
-    // Android Chrome → intent
     if (/Android/i.test(ua)) {
+      // Try intent first
+      const androidIntent = `intent://instagram.com/user?username=${username}#Intent;package=com.instagram.android;scheme=https;end`;
       window.location.href = androidIntent;
+
+      // Fallback to web after 1.5s if app doesn't open
+      setTimeout(() => {
+        window.location.href = `https://www.instagram.com/${username}/`;
+      }, 1500);
       return;
     }
 
-    // iPhone/iPad → scheme
     if (/iPhone|iPad|iPod/i.test(ua)) {
-      window.location.href = iosScheme;
+      window.location.href = `instagram://user?username=${username}`;
       return;
     }
 
-    // Desktop fallback
-    window.location.href = webUrl;
+    window.location.href = `https://www.instagram.com/${username}/`;
   };
 
   return (
