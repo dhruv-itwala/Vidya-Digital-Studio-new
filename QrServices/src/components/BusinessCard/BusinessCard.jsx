@@ -8,58 +8,58 @@ const BusinessCard = () => {
   const phoneNumber = "917096413502";
   const message = "Hello! I'm interested in your services.";
 
-  const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-    message,
-  )}`;
+  const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
-  const openInstagram = async () => {
+  /* =========================
+     ✅ 1. LOG PAGE VISIT (QR SCAN)
+  ========================== */
+  useEffect(() => {
+    logScan("vidya-digital-studio-page");
+  }, []);
+
+  /* =========================
+     ✅ 2. UNIVERSAL LINK HANDLER
+     (logs + opens correctly)
+  ========================== */
+  const openLink = (url, label) => {
+    logScan(label); // optional click tracking
+    window.location.href = url; // NEVER window.open on mobile
+  };
+
+  /* =========================
+     ✅ 3. INSTAGRAM DEEP LINK
+  ========================== */
+  const openInstagram = () => {
     const username = "vidyadigitalstudio";
 
-    // optional logging
-    try {
-      await logScan("instagram-click");
-    } catch {}
+    logScan("instagram-click");
 
     const appUrl = `instagram://user?username=${username}`;
     const webUrl = `https://www.instagram.com/${username}/`;
 
-    const start = Date.now();
-
-    // try opening app
+    // try app
     window.location.href = appUrl;
 
-    // fallback ONLY if app didn't open
+    // fallback
     setTimeout(() => {
-      if (Date.now() - start < 2000) {
-        window.location.href = webUrl;
-      }
-    }, 1500);
+      window.location.href = webUrl;
+    }, 1200);
   };
 
   return (
     <div className="masterContainer">
       <div className={styles.container}>
-        {/* Logo */}
         <div className={styles.logoWrapper}>
           <img src={Images.Circle_logo} alt="Logo" className={styles.logo} />
         </div>
 
-        {/* Title */}
         <h1 className={styles.title}>Vidya Digital Studio</h1>
-        <p className={styles.subtitle}>
-          We’re a digital and creative agency helping
-          <br />
-          businesses with intuitive digital experiences,
-          <br />
-          bold visuals, and effective storytelling.
-        </p>
 
-        {/* Buttons */}
         <div className={styles.buttonGroup}>
           <button
             className={styles.cardBtn}
             onClick={() =>
-              window.open("https://www.vidyadigitalstudio.com", "_blank")
+              openLink("https://www.vidyadigitalstudio.com", "website-click")
             }
           >
             🌐 Website
@@ -68,52 +68,36 @@ const BusinessCard = () => {
           <button
             className={styles.cardBtn}
             onClick={() =>
-              window.open("https://vidyadigitalstudio.com/projects", "_blank")
+              openLink(
+                "https://vidyadigitalstudio.com/projects",
+                "portfolio-click",
+              )
             }
           >
             🎨 Portfolio
           </button>
 
-          {/* <button
-            className={styles.cardBtn}
-            onClick={() =>
-              window.open("https://calendly.com/vidyadigitalstudio", "_blank")
-            }
-          >
-            📄 Schedule a Meeting
-          </button> */}
-
-          {/* <button
-            className={styles.cardBtn}
-            onClick={() =>
-              window.open(
-                "https://www.vidyadigitalstudio.com/qr-code",
-                "_blank"
-              )
-            }
-          >
-            🎁 Free Sample
-          </button> */}
-
           <button
             className={styles.cardBtn}
             onClick={() =>
-              window.open("https://vidyadigitalstudio.com/contact-us", "_blank")
+              openLink(
+                "https://vidyadigitalstudio.com/contact-us",
+                "contact-click",
+              )
             }
           >
             📞 Contact Us
           </button>
         </div>
 
-        {/* Social Icons */}
         <div className={styles.socialRow}>
           <Icon
             icon="la:linkedin"
             className={styles.socialIcon}
             onClick={() =>
-              window.open(
+              openLink(
                 "https://www.linkedin.com/company/vidya-digital-studio/",
-                "_blank",
+                "linkedin-click",
               )
             }
           />
@@ -128,14 +112,14 @@ const BusinessCard = () => {
             icon="material-symbols:mail-outline"
             className={styles.socialIcon}
             onClick={() =>
-              (window.location.href = "mailto:contact@vidyadigitalstudio.com")
+              openLink("mailto:contact@vidyadigitalstudio.com", "mail-click")
             }
           />
 
           <Icon
             icon="ic:baseline-whatsapp"
             className={styles.socialIcon}
-            onClick={() => window.open(whatsappLink, "_blank")}
+            onClick={() => openLink(whatsappLink, "whatsapp-click")}
           />
         </div>
       </div>
