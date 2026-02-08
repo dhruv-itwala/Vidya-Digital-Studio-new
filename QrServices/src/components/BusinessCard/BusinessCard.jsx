@@ -26,24 +26,50 @@ const BusinessCard = () => {
     window.location.href = url; // NEVER window.open on mobile
   };
 
-  /* =========================
-     ✅ 3. INSTAGRAM DEEP LINK
-  ========================== */
+  // /* =========================
+  //    ✅ 3. INSTAGRAM DEEP LINK
+  // ========================== */
+  // const openInstagram = () => {
+  //   const username = "vidyadigitalstudio";
+
+  //   logScan("instagram-click");
+
+  //   const appUrl = `instagram://user?username=${username}`;
+  //   const webUrl = `https://www.instagram.com/${username}/`;
+
+  //   // try app
+  //   window.location.href = appUrl;
+
+  //   // fallback
+  //   setTimeout(() => {
+  //     window.location.href = webUrl;
+  //   }, 1200);
+  // };
   const openInstagram = () => {
     const username = "vidyadigitalstudio";
 
     logScan("instagram-click");
 
-    const appUrl = `instagram://user?username=${username}`;
+    const ua = navigator.userAgent;
+
+    const androidIntent = `intent://instagram.com/_u/${username}#Intent;package=com.instagram.android;scheme=https;end`;
+    const iosScheme = `instagram://user?username=${username}`;
     const webUrl = `https://www.instagram.com/${username}/`;
 
-    // try app
-    window.location.href = appUrl;
+    // Android Chrome → intent
+    if (/Android/i.test(ua)) {
+      window.location.href = androidIntent;
+      return;
+    }
 
-    // fallback
-    setTimeout(() => {
-      window.location.href = webUrl;
-    }, 1200);
+    // iPhone/iPad → scheme
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      window.location.href = iosScheme;
+      return;
+    }
+
+    // Desktop fallback
+    window.location.href = webUrl;
   };
 
   return (
