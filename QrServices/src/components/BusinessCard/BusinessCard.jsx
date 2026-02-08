@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./BusinessCard.module.css";
 import { Images } from "../../assets/Data/images";
 import { Icon } from "@iconify/react";
