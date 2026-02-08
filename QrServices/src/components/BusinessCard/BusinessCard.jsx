@@ -8,8 +8,36 @@ const BusinessCard = () => {
   const message = "Hello! I'm interested in your services.";
 
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-    message
+    message,
   )}`;
+
+  const openInstagram = () => {
+    const username = "vidyadigitalstudio";
+
+    const appUrl = `instagram://user?username=${username}`;
+    const webUrl = `https://www.instagram.com/${username}/`;
+
+    // try app first
+    window.location.href = appUrl;
+
+    // fallback to web after delay
+    setTimeout(() => {
+      window.open(webUrl, "_blank");
+    }, 1200);
+  };
+
+  // ✅ LOG SCAN ON PAGE LOAD
+  useEffect(() => {
+    const logPageVisit = async () => {
+      try {
+        await logScan("vidya-digital-studio"); // any identifier you want
+      } catch (error) {
+        console.error("Scan log failed:", error);
+      }
+    };
+
+    logPageVisit();
+  }, []);
 
   return (
     <div className="masterContainer">
@@ -49,16 +77,16 @@ const BusinessCard = () => {
             🎨 Portfolio
           </button>
 
-          <button
+          {/* <button
             className={styles.cardBtn}
             onClick={() =>
               window.open("https://calendly.com/vidyadigitalstudio", "_blank")
             }
           >
             📄 Schedule a Meeting
-          </button>
+          </button> */}
 
-          <button
+          {/* <button
             className={styles.cardBtn}
             onClick={() =>
               window.open(
@@ -68,7 +96,7 @@ const BusinessCard = () => {
             }
           >
             🎁 Free Sample
-          </button>
+          </button> */}
 
           <button
             className={styles.cardBtn}
@@ -88,7 +116,7 @@ const BusinessCard = () => {
             onClick={() =>
               window.open(
                 "https://www.linkedin.com/company/vidya-digital-studio/",
-                "_blank"
+                "_blank",
               )
             }
           />
@@ -96,12 +124,7 @@ const BusinessCard = () => {
           <Icon
             icon="mdi:instagram"
             className={styles.socialIcon}
-            onClick={() =>
-              window.open(
-                "https://www.instagram.com/vidyadigitalstudio/",
-                "_blank"
-              )
-            }
+            onClick={openInstagram}
           />
 
           <Icon
