@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import styles from "./BusinessCard.module.css";
 import { Images } from "../../assets/Data/images";
 import { Icon } from "@iconify/react";
+import { logScan } from "../../utils/api.endpoints";
 
 const BusinessCard = () => {
   const phoneNumber = "917096413502";
@@ -11,33 +12,29 @@ const BusinessCard = () => {
     message,
   )}`;
 
-  const openInstagram = () => {
+  const openInstagram = async () => {
     const username = "vidyadigitalstudio";
+
+    // optional logging
+    try {
+      await logScan("instagram-click");
+    } catch {}
 
     const appUrl = `instagram://user?username=${username}`;
     const webUrl = `https://www.instagram.com/${username}/`;
 
-    // try app first
+    const start = Date.now();
+
+    // try opening app
     window.location.href = appUrl;
 
-    // fallback to web after delay
+    // fallback ONLY if app didn't open
     setTimeout(() => {
-      window.open(webUrl, "_blank");
-    }, 1200);
-  };
-
-  // ✅ LOG SCAN ON PAGE LOAD
-  useEffect(() => {
-    const logPageVisit = async () => {
-      try {
-        await logScan("vidya-digital-studio"); // any identifier you want
-      } catch (error) {
-        console.error("Scan log failed:", error);
+      if (Date.now() - start < 2000) {
+        window.location.href = webUrl;
       }
-    };
-
-    logPageVisit();
-  }, []);
+    }, 1500);
+  };
 
   return (
     <div className="masterContainer">
