@@ -5,6 +5,7 @@ import {
   getAllEmployeesAttendanceByDateRangeAPI,
   markAttendanceStatusAPI,
   downloadAttendancePDFWithPunchAPI,
+  downloadAttendancePDFAPI,
 } from "../../api/attendance.api";
 
 import { FaUsers, FaCalendarDay, FaCalendarAlt } from "react-icons/fa";
@@ -173,7 +174,7 @@ export default function Attendance() {
   /* ================= DOWNLOAD ================= */
   const download = async () => {
     if (!fromDate || !toDate) return toast.error("Select both dates");
-    const api = downloadAttendancePDFWithPunchAPI;
+    const api = downloadAttendancePDFAPI;
 
     const res = await api(fromDate, toDate);
     const url = URL.createObjectURL(new Blob([res.data]));
@@ -374,7 +375,7 @@ export default function Attendance() {
                             <td key={e.id}>
                               {rec[e.id]?.status || "—"}
                               <br />
-                              <small>
+                              {/* <small>
                                 {rec[e.id]?.punchIn
                                   ? formatTime(rec[e.id].punchIn)
                                   : "--"}{" "}
@@ -382,7 +383,7 @@ export default function Attendance() {
                                 {rec[e.id]?.punchOut
                                   ? formatTime(rec[e.id].punchOut)
                                   : "--"}
-                              </small>
+                              </small> */}
                             </td>
                           ))}
                         </tr>

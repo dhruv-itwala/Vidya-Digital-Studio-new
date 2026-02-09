@@ -145,9 +145,9 @@ const EmployeeDashboard = () => {
 
   // ---------- UI ----------
   if (state.loading) return <Loader />;
-  if (state.isHoliday) return <HolidayCard holidayName={state.holidayName} />;
-  if (state.isLeave) return <LeaveCard />;
-  if (state.isWeekend) return <WeekendCard day={state.istDay} />;
+  // if (state.isHoliday) return <HolidayCard holidayName={state.holidayName} />;
+  // if (state.isLeave) return <LeaveCard />;
+  // if (state.isWeekend) return <WeekendCard day={state.istDay} />;
 
   return (
     <div className="masterContainer">
