@@ -11,12 +11,21 @@ const BusinessCard = () => {
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   useEffect(() => {
-    logScan("vidya-digital-studio-page");
+    let deviceId = localStorage.getItem("deviceId");
+
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      localStorage.setItem("deviceId", deviceId);
+    }
+
+    logScan({
+      deviceId,
+      label: "vidya-digital-studio-page",
+    });
   }, []);
 
-  const openLink = (url, label) => {
-    logScan(label); // optional click tracking
-    window.location.href = url; // NEVER window.open on mobile
+  const openLink = (url) => {
+    window.location.href = url;
   };
 
   const openInstagram = () => {
@@ -39,21 +48,14 @@ const BusinessCard = () => {
         <div className={styles.buttonGroup}>
           <button
             className={styles.cardBtn}
-            onClick={() =>
-              openLink("https://www.vidyadigitalstudio.com", "website-click")
-            }
+            onClick={() => openLink("https://www.vidyadigitalstudio.com")}
           >
             🌐 Website
           </button>
 
           <button
             className={styles.cardBtn}
-            onClick={() =>
-              openLink(
-                "https://vidyadigitalstudio.com/projects",
-                "portfolio-click",
-              )
-            }
+            onClick={() => openLink("https://vidyadigitalstudio.com/projects")}
           >
             🎨 Portfolio
           </button>
@@ -61,10 +63,7 @@ const BusinessCard = () => {
           <button
             className={styles.cardBtn}
             onClick={() =>
-              openLink(
-                "https://vidyadigitalstudio.com/contact-us",
-                "contact-click",
-              )
+              openLink("https://vidyadigitalstudio.com/contact-us")
             }
           >
             📞 Contact Us
@@ -76,10 +75,7 @@ const BusinessCard = () => {
             icon="la:linkedin"
             className={styles.socialIcon}
             onClick={() =>
-              openLink(
-                "https://www.linkedin.com/company/vidya-digital-studio/",
-                "linkedin-click",
-              )
+              openLink("https://www.linkedin.com/company/vidya-digital-studio/")
             }
           />
 
@@ -92,15 +88,13 @@ const BusinessCard = () => {
           <Icon
             icon="material-symbols:mail-outline"
             className={styles.socialIcon}
-            onClick={() =>
-              openLink("mailto:contact@vidyadigitalstudio.com", "mail-click")
-            }
+            onClick={() => openLink("mailto:contact@vidyadigitalstudio.com")}
           />
 
           <Icon
             icon="ic:baseline-whatsapp"
             className={styles.socialIcon}
-            onClick={() => openLink(whatsappLink, "whatsapp-click")}
+            onClick={() => openLink(whatsappLink)}
           />
         </div>
       </div>

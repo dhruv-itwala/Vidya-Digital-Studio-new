@@ -13,4 +13,4 @@ export const getFaqs = () => apiClient.get("/faqs");
 
 export const getTotalScans = () => apiClient.get("/scan/stats");
 
-export const logScan = () => apiClient.post("/scan/log");
+export const logScan = (data) => apiClient.post("/scan/log", data);
