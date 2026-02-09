@@ -33,6 +33,12 @@
   margin-bottom: 26px;
 }
 
+.description {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #375f50;
+  margin-bottom: 26px;
+}
 .buttonGroup {
   width: 100%;
   display: flex;

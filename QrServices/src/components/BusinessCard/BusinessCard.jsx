@@ -20,41 +20,23 @@ const BusinessCard = () => {
   };
 
   const openInstagram = () => {
-    const username = "vidyadigitalstudio";
-
-    logScan("instagram-click");
-
-    const ua = navigator.userAgent;
-
-    if (/Android/i.test(ua)) {
-      // Try intent first
-      const androidIntent = `intent://instagram.com/user?username=${username}#Intent;package=com.instagram.android;scheme=https;end`;
-      window.location.href = androidIntent;
-
-      // Fallback to web after 1.5s if app doesn't open
-      setTimeout(() => {
-        window.location.href = `https://www.instagram.com/${username}/`;
-      }, 1500);
-      return;
-    }
-
-    if (/iPhone|iPad|iPod/i.test(ua)) {
-      window.location.href = `instagram://user?username=${username}`;
-      return;
-    }
-
-    window.location.href = `https://www.instagram.com/${username}/`;
+    window.location.assign("https://www.instagram.com/vidyadigitalstudio/");
   };
 
   return (
     <div className="masterContainer">
+      {console.log("API URL:", import.meta.env.VITE_API_URL)}
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
           <img src={Images.Circle_logo} alt="Logo" className={styles.logo} />
         </div>
 
         <h1 className={styles.title}>Vidya Digital Studio</h1>
-
+        <p className={styles.description}>
+          The All-in-one Creative & Digital Studio for Marketing, Design, Web,
+          and 3D for brands that think, feel, and dream in more than one
+          dimension
+        </p>
         <div className={styles.buttonGroup}>
           <button
             className={styles.cardBtn}
