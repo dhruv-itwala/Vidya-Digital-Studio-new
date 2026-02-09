@@ -25,7 +25,6 @@ const BusinessCard = () => {
 
   return (
     <div className="masterContainer">
-      {console.log("API URL:", import.meta.env.VITE_API_URL)}
       <div className={styles.container}>
         <div className={styles.logoWrapper}>
           <img src={Images.Circle_logo} alt="Logo" className={styles.logo} />

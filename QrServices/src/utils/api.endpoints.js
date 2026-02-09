@@ -1,5 +1,4 @@
 import apiClient from "./api.client";
-console.log("BASE:", apiClient.defaults.baseURL);
 export const getAllProjects = () => apiClient.get("/portfolio");
 export const getProjects = () => apiClient.get("/projects");
 
