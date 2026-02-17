@@ -76,27 +76,55 @@ export const calcLiveBreakSeconds = (record, now = new Date()) => {
   }, 0);
 };
 
+// export const getCurrentWeekRangeIST = () => {
+//   const now = new Date();
+
+//   const istNow = new Date(
+//     now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+//   );
+
+//   const day = istNow.getDay(); // 0=Sun, 1=Mon
+
+//   const diffToMonday = (day === 0 ? -6 : 1) - day;
+
+//   const mondayIST = new Date(istNow);
+//   mondayIST.setDate(istNow.getDate() + diffToMonday);
+//   mondayIST.setHours(0, 0, 0, 0);
+
+//   const sundayIST = new Date(mondayIST);
+//   sundayIST.setDate(mondayIST.getDate() + 6);
+//   sundayIST.setHours(23, 59, 59, 999);
+
+//   return {
+//     weekStartUTC: new Date(mondayIST.toISOString()),
+//     weekEndUTC: new Date(sundayIST.toISOString()),
+//   };
+// };
+
 export const getCurrentWeekRangeIST = () => {
-  const now = new Date();
+  const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5h30m in ms
 
-  const istNow = new Date(
-    now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-  );
+  const nowUTC = new Date();
+  const nowIST = new Date(nowUTC.getTime() + IST_OFFSET);
 
-  const day = istNow.getDay(); // 0=Sun, 1=Mon
+  const day = nowIST.getUTCDay(); // use UTC getters after manual shift
 
   const diffToMonday = (day === 0 ? -6 : 1) - day;
 
-  const mondayIST = new Date(istNow);
-  mondayIST.setDate(istNow.getDate() + diffToMonday);
-  mondayIST.setHours(0, 0, 0, 0);
+  const mondayIST = new Date(nowIST);
+  mondayIST.setUTCDate(nowIST.getUTCDate() + diffToMonday);
+  mondayIST.setUTCHours(0, 0, 0, 0);
 
   const sundayIST = new Date(mondayIST);
-  sundayIST.setDate(mondayIST.getDate() + 6);
-  sundayIST.setHours(23, 59, 59, 999);
+  sundayIST.setUTCDate(mondayIST.getUTCDate() + 6);
+  sundayIST.setUTCHours(23, 59, 59, 999);
+
+  // convert back to pure UTC timestamps
+  const weekStartUTC = new Date(mondayIST.getTime() - IST_OFFSET);
+  const weekEndUTC = new Date(sundayIST.getTime() - IST_OFFSET);
 
   return {
-    weekStartUTC: new Date(mondayIST.toISOString()),
-    weekEndUTC: new Date(sundayIST.toISOString()),
+    weekStartUTC,
+    weekEndUTC,
   };
 };
