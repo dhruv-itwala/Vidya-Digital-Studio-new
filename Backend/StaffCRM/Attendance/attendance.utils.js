@@ -76,55 +76,52 @@ export const calcLiveBreakSeconds = (record, now = new Date()) => {
   }, 0);
 };
 
-// export const getCurrentWeekRangeIST = () => {
-//   const now = new Date();
+export const getWeeklyProgressService = async (userId) => {
+  const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
 
-//   const istNow = new Date(
-//     now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-//   );
+  const records = await WorkRecord.find({
+    user: userId,
+    date: { $gte: weekStartUTC, $lte: weekEndUTC },
+  });
 
-//   const day = istNow.getDay(); // 0=Sun, 1=Mon
+  let totalSeconds = 0;
 
-//   const diffToMonday = (day === 0 ? -6 : 1) - day;
+  for (const record of records) {
+    if (!record.punchIn) continue;
 
-//   const mondayIST = new Date(istNow);
-//   mondayIST.setDate(istNow.getDate() + diffToMonday);
-//   mondayIST.setHours(0, 0, 0, 0);
+    const endTime = record.punchOut ?? new Date();
 
-//   const sundayIST = new Date(mondayIST);
-//   sundayIST.setDate(mondayIST.getDate() + 6);
-//   sundayIST.setHours(23, 59, 59, 999);
+    const total = Math.floor((endTime - record.punchIn) / 1000);
 
-//   return {
-//     weekStartUTC: new Date(mondayIST.toISOString()),
-//     weekEndUTC: new Date(sundayIST.toISOString()),
-//   };
-// };
+    const breakSeconds = record.breaks.reduce((sum, b) => {
+      if (!b.in) return sum;
+      const breakEnd = b.out ?? endTime;
+      return sum + Math.floor((breakEnd - b.in) / 1000);
+    }, 0);
 
-export const getCurrentWeekRangeIST = () => {
-  const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5h30m in ms
+    const netSeconds = Math.max(total - breakSeconds, 0);
 
-  const nowUTC = new Date();
-  const nowIST = new Date(nowUTC.getTime() + IST_OFFSET);
+    totalSeconds += netSeconds;
+  }
 
-  const day = nowIST.getUTCDay(); // use UTC getters after manual shift
+  const requiredSeconds = 48 * 60 * 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
 
-  const diffToMonday = (day === 0 ? -6 : 1) - day;
-
-  const mondayIST = new Date(nowIST);
-  mondayIST.setUTCDate(nowIST.getUTCDate() + diffToMonday);
-  mondayIST.setUTCHours(0, 0, 0, 0);
-
-  const sundayIST = new Date(mondayIST);
-  sundayIST.setUTCDate(mondayIST.getUTCDate() + 6);
-  sundayIST.setUTCHours(23, 59, 59, 999);
-
-  // convert back to pure UTC timestamps
-  const weekStartUTC = new Date(mondayIST.getTime() - IST_OFFSET);
-  const weekEndUTC = new Date(sundayIST.getTime() - IST_OFFSET);
+  const weeklyDoc = await weeklyWork.findOneAndUpdate(
+    { user: userId, weekStart: weekStartUTC },
+    {
+      weekEnd: weekEndUTC,
+      totalMinutes,
+      requiredMinutes: 48 * 60,
+      status: totalSeconds >= requiredSeconds ? "COMPLETED" : "IN_PROGRESS",
+    },
+    { upsert: true, new: true },
+  );
 
   return {
-    weekStartUTC,
-    weekEndUTC,
+    ...weeklyDoc.toObject(),
+    totalSeconds,
+    percentage: Math.min((totalSeconds / requiredSeconds) * 100, 100),
+    remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
   };
 };
