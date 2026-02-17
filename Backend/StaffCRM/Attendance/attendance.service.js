@@ -406,16 +406,24 @@ export const getWeeklyProgressService = async (userId) => {
   let totalSeconds = 0;
 
   for (const record of records) {
-    if (record.punchOut) {
-      totalSeconds += (record.netWorkMinutes || 0) * 60;
-    } else {
-      totalSeconds += calcLiveNetSeconds(record);
-    }
+    if (!record.punchIn) continue;
+
+    const endTime = record.punchOut ?? new Date();
+
+    const total = Math.floor((endTime - record.punchIn) / 1000);
+
+    const breakSeconds = record.breaks.reduce((sum, b) => {
+      if (!b.in) return sum;
+      const breakEnd = b.out ?? endTime;
+      return sum + Math.floor((breakEnd - b.in) / 1000);
+    }, 0);
+
+    const netSeconds = Math.max(total - breakSeconds, 0);
+
+    totalSeconds += netSeconds;
   }
+
   const requiredSeconds = 48 * 60 * 60;
-
-  const percentage = Math.min((totalSeconds / requiredSeconds) * 100, 100);
-
   const totalMinutes = Math.floor(totalSeconds / 60);
 
   const weeklyDoc = await weeklyWork.findOneAndUpdate(
@@ -432,7 +440,7 @@ export const getWeeklyProgressService = async (userId) => {
   return {
     ...weeklyDoc.toObject(),
     totalSeconds,
-    percentage,
+    percentage: Math.min((totalSeconds / requiredSeconds) * 100, 100),
     remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
   };
 };
