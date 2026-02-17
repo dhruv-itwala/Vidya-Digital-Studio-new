@@ -3,6 +3,7 @@ import styles from "./BusinessCard.module.css";
 import { Images } from "../../assets/Data/images";
 import { Icon } from "@iconify/react";
 import { logScan } from "../../utils/api.endpoints";
+import { v4 as uuidv4 } from "uuid";
 
 const BusinessCard = () => {
   const phoneNumber = "917096413502";
@@ -14,7 +15,7 @@ const BusinessCard = () => {
     let deviceId = localStorage.getItem("deviceId");
 
     if (!deviceId) {
-      deviceId = crypto.randomUUID();
+      deviceId = uuidv4();
       localStorage.setItem("deviceId", deviceId);
     }
 
@@ -29,7 +30,7 @@ const BusinessCard = () => {
   };
 
   const openInstagram = () => {
-    window.location.assign("https://www.instagram.com/vidyadigitalstudio/");
+    window.open("/ig.html", "_blank");
   };
 
   return (

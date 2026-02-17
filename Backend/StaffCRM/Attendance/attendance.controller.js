@@ -1,13 +1,12 @@
-// Backend/Attendance/attendance.controller.js
+// Backend/StaffCRM/Attendance/attendance.controller.js
 import { asyncHandler } from "../utils/asyncHandler.js";
 import * as service from "./attendance.service.js";
-import { getTodayWorkRecordService } from "./attendance.utils.js";
 import { downloadAttendancePDFService } from "./attendancePdf.service.js";
 import { downloadAttendanceWithPunchPDFService } from "./attendancePdfWithPunch.js";
 
 // ================= TODAY WORK RECORD ================= */
 export const getTodayWorkRecord = asyncHandler(async (req, res) => {
-  const data = await getTodayWorkRecordService(req.user.id);
+  const data = await service.getTodayWorkRecordService(req.user.id);
   res.json({ success: true, data });
 });
 
@@ -115,4 +114,14 @@ export const deleteAttendanceById = asyncHandler(async (req, res) => {
   const { attendanceId } = req.params;
   await service.deleteAttendanceByIdService(attendanceId);
   res.json({ success: true, message: "Attendance record deleted" });
+});
+
+// ================ GET WEEKLY PROGRESS ================= */
+export const getWeeklyProgress = asyncHandler(async (req, res) => {
+  const data = await service.getWeeklyProgressService(req.user.id);
+
+  res.json({
+    success: true,
+    data,
+  });
 });

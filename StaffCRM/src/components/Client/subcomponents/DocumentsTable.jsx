@@ -1,16 +1,22 @@
 import { useFieldArray } from "react-hook-form";
 import styles from "../CreateClient.module.css";
 
-const DocumentsTable = ({ control, register }) => {
-  const { fields, append, remove, update } = useFieldArray({
+const DocumentsTable = ({ control, register, errors }) => {
+  const { fields, append, update } = useFieldArray({
     control,
     name: "documents",
   });
+
+  const getError = (index, field) => errors?.documents?.[index]?.[field];
+
+  const getInputClass = (index, field) =>
+    `${styles.input} ${getError(index, field) ? styles.errorInput : ""}`;
 
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.h3}>Documents</h3>
+
         <button
           type="button"
           className={styles.btn}
@@ -18,7 +24,6 @@ const DocumentsTable = ({ control, register }) => {
             append({
               name: "",
               file: null,
-              existing: false,
               removed: false,
             })
           }
@@ -47,24 +52,34 @@ const DocumentsTable = ({ control, register }) => {
                   {/* NAME */}
                   <td>
                     <input
-                      className={styles.input}
                       placeholder="File name"
+                      className={getInputClass(i, "name")}
                       {...register(`documents.${i}.name`)}
                     />
+                    {getError(i, "name") && (
+                      <p className={styles.errorText}>
+                        {getError(i, "name")?.message}
+                      </p>
+                    )}
                   </td>
 
-                  {/* FILE (REPLACE) */}
+                  {/* FILE */}
                   <td>
                     <input
                       type="file"
-                      className={styles.input}
+                      className={getInputClass(i, "file")}
                       {...register(`documents.${i}.file`)}
                     />
+                    {getError(i, "file") && (
+                      <p className={styles.errorText}>
+                        {getError(i, "file")?.message}
+                      </p>
+                    )}
                   </td>
 
                   {/* PREVIEW */}
                   <td>
-                    {doc.url && (
+                    {doc?.url && (
                       <a
                         href={doc.url}
                         target="_blank"
@@ -76,7 +91,7 @@ const DocumentsTable = ({ control, register }) => {
                     )}
                   </td>
 
-                  {/* ACTIONS */}
+                  {/* DELETE */}
                   <td>
                     <button
                       type="button"

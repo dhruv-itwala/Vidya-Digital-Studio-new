@@ -1,0 +1,518 @@
+/* ================= ROOT ================= */
+.container {
+  margin: 20px 0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+  /* margin-bottom: 16px; */
+  color: #020617;
+}
+
+.kanban {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.column {
+  flex: 1;
+  min-width: 260px;
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.columnTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #444;
+}
+
+/* ================= CARD ================= */
+.card {
+  background: #ffffff !important;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.taskName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #020617;
+}
+
+/* ================= PRIORITY CARD COLORS ================= */
+
+.card.low {
+  border-left: 5px solid #166534;
+}
+
+.card.medium {
+  border-left: 5px solid #f59e0b;
+}
+
+.card.high {
+  border-left: 5px solid #ef4444;
+}
+
+/* ================= STATUS BADGE ================= */
+.status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.pending {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.started {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.hold {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.complete {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ================= DUE STATUS ================= */
+.due {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 6px 0;
+  display: inline-block;
+}
+
+.passed {
+  color: #dc2626;
+}
+
+.today {
+  color: #f59e0b;
+}
+
+.upcoming {
+  color: #16a34a;
+}
+
+/* ================= DETAILS ================= */
+.details {
+  font-size: 13px;
+  color: #475569;
+  margin: 8px 0;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.meta strong {
+  color: #020617;
+}
+.dateInfo {
+  display: flex;
+  flex-direction: row;
+  margin-top: 6px;
+  gap: 20px;
+}
+/* ================= USERS ================= */
+.assigned {
+  font-size: 12px;
+  margin-top: 6px;
+  color: #475569;
+}
+
+.user {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 8px;
+  background: var(--color-primary);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* ================= ACTIONS ================= */
+.actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.actions select {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 6px;
+}
+
+.edit,
+.delete {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ================= KANBAN ================= */
+.kanban {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.kanban h4 {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .kanban {
+    flex-direction: column;
+  }
+}
+
+/* ================= TABLE ================= */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table th {
+  background: #f8fafc;
+  font-size: 12px;
+  text-align: left;
+  padding: 10px;
+}
+
+.table td {
+  padding: 10px;
+  font-size: 13px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.empty {
+  text-align: center;
+  font-size: 13px;
+  padding: 20px;
+  color: #64748b;
+}
+
+/* ================= PRIORITY ================= */
+.priority {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.low {
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ================= FORM ================= */
+.form {
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  max-width: 500px;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.userSelect select {
+  width: 100%;
+  min-height: 90px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.chip {
+  background: #e0e7ff;
+  color: var(--color-primary);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chipRemove {
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.dateInputs {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.dateInputs label {
+  font-size: 12px;
+  flex: 1;
+}
+
+/* ================= SUBMIT ================= */
+.submitButton {
+  width: 100%;
+  padding: 12px;
+  background: #020617;
+  color: white;
+  border-radius: 10px;
+  border: none;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.submitButton:hover {
+  background: #020617;
+}
+
+/* ================= STATES ================= */
+.loading {
+  font-size: 14px;
+  text-align: center;
+  color: #64748b;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ================= HEADER ================= */
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ================= FILTER SECTION ================= */
+.filterSection {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.filterBlock {
+  margin-bottom: 14px;
+}
+
+.filterLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: #020617;
+  margin-bottom: 6px;
+}
+
+/* ================= PILLS ================= */
+.pillContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #6366f1;
+  color: #3730a3;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pill:hover {
+  border-color: var(--color-primary);
+}
+
+.pill.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* ================= DATE ================= */
+.dateRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dateRow input {
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+
+.to {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ================= ACTIONS ================= */
+.filterActions {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+}
+
+.clear {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 640px) {
+  .meta {
+    flex-direction: column;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .dateInputs {
+    flex-direction: column;
+  }
+  .filterSection {
+    flex-direction: column;
+  }
+}
+/* ===== Mobile List Wrapper ===== */
+.mobileList {
+  display: none;
+}
+
+/* ===== Responsive Switch ===== */
+@media (max-width: 768px) {
+  .table {
+    display: none;
+  }
+
+  .mobileList {
+    display: block;
+  }
+
+  .dateRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

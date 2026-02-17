@@ -6,22 +6,23 @@ import styles from "./EmployeeDashboard.module.css";
 import { getTodayWorkRecordAPI } from "../../api/attendance.api";
 import { getMyReportsByDateAPI } from "../../api/report.api";
 import Loader from "../../components/Loader/Loader";
-import WeekendCard from "../../components/Cards/WeekendCard";
-import LeaveCard from "../../components/Cards/LeaveCard";
 import HolidayCard from "../../components/Cards/HolidayCard";
 import BirthdayCard from "../../components/Cards/BirthdayCard";
-import { getEmployeeBirthdaysAPI } from "../../api/admin.api";
 import toast from "react-hot-toast";
 import { getHolidaysAPI } from "../../api/holiday.api";
 import { getAllLeavesAPI } from "../../api/leave.api";
+import WeeklyHrs from "../../components/WeeklyHrs/WeeklyHrs";
+import { useAuth } from "../../context/AuthContext";
+import { useAttendance } from "../../hooks/useAttendance";
 
 const EmployeeDashboard = () => {
+  const { birthdays } = useAuth();
+  const attendance = useAttendance();
   const [state, setState] = useState({
     loading: true,
     punchInDone: false,
     punchedOut: false,
     reportSubmitted: false,
-    birthdays: [],
     isLeave: false,
     isHoliday: false,
     holidayName: "",
@@ -44,24 +45,6 @@ const EmployeeDashboard = () => {
       const todayIST = getISTDateString(istDate);
       const day = istDate.getDay();
       const isWeekendToday = [0, 6].includes(day);
-
-      // 🔹 Start birthdays in background (NON-BLOCKING)
-      getEmployeeBirthdaysAPI()
-        .then((res) => {
-          const todayDay = istDate.getDate();
-          const todayMonth = istDate.getMonth() + 1;
-
-          const todayBirthdays =
-            res?.data?.filter((emp) => {
-              const dob = new Date(emp.dateOfBirth);
-              return (
-                dob.getDate() === todayDay && dob.getMonth() + 1 === todayMonth
-              );
-            }) || [];
-
-          setState((prev) => ({ ...prev, birthdays: todayBirthdays }));
-        })
-        .catch(() => {});
 
       // 🔹 Run Holiday + Leave together
       const [holidayRes, leaveRes] = await Promise.all([
@@ -145,15 +128,15 @@ const EmployeeDashboard = () => {
 
   // ---------- UI ----------
   if (state.loading) return <Loader />;
-  // if (state.isHoliday) return <HolidayCard holidayName={state.holidayName} />;
+  if (state.isHoliday) return <HolidayCard holidayName={state.holidayName} />;
   // if (state.isLeave) return <LeaveCard />;
   // if (state.isWeekend) return <WeekendCard day={state.istDay} />;
 
   return (
     <div className="masterContainer">
       <div className={styles.container}>
-        {state.birthdays.length > 0 && (
-          <BirthdayCard people={state.birthdays} />
+        {Array.isArray(birthdays) && birthdays.length > 0 && (
+          <BirthdayCard people={birthdays} />
         )}
 
         <div className={styles.topRow}>
@@ -162,7 +145,7 @@ const EmployeeDashboard = () => {
             onPunchOutAttempt={() => state.reportSubmitted}
             onPunchOut={() => setState((p) => ({ ...p, punchedOut: true }))}
           />
-
+          <WeeklyHrs attendance={attendance} />
           <EmployeeReport
             onSubmitted={() =>
               setState((p) => ({ ...p, reportSubmitted: true }))

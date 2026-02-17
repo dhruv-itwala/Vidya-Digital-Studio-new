@@ -34,6 +34,7 @@ import EditClient from "./components/Client/EditClient";
 import Maintenance from "./components/Maintenance/Maintenance";
 import { Toaster } from "react-hot-toast";
 import "./App.css";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -102,7 +103,8 @@ export default function App() {
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<EmployeeDashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="test" element={<Dashboard />} />
           <Route path="holidays" element={<Holiday />} />
           <Route path="attendance" element={<EmployeeAttendance />} />
           <Route path="profile" element={<Profile />} />
@@ -121,7 +123,8 @@ export default function App() {
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<EmployeeDashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="test" element={<Dashboard />} />
           <Route path="employees" element={<AdminEmployees />} />
           <Route path="attendance" element={<EmployeeAttendance />} />
           <Route path="mark-attendance" element={<Attendance />} />

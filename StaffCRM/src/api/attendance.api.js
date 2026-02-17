@@ -1,3 +1,4 @@
+// src/api/attendance.api.js
 import api from "./axios";
 
 const handleError = (error) => {
@@ -133,4 +134,12 @@ export const downloadAttendancePDFAPI = async (from, to) => {
     params: { from, to },
     responseType: "blob",
   });
+};
+
+export const getWeeklyProgressAPI = async () => {
+  try {
+    return await api.get("/attendance/weekly-progress");
+  } catch (error) {
+    handleError(error);
+  }
 };

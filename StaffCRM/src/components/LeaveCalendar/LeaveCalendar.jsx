@@ -3,13 +3,14 @@ import { getAllLeavesAPI } from "../../api/leave.api";
 import { getHolidaysAPI } from "../../api/holiday.api";
 import { getEmployeeBirthdaysAPI } from "../../api/admin.api";
 import styles from "./LeaveCalendar.module.css";
+import { useAuth } from "../../context/AuthContext";
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function LeaveCalendar() {
   const [leaves, setLeaves] = useState([]);
   const [holidays, setHolidays] = useState([]);
-  const [birthdays, setBirthdays] = useState([]);
+  const { birthdays } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const normalize = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -26,15 +27,13 @@ export default function LeaveCalendar() {
   /* ================= FETCH ================= */
   useEffect(() => {
     const load = async () => {
-      const [leaveRes, holidayRes, birthdayRes] = await Promise.all([
+      const [leaveRes, holidayRes] = await Promise.all([
         getAllLeavesAPI(),
         getHolidaysAPI(),
-        getEmployeeBirthdaysAPI(),
       ]);
 
       setLeaves((leaveRes?.data || []).filter((l) => l.status === "APPROVED"));
       setHolidays(holidayRes.data?.data || []);
-      setBirthdays(birthdayRes.data?.data || []);
     };
 
     load();

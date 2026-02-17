@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import styles from "./Task.module.css";
+import styles from "./TaskForm.module.css";
 import toast from "react-hot-toast";
 import { createTaskAPI, updateTaskAPI } from "../../api/task.api";
 
-export default function TaskForm({ users, onCreated, task }) {
+export default function TaskForm({ users, task, onCancel, onCreated }) {
   const [form, setForm] = useState({
     name: "",
     details: "",
@@ -44,7 +44,7 @@ export default function TaskForm({ users, onCreated, task }) {
   const removeUser = (id) =>
     updateField(
       "assignedTo",
-      form.assignedTo.filter((uid) => uid !== id)
+      form.assignedTo.filter((uid) => uid !== id),
     );
 
   const handleUserSelect = (e) => {
@@ -70,6 +70,16 @@ export default function TaskForm({ users, onCreated, task }) {
       toast.error("Failed to submit task");
     }
   };
+
+  // const submit = async () => {
+  //   if (!form.name.trim()) return toast.error("Task name required");
+  //   if (form.assignedTo.length === 0)
+  //     return toast.error("Assign at least one user");
+
+  //   await onSubmit(form, task?._id);
+
+  //   setDirty(false);
+  // };
 
   return (
     <div className={styles.form}>
@@ -155,9 +165,19 @@ export default function TaskForm({ users, onCreated, task }) {
         <option value="complete">Complete</option>
       </select>
 
-      <button onClick={submit} className={styles.submitButton}>
-        {task ? "Update Task" : "Create Task"}
-      </button>
+      <div className={styles.actionsRow}>
+        <button
+          type="button"
+          onClick={onCancel}
+          className={styles.cancelButton}
+        >
+          Cancel
+        </button>
+
+        <button type="button" onClick={submit} className={styles.submitButton}>
+          {task ? "Update Task" : "Create Task"}
+        </button>
+      </div>
     </div>
   );
 }

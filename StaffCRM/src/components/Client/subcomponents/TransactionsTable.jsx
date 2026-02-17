@@ -1,10 +1,16 @@
 import { useFieldArray } from "react-hook-form";
 import styles from "../CreateClient.module.css";
-const TransactionsTable = ({ control, register }) => {
+
+const TransactionsTable = ({ control, register, errors }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "transactions",
   });
+
+  const getError = (index, field) => errors?.transactions?.[index]?.[field];
+
+  const getInputClass = (index, field) =>
+    `${styles.input} ${getError(index, field) ? styles.errorInput : ""}`;
 
   return (
     <section className={styles.section}>
@@ -18,6 +24,7 @@ const TransactionsTable = ({ control, register }) => {
           + Add Transaction
         </button>
       </div>
+
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
@@ -27,24 +34,40 @@ const TransactionsTable = ({ control, register }) => {
               <th className={styles.tableHeader}>Actions</th>
             </tr>
           </thead>
+
           <tbody>
-            {fields.map((_, i) => (
-              <tr key={i} className={styles.tr}>
+            {fields.map((field, i) => (
+              <tr key={field.id} className={styles.tr}>
+                {/* DATE */}
                 <td>
                   <input
                     type="date"
-                    className={styles.input}
+                    className={getInputClass(i, "date")}
                     {...register(`transactions.${i}.date`)}
                   />
+                  {getError(i, "date") && (
+                    <p className={styles.errorText}>
+                      {getError(i, "date")?.message}
+                    </p>
+                  )}
                 </td>
+
+                {/* AMOUNT */}
                 <td>
                   <input
                     type="number"
                     placeholder="Enter Amount"
-                    className={styles.input}
+                    className={getInputClass(i, "amount")}
                     {...register(`transactions.${i}.amount`)}
                   />
+                  {getError(i, "amount") && (
+                    <p className={styles.errorText}>
+                      {getError(i, "amount")?.message}
+                    </p>
+                  )}
                 </td>
+
+                {/* DELETE */}
                 <td>
                   <button
                     type="button"

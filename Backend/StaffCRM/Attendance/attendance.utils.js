@@ -76,35 +76,27 @@ export const calcLiveBreakSeconds = (record, now = new Date()) => {
   }, 0);
 };
 
-import workRecordModel from "./workRecord.model.js";
+export const getCurrentWeekRangeIST = () => {
+  const now = new Date();
 
-export const getTodayWorkRecordService = async (userId) => {
-  const today = todayISTUTC();
-  const yesterday = new Date(today.getTime() - 86400000);
+  const istNow = new Date(
+    now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+  );
 
-  let record = await workRecordModel.findOne({
-    user: userId,
-    date: today,
-  });
+  const day = istNow.getDay(); // 0=Sun, 1=Mon
 
-  if (!record) {
-    record = await workRecordModel.findOne({
-      user: userId,
-      date: yesterday,
-      punchOut: { $exists: false },
-    });
-  }
+  const diffToMonday = (day === 0 ? -6 : 1) - day;
 
-  if (!record) return null;
+  const mondayIST = new Date(istNow);
+  mondayIST.setDate(istNow.getDate() + diffToMonday);
+  mondayIST.setHours(0, 0, 0, 0);
 
-  const lastBreak = record.breaks.at(-1);
-  const onBreak = lastBreak && !lastBreak.out;
+  const sundayIST = new Date(mondayIST);
+  sundayIST.setDate(mondayIST.getDate() + 6);
+  sundayIST.setHours(23, 59, 59, 999);
 
   return {
-    ...record.toObject(),
-    liveNetSeconds: calcLiveNetSeconds(record),
-    serverNow: new Date(),
-    isRunning: !!record.punchIn && !record.punchOut && !onBreak,
-    onBreak,
+    weekStartUTC: new Date(mondayIST.toISOString()),
+    weekEndUTC: new Date(sundayIST.toISOString()),
   };
 };

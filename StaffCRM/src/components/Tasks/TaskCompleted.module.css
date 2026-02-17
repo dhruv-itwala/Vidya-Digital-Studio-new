@@ -1,0 +1,69 @@
+.completedSection {
+  margin-top: 40px;
+}
+
+.completedTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.completedTableWrapper {
+  overflow-x: auto;
+}
+
+.completedTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.completedTable th,
+.completedTable td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.completedTable th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+.name {
+  font-weight: 500;
+}
+
+.assigned {
+  color: #555;
+}
+
+.empty {
+  padding: 20px 0;
+  color: #777;
+}
+
+.priority {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.priority.low {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.priority.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.priority.high {
+  background: #fee2e2;
+  color: #991b1b;
+}

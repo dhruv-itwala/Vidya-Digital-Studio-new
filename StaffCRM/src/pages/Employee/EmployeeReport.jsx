@@ -59,19 +59,21 @@ export default function EmployeeReport({ onSubmitted }) {
     try {
       const res = await getMyReportsByDateAPI();
 
-      if (res?.data?.data._id) {
-        setReportId(res.data.data._id);
-        setPoints(
-          res.data.data.workPoints.length ? res.data.data.workPoints : [""]
-        );
+      const report = res?.data?.data; // 👈 important fix
+
+      if (report?._id) {
+        setReportId(report._id);
+        setPoints(report.workPoints?.length ? report.workPoints : [""]);
       }
     } catch (e) {
       console.error(e.message);
     }
   };
+
   useEffect(() => {
     fetchTodayReport();
   }, []);
+
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>

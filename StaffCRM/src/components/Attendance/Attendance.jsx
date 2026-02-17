@@ -36,7 +36,7 @@ export default function Attendance() {
   const [rangeLoading, setRangeLoading] = useState(false);
 
   const [open, setOpen] = useState({
-    daily: true,
+    daily: false,
     live: false,
     range: false,
   });
@@ -375,7 +375,7 @@ export default function Attendance() {
                             <td key={e.id}>
                               {rec[e.id]?.status || "—"}
                               <br />
-                              {/* <small>
+                              <small>
                                 {rec[e.id]?.punchIn
                                   ? formatTime(rec[e.id].punchIn)
                                   : "--"}{" "}
@@ -383,7 +383,7 @@ export default function Attendance() {
                                 {rec[e.id]?.punchOut
                                   ? formatTime(rec[e.id].punchOut)
                                   : "--"}
-                              </small> */}
+                              </small>
                             </td>
                           ))}
                         </tr>

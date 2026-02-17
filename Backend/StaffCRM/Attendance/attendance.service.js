@@ -1,7 +1,7 @@
-// Backend/Attendance/attendance.service.js
-
+// Backend/StaffCRM/Attendance/attendance.service.js
 import Attendance from "./attendance.model.js";
 import WorkRecord from "./workRecord.model.js";
+import weeklyWork from "./weeklyWork.model.js";
 
 import {
   nowUTC,
@@ -12,6 +12,7 @@ import {
   isWithinOfficeHoursIST,
   calcLiveNetSeconds,
   calcLiveBreakSeconds,
+  getCurrentWeekRangeIST,
 } from "./attendance.utils.js";
 
 import User from "../Users/user.model.js";
@@ -303,7 +304,6 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
 };
 
 // ================= LIVE EMPLOYEES STATUS ================= */
-
 export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   const todayKey = toISTDateKey(new Date());
   const selectedKey = dateStr || todayKey;
@@ -360,4 +360,79 @@ export const getDayAttendanceService = async (id) => {
 // ================ DELETE ATTENDANCE BY ID ================= */
 export const deleteAttendanceByIdService = async (attendanceId) => {
   return Attendance.findByIdAndDelete(attendanceId);
+};
+
+// ================ GET TODAY WORK RECORD ================= */
+export const getTodayWorkRecordService = async (userId) => {
+  const today = todayISTUTC();
+  const yesterday = new Date(today.getTime() - 86400000);
+
+  let record = await WorkRecord.findOne({
+    user: userId,
+    date: today,
+  });
+
+  if (!record) {
+    record = await WorkRecord.findOne({
+      user: userId,
+      date: yesterday,
+      punchOut: { $exists: false },
+    });
+  }
+
+  if (!record) return null;
+
+  const lastBreak = record.breaks.at(-1);
+  const onBreak = lastBreak && !lastBreak.out;
+
+  return {
+    ...record.toObject(),
+    liveNetSeconds: calcLiveNetSeconds(record),
+    serverNow: new Date(),
+    isRunning: !!record.punchIn && !record.punchOut && !onBreak,
+    onBreak,
+  };
+};
+
+// ================ GET WEEKLY PROGRESS ================= */
+export const getWeeklyProgressService = async (userId) => {
+  const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
+
+  const records = await WorkRecord.find({
+    user: userId,
+    date: { $gte: weekStartUTC, $lte: weekEndUTC },
+  });
+
+  let totalSeconds = 0;
+
+  for (const record of records) {
+    if (record.punchOut) {
+      totalSeconds += (record.netWorkMinutes || 0) * 60;
+    } else {
+      totalSeconds += calcLiveNetSeconds(record);
+    }
+  }
+  const requiredSeconds = 48 * 60 * 60;
+
+  const percentage = Math.min((totalSeconds / requiredSeconds) * 100, 100);
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+
+  const weeklyDoc = await weeklyWork.findOneAndUpdate(
+    { user: userId, weekStart: weekStartUTC },
+    {
+      weekEnd: weekEndUTC,
+      totalMinutes,
+      requiredMinutes: 48 * 60,
+      status: totalSeconds >= requiredSeconds ? "COMPLETED" : "IN_PROGRESS",
+    },
+    { upsert: true, new: true },
+  );
+
+  return {
+    ...weeklyDoc.toObject(),
+    totalSeconds,
+    percentage,
+    remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
+  };
 };

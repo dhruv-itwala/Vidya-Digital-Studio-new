@@ -12,8 +12,17 @@ import {
 /* =========================
    HELPERS
 ========================= */
-const parseJSON = (value) => {
-  if (typeof value === "string") return JSON.parse(value);
+const parseJSON = (value, defaultValue = []) => {
+  if (!value) return defaultValue;
+
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return defaultValue;
+    }
+  }
+
   return value;
 };
 

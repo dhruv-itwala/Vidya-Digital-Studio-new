@@ -27,7 +27,7 @@ export const downloadAllReportsByDatePDF = async (req, res) => {
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename="${formattedDate} Work Report.pdf"`
+    `attachment; filename="${formattedDate} Work Report.pdf"`,
   );
 
   const doc = new PDFDocument({ margin: 50, size: "A4" });
@@ -135,7 +135,7 @@ export const downloadCustomReportsPDF = async (req, res) => {
   const reports = await getReportsByEmployeesAndDateRangeService(
     employeeIds,
     fromDate,
-    toDate
+    toDate,
   );
 
   if (!reports.length) {
@@ -159,7 +159,7 @@ export const downloadCustomReportsPDF = async (req, res) => {
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename="Work_Report_${fromDate}_to_${toDate}.pdf"`
+    `attachment; filename="Work_Report_${fromDate}_to_${toDate}.pdf"`,
   );
 
   const doc = new PDFDocument({ margin: 50, size: "A4" });
@@ -185,9 +185,10 @@ export const downloadCustomReportsPDF = async (req, res) => {
       .moveDown(1);
 
     /* Table Header */
-    const startX = 50;
-    const dateX = startX;
-    const workX = 150;
+    const dateX = 50;
+    const dateWidth = 120; // bigger
+    const workX = dateX + dateWidth + 15;
+    const workWidth = 500 - dateWidth - 30;
 
     doc
       .font("Helvetica-Bold")
@@ -200,27 +201,41 @@ export const downloadCustomReportsPDF = async (req, res) => {
     doc.moveDown(1.5).font("Helvetica");
 
     /* Table Rows */
-    reports.forEach((r) => {
-      const startY = doc.y;
+    reports.forEach((r, index) => {
+      const rowTop = doc.y;
 
-      doc.text(r.date, dateX, startY);
-
-      let taskY = startY;
-      r.workPoints.forEach((task) => {
-        doc.text(`• ${task}`, workX, taskY, {
-          width: 350,
-          lineGap: 2,
-        });
-        taskY = doc.y;
+      const formattedDate = new Date(r.date).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "2-digit",
       });
 
-      doc
-        .moveTo(45, taskY + 5)
-        .lineTo(545, taskY + 5)
-        .strokeColor("#E5E7EB")
-        .stroke();
+      const tasksText = r.workPoints.map((t) => `• ${t}`).join("\n");
 
-      doc.y = taskY + 15;
+      const dateHeight = doc.heightOfString(formattedDate, {
+        width: dateWidth,
+      });
+      const taskHeight = doc.heightOfString(tasksText, { width: workWidth });
+
+      const rowHeight = Math.max(dateHeight, taskHeight, 25);
+
+      if (doc.y + rowHeight > 750) doc.addPage();
+
+      doc.fillColor("#000").font("Helvetica");
+
+      // DATE (no wrap now)
+      doc.text(formattedDate, dateX, rowTop, {
+        width: dateWidth,
+        lineBreak: false, // important
+      });
+
+      // TASKS
+      doc.text(tasksText, workX, rowTop, {
+        width: workWidth,
+        lineGap: 2,
+      });
+
+      doc.y = rowTop + rowHeight + 15;
     });
   });
 

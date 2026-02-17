@@ -9,7 +9,8 @@ export const createClientSchema = z
     phone: z
       .string()
       .regex(/^[6-9]\d{9}$/, "Invalid phone number")
-      .optional(),
+      .optional()
+      .or(z.literal("")),
 
     address: z.string().optional(),
 
@@ -28,9 +29,20 @@ export const createClientSchema = z
     billingType: z.enum(["one-time", "monthly"]),
 
     // 👇 IMPORTANT: no .positive() here
-    totalAmount: z.coerce.number().optional(),
-    monthlyAmount: z.coerce.number().optional(),
-    tenure: z.coerce.number().optional(),
+    totalAmount: z.preprocess(
+      (val) => (val === "" ? undefined : val),
+      z.coerce.number().optional(),
+    ),
+
+    monthlyAmount: z.preprocess(
+      (val) => (val === "" ? undefined : val),
+      z.coerce.number().optional(),
+    ),
+
+    tenure: z.preprocess(
+      (val) => (val === "" ? undefined : val),
+      z.coerce.number().optional(),
+    ),
 
     paymentStatus: z.enum(["paid", "pending", "partial"]).optional(),
     onboardingDate: z.string().optional(),
@@ -66,6 +78,13 @@ export const createClientSchema = z
     }
 
     if (data.billingType === "monthly") {
+      if (!data.totalAmount || data.totalAmount <= 0) {
+        ctx.addIssue({
+          path: ["totalAmount"],
+          message: "Total amount is required",
+        });
+      }
+
       if (!data.monthlyAmount || data.monthlyAmount <= 0) {
         ctx.addIssue({
           path: ["monthlyAmount"],

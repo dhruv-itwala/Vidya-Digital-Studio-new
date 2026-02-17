@@ -1,4 +1,4 @@
-// Backend/Attendance/attendance.routes.js
+// Backend/StaffCRM/Attendance/attendance.routes.js
 import express from "express";
 import * as ctrl from "./attendance.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
@@ -63,5 +63,7 @@ attendanceRoutes.get(
   roleCheck("admin", "hr"),
   ctrl.downloadAttendanceWithPunchPDF,
 );
+
+attendanceRoutes.get("/weekly-progress", ctrl.getWeeklyProgress);
 
 export default attendanceRoutes;

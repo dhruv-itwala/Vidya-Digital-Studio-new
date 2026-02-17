@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getMyProfileAPI } from "../api/auth.api";
-import { getAllUsersAPI } from "../api/admin.api";
+import { getAllUsersAPI, getEmployeeBirthdaysAPI } from "../api/admin.api";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [allEmployees, setAllEmployees] = useState([]);
+  const [birthdays, setBirthdays] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
@@ -22,6 +23,19 @@ export const AuthProvider = ({ children }) => {
     setAllEmployees(res.data.users || res.data);
   };
 
+  const fetchBirthdays = async () => {
+    try {
+      const res = await getEmployeeBirthdaysAPI();
+      const list = Array.isArray(res?.data?.birthdays)
+        ? res.data.birthdays
+        : [];
+      setBirthdays(list);
+    } catch (err) {
+      console.error("Failed to fetch birthdays", err);
+      setBirthdays([]);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       if (!token) {
@@ -32,6 +46,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const profile = await fetchProfile();
         await fetchAllUsers();
+        await fetchBirthdays();
         if (["admin", "hr"].includes(profile.role)) {
           await fetchAllUsers();
         }
@@ -62,6 +77,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         allEmployees,
+        birthdays,
         loading,
         isAuthenticated: Boolean(user),
         role: user?.role,

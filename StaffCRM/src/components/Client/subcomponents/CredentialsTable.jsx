@@ -1,19 +1,37 @@
 import { useFieldArray } from "react-hook-form";
 import styles from "../CreateClient.module.css";
-const CredentialsTable = ({ control, register }) => {
+
+const CredentialsTable = ({ control, register, errors }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "credentials",
   });
 
+  const getError = (index, field) => errors?.credentials?.[index]?.[field];
+
+  const getInputClass = (index, field) =>
+    `${styles.input} ${getError(index, field) ? styles.errorInput : ""}`;
+
   return (
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.h3}>Credentials</h3>
-        <button type="button" className={styles.btn} onClick={() => append({})}>
+        <button
+          type="button"
+          className={styles.btn}
+          onClick={() =>
+            append({
+              platform: "",
+              username: "",
+              password: "",
+              note: "",
+            })
+          }
+        >
           + Add Credential
         </button>
       </div>
+
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
@@ -25,37 +43,68 @@ const CredentialsTable = ({ control, register }) => {
               <th className={styles.tableHeader}>Actions</th>
             </tr>
           </thead>
+
           <tbody>
-            {fields.map((_, i) => (
-              <tr key={i} className={styles.tr}>
+            {fields.map((field, i) => (
+              <tr key={field.id} className={styles.tr}>
+                {/* PLATFORM */}
                 <td>
                   <input
                     placeholder="Platform"
-                    className={styles.input}
+                    className={getInputClass(i, "platform")}
                     {...register(`credentials.${i}.platform`)}
                   />
+                  {getError(i, "platform") && (
+                    <p className={styles.errorText}>
+                      {getError(i, "platform")?.message}
+                    </p>
+                  )}
                 </td>
+
+                {/* USERNAME */}
                 <td>
                   <input
                     placeholder="Username"
-                    className={styles.input}
+                    className={getInputClass(i, "username")}
                     {...register(`credentials.${i}.username`)}
                   />
+                  {getError(i, "username") && (
+                    <p className={styles.errorText}>
+                      {getError(i, "username")?.message}
+                    </p>
+                  )}
                 </td>
+
+                {/* PASSWORD */}
                 <td>
                   <input
+                    type="password"
                     placeholder="Password"
-                    className={styles.input}
+                    className={getInputClass(i, "password")}
                     {...register(`credentials.${i}.password`)}
                   />
+                  {getError(i, "password") && (
+                    <p className={styles.errorText}>
+                      {getError(i, "password")?.message}
+                    </p>
+                  )}
                 </td>
+
+                {/* NOTE */}
                 <td>
                   <input
                     placeholder="Note"
-                    className={styles.input}
+                    className={getInputClass(i, "note")}
                     {...register(`credentials.${i}.note`)}
                   />
+                  {getError(i, "note") && (
+                    <p className={styles.errorText}>
+                      {getError(i, "note")?.message}
+                    </p>
+                  )}
                 </td>
+
+                {/* DELETE */}
                 <td>
                   <button
                     type="button"

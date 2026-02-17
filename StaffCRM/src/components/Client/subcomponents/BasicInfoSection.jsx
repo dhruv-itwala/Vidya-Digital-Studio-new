@@ -1,30 +1,19 @@
 import { useState } from "react";
 import styles from "../CreateClient.module.css";
 
-const BasicInfoSection = ({
-  register,
-  errors,
-  existingPhoto,
-  onProfileChange,
-}) => {
+const BasicInfoSection = ({ register, errors, existingPhoto }) => {
   const [preview, setPreview] = useState(null);
-  const [uploading, setUploading] = useState(false);
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Local preview (instant UX)
     const localUrl = URL.createObjectURL(file);
     setPreview(localUrl);
-
-    try {
-      setUploading(true);
-      await onProfileChange(file); // 🔥 parent handles base64 + API call
-    } finally {
-      setUploading(false);
-    }
   };
+
+  const getInputClass = (field) =>
+    `${styles.input} ${errors?.[field] ? styles.errorInput : ""}`;
 
   return (
     <section className={styles.section}>
@@ -38,7 +27,6 @@ const BasicInfoSection = ({
             src={preview || existingPhoto}
             alt="Profile"
           />
-          {uploading && <div className={styles.imageOverlay}>Uploading…</div>}
         </div>
       )}
 
@@ -49,29 +37,77 @@ const BasicInfoSection = ({
       <input
         type="file"
         accept="image/*"
+        {...register("profilePhoto")}
         onChange={handleFileChange}
-        disabled={uploading}
       />
 
-      {/* FORM FIELDS */}
+      {/* CLIENT NAME */}
       <label className={styles.label}>Client Name *</label>
-      <input placeholder="Client Name" {...register("clientName")} />
-      <p>{errors.clientName?.message}</p>
+      <input
+        placeholder="Client Name"
+        className={getInputClass("clientName")}
+        {...register("clientName")}
+      />
+      {errors?.clientName && (
+        <p className={styles.errorText}>{errors.clientName.message}</p>
+      )}
 
+      {/* OWNER NAME */}
       <label className={styles.label}>Owner Name</label>
-      <input placeholder="Owner Name" {...register("ownerName")} />
+      <input
+        placeholder="Owner Name"
+        className={getInputClass("ownerName")}
+        {...register("ownerName")}
+      />
+      {errors?.ownerName && (
+        <p className={styles.errorText}>{errors.ownerName.message}</p>
+      )}
 
+      {/* EMAIL */}
       <label className={styles.label}>Email</label>
-      <input placeholder="Email" {...register("email")} />
+      <input
+        placeholder="Email"
+        className={getInputClass("email")}
+        {...register("email")}
+      />
+      {errors?.email && (
+        <p className={styles.errorText}>{errors.email.message}</p>
+      )}
 
+      {/* PHONE */}
       <label className={styles.label}>Phone</label>
-      <input placeholder="Phone" {...register("phone")} />
+      <input
+        placeholder="Phone"
+        className={getInputClass("phone")}
+        {...register("phone")}
+      />
+      {errors?.phone && (
+        <p className={styles.errorText}>{errors.phone.message}</p>
+      )}
 
+      {/* ADDRESS */}
       <label className={styles.label}>Address</label>
-      <textarea placeholder="Address" {...register("address")} />
+      <textarea
+        placeholder="Address"
+        className={`${styles.textarea} ${
+          errors?.address ? styles.errorInput : ""
+        }`}
+        {...register("address")}
+      />
+      {errors?.address && (
+        <p className={styles.errorText}>{errors.address.message}</p>
+      )}
 
+      {/* ONBOARDING DATE */}
       <label className={styles.label}>Onboarding Date</label>
-      <input type="date" {...register("onboardingDate")} />
+      <input
+        type="date"
+        className={getInputClass("onboardingDate")}
+        {...register("onboardingDate")}
+      />
+      {errors?.onboardingDate && (
+        <p className={styles.errorText}>{errors.onboardingDate.message}</p>
+      )}
     </section>
   );
 };
