@@ -60,50 +60,6 @@ export const useAttendance = () => {
   const abortRef = useRef(null);
   const fetchingRef = useRef(false);
 
-  /* ================= FETCH RECORD ================= */
-  //   const syncFromServer = useCallback(async () => {
-  //     const [recordRes, reportRes] = await Promise.all([
-  //       getTodayWorkRecordAPI(),
-  //       getMyReportsByDateAPI(),
-  //     ]);
-
-  //     const record = recordRes?.data?.data;
-
-  //     if (!record) {
-  //       dispatch({
-  //         type: "SET_STATE",
-  //         payload: {
-  //           workSeconds: 0,
-  //           breakSeconds: 0,
-  //           isRunning: false,
-  //           onBreak: false,
-  //           punchedOut: false,
-  //           reportSubmitted: false,
-  //         },
-  //       });
-  //       return;
-  //     }
-
-  //     const breakSecs =
-  //       record.breaks?.reduce((sum, b) => {
-  //         if (!b.in) return sum;
-  //         const end = b.out ? new Date(b.out) : new Date();
-  //         return sum + Math.floor((end - new Date(b.in)) / 1000);
-  //       }, 0) || 0;
-
-  //     dispatch({
-  //       type: "SET_STATE",
-  //       payload: {
-  //         workSeconds: record.liveNetSeconds || 0,
-  //         breakSeconds: breakSecs,
-  //         isRunning: record.isRunning,
-  //         onBreak: record.onBreak,
-  //         punchedOut: !!record.punchOut,
-  //         reportSubmitted: Boolean(reportRes?.data?.data),
-  //       },
-  //     });
-  //   }, []);
-
   const syncFromServer = useCallback(async () => {
     const [recordRes, reportRes, weeklyRes] = await Promise.all([
       getTodayWorkRecordAPI(),
@@ -139,26 +95,47 @@ export const useAttendance = () => {
     });
   }, []);
 
-  useEffect(() => {
-    let interval;
+  // useEffect(() => {
+  //   let interval;
 
+  //   if (
+  //     state.weeklyStatus !== "COMPLETED" &&
+  //     state.isRunning &&
+  //     !state.onBreak
+  //   ) {
+  //     interval = setInterval(() => {
+  //       dispatch({
+  //         type: "SET_STATE",
+  //         payload: {
+  //           weeklySeconds: state.weeklySeconds + 1,
+  //         },
+  //       });
+  //     }, 1000);
+  //   }
+
+  //   return () => clearInterval(interval);
+  // }, [state.isRunning, state.onBreak, state.weeklyStatus, state.weeklySeconds]);
+
+  useEffect(() => {
     if (
-      state.weeklyStatus !== "COMPLETED" &&
-      state.isRunning &&
-      !state.onBreak
+      state.weeklyStatus === "COMPLETED" ||
+      !state.isRunning ||
+      state.onBreak
     ) {
-      interval = setInterval(() => {
-        dispatch({
-          type: "SET_STATE",
-          payload: {
-            weeklySeconds: state.weeklySeconds + 1,
-          },
-        });
-      }, 1000);
+      return;
     }
 
+    const interval = setInterval(() => {
+      dispatch((prevState) => ({
+        type: "SET_STATE",
+        payload: {
+          weeklySeconds: prevState.weeklySeconds + 1,
+        },
+      }));
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [state.isRunning, state.onBreak, state.weeklyStatus, state.weeklySeconds]);
+  }, [state.isRunning, state.onBreak, state.weeklyStatus]);
 
   /* ================= INITIAL DASHBOARD LOAD ================= */
   const fetchDashboardStatus = useCallback(async () => {
