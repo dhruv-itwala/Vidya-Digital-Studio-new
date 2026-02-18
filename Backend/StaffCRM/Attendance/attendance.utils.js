@@ -76,31 +76,6 @@ export const calcLiveBreakSeconds = (record, now = new Date()) => {
   }, 0);
 };
 
-// export const getCurrentWeekRangeIST = () => {
-//   const now = new Date();
-
-//   const istNow = new Date(
-//     now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-//   );
-
-//   const day = istNow.getDay(); // 0=Sun, 1=Mon
-
-//   const diffToMonday = (day === 0 ? -6 : 1) - day;
-
-//   const mondayIST = new Date(istNow);
-//   mondayIST.setDate(istNow.getDate() + diffToMonday);
-//   mondayIST.setHours(0, 0, 0, 0);
-
-//   const sundayIST = new Date(mondayIST);
-//   sundayIST.setDate(mondayIST.getDate() + 6);
-//   sundayIST.setHours(23, 59, 59, 999);
-
-//   return {
-//     weekStartUTC: new Date(mondayIST.toISOString()),
-//     weekEndUTC: new Date(sundayIST.toISOString()),
-//   };
-// };
-
 export const getCurrentWeekRangeIST = () => {
   const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5h30m in ms
 

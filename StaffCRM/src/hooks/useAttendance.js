@@ -49,6 +49,11 @@ function reducer(state, action) {
 
     case "SET_ACTION_LOADING":
       return { ...state, actionLoading: action.payload };
+    case "INCREMENT_WEEKLY":
+      return {
+        ...state,
+        weeklySeconds: state.weeklySeconds + 1,
+      };
 
     default:
       return state;
@@ -96,25 +101,25 @@ export const useAttendance = () => {
   }, []);
 
   // useEffect(() => {
-  //   let interval;
-
   //   if (
-  //     state.weeklyStatus !== "COMPLETED" &&
-  //     state.isRunning &&
-  //     !state.onBreak
+  //     state.weeklyStatus === "COMPLETED" ||
+  //     !state.isRunning ||
+  //     state.onBreak
   //   ) {
-  //     interval = setInterval(() => {
-  //       dispatch({
-  //         type: "SET_STATE",
-  //         payload: {
-  //           weeklySeconds: state.weeklySeconds + 1,
-  //         },
-  //       });
-  //     }, 1000);
+  //     return;
   //   }
 
+  //   const interval = setInterval(() => {
+  //     dispatch((prevState) => ({
+  //       type: "SET_STATE",
+  //       payload: {
+  //         weeklySeconds: prevState.weeklySeconds + 1,
+  //       },
+  //     }));
+  //   }, 1000);
+
   //   return () => clearInterval(interval);
-  // }, [state.isRunning, state.onBreak, state.weeklyStatus, state.weeklySeconds]);
+  // }, [state.isRunning, state.onBreak, state.weeklyStatus]);
 
   useEffect(() => {
     if (
@@ -126,12 +131,7 @@ export const useAttendance = () => {
     }
 
     const interval = setInterval(() => {
-      dispatch((prevState) => ({
-        type: "SET_STATE",
-        payload: {
-          weeklySeconds: prevState.weeklySeconds + 1,
-        },
-      }));
+      dispatch({ type: "INCREMENT_WEEKLY" });
     }, 1000);
 
     return () => clearInterval(interval);

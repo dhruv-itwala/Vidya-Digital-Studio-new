@@ -192,20 +192,6 @@ export const markAttendanceStatusService = async (userId, date, status) => {
 
   const day = parseISTDateOnly(date);
 
-  // const approvedLeave = await Leave.findOne({
-  //   user: userId,
-  //   status: "APPROVED",
-  //   fromDate: { $lte: day },
-  //   toDate: { $gte: day },
-  // });
-
-  // if (approvedLeave && status !== "LEAVE") {
-  //   throw new AppError(
-  //     "Employee is on approved leave. Cancel leave before marking attendance.",
-  //     409,
-  //   );
-  // }
-
   const approvedLeave = await Leave.findOne({
     user: userId,
     status: "APPROVED",
@@ -352,7 +338,6 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
 };
 
 // ================= DAY ATTENDANCE ================= */
-
 export const getDayAttendanceService = async (id) => {
   return Attendance.find({ id });
 };
@@ -410,17 +395,9 @@ export const getWeeklyProgressService = async (userId) => {
 
     const endTime = record.punchOut ?? new Date();
 
-    const total = Math.floor((endTime - record.punchIn) / 1000);
+    const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
 
-    const breakSeconds = record.breaks.reduce((sum, b) => {
-      if (!b.in) return sum;
-      const breakEnd = b.out ?? endTime;
-      return sum + Math.floor((breakEnd - b.in) / 1000);
-    }, 0);
-
-    const netSeconds = Math.max(total - breakSeconds, 0);
-
-    totalSeconds += netSeconds;
+    totalSeconds += workedSeconds; // ✅ DO NOT subtract break
   }
 
   const requiredSeconds = 48 * 60 * 60;
