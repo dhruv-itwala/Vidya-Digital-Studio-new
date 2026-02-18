@@ -207,7 +207,15 @@ export const useAttendance = () => {
     BREAK_LIMIT_SECONDS,
 
     punchIn: () => handleAction(punchInAPI, "👋 Have a great day!"),
-    punchOut: () => handleAction(punchOutAPI, "🌟 Great work today!"),
+    punchOut: async () => {
+      if (!state.reportSubmitted) {
+        toast.error("⚠ Submit daily report before punching out.");
+        return;
+      }
+
+      return handleAction(punchOutAPI, "🌟 Great work today!");
+    },
+
     breakIn: () => handleAction(breakInAPI, "☕ Break started"),
     breakOut: () => handleAction(breakOutAPI, "💪 Back to work"),
   };

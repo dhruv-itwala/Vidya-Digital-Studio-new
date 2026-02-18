@@ -18,6 +18,7 @@ export default function DailyTimer({ attendance }) {
     punchOut,
     breakIn,
     breakOut,
+    reportSubmitted,
   } = attendance;
 
   /* ================= LOCAL LIVE TIMER ================= */
@@ -107,6 +108,11 @@ export default function DailyTimer({ attendance }) {
           {onBreak && !punchedOut && (
             <div className={styles.breakInfo}>
               Break Remaining: {formatTime(remainingBreak)}
+              {!reportSubmitted && isRunning && !punchedOut && (
+                <p className={styles.warning}>
+                  ⚠ Please submit your daily report before punching out.
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -135,7 +141,12 @@ export default function DailyTimer({ attendance }) {
         </button>
 
         <button
-          disabled={actionLoading || punchedOut || (!isRunning && !onBreak)}
+          disabled={
+            actionLoading ||
+            punchedOut ||
+            (!isRunning && !onBreak) ||
+            !reportSubmitted
+          }
           onClick={punchOut}
         >
           Punch Out

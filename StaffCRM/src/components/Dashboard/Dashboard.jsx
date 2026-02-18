@@ -11,7 +11,6 @@ import DailyTimer from "../../components/DailyTimer/DailyTimer";
 import { useAttendance } from "../../hooks/useAttendance";
 import { useAuth } from "../../context/AuthContext";
 import EmployeeReport from "../../pages/Employee/EmployeeReport";
-import EmployeeTasks from "../../pages/Employee/EmployeeTasks";
 import TaskDashboard from "../Tasks/TaskDashboard";
 
 const Dashboard = () => {
