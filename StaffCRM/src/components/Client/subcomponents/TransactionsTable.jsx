@@ -1,26 +1,27 @@
-import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 import styles from "../CreateClient.module.css";
 
-const TransactionsTable = ({ control, register, errors }) => {
+const TransactionsTable = ({ control, register, errors, watch, setValue }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "transactions",
   });
 
+  const paymentStatus = watch?.("paymentStatus");
+
   /* =========================================
-     AUTO ADD FIRST ROW IF EMPTY
+     CLEAR TRANSACTIONS IF PAYMENT IS PENDING
   ========================================= */
-  useEffect(() => {
-    if (fields.length === 0) {
-      append({ date: "", amount: "" });
-    }
-  }, [fields.length, append]);
+  if (paymentStatus === "pending" && fields.length > 0) {
+    setValue("transactions", []);
+  }
 
   const getError = (index, field) => errors?.transactions?.[index]?.[field];
 
   const getInputClass = (index, field) =>
     `${styles.input} ${getError(index, field) ? styles.errorInput : ""}`;
+
+  const isDisabled = paymentStatus === "pending";
 
   return (
     <section className={styles.section}>
@@ -31,6 +32,7 @@ const TransactionsTable = ({ control, register, errors }) => {
           type="button"
           className={styles.btn}
           onClick={() => append({ date: "", amount: "" })}
+          disabled={isDisabled}
         >
           + Add Transaction
         </button>
@@ -47,6 +49,16 @@ const TransactionsTable = ({ control, register, errors }) => {
           </thead>
 
           <tbody>
+            {fields.length === 0 && (
+              <tr>
+                <td colSpan="3" className={styles.empty}>
+                  {isDisabled
+                    ? "Payment is pending — no transactions yet"
+                    : "No transactions added"}
+                </td>
+              </tr>
+            )}
+
             {fields.map((field, i) => (
               <tr key={field.id} className={styles.tr}>
                 {/* DATE */}
@@ -55,6 +67,7 @@ const TransactionsTable = ({ control, register, errors }) => {
                     type="date"
                     className={getInputClass(i, "date")}
                     {...register(`transactions.${i}.date`)}
+                    disabled={isDisabled}
                   />
                   {getError(i, "date") && (
                     <p className={styles.errorText}>
@@ -71,6 +84,7 @@ const TransactionsTable = ({ control, register, errors }) => {
                     placeholder="Enter Amount"
                     className={getInputClass(i, "amount")}
                     {...register(`transactions.${i}.amount`)}
+                    disabled={isDisabled}
                   />
                   {getError(i, "amount") && (
                     <p className={styles.errorText}>
@@ -85,6 +99,7 @@ const TransactionsTable = ({ control, register, errors }) => {
                     type="button"
                     className={styles.danger}
                     onClick={() => remove(i)}
+                    disabled={isDisabled}
                   >
                     Delete
                   </button>

@@ -104,6 +104,8 @@ const CreateClient = () => {
           control={control}
           register={register}
           errors={errors}
+          watch={watch}
+          setValue={setValue}
         />
 
         <DocumentsTable control={control} register={register} errors={errors} />
