@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "../CreateClient.module.css";
 
-const BasicInfoSection = ({ register, errors, existingPhoto }) => {
+const BasicInfoSection = ({
+  register,
+  errors,
+  existingPhoto, // pass client?.profilePhoto?.url in edit mode
+}) => {
   const [preview, setPreview] = useState(null);
 
+  /* =========================================
+     HANDLE FILE CHANGE
+  ========================================= */
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -11,6 +18,15 @@ const BasicInfoSection = ({ register, errors, existingPhoto }) => {
     const localUrl = URL.createObjectURL(file);
     setPreview(localUrl);
   };
+
+  /* =========================================
+     CLEANUP PREVIEW (IMPORTANT)
+  ========================================= */
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const getInputClass = (field) =>
     `${styles.input} ${errors?.[field] ? styles.errorInput : ""}`;
@@ -20,20 +36,21 @@ const BasicInfoSection = ({ register, errors, existingPhoto }) => {
       <h3 className={styles.h3}>Basic Information</h3>
 
       {/* IMAGE PREVIEW */}
-      {(preview || existingPhoto) && (
+      {(preview || existingPhoto?.url) && (
         <div className={styles.imageWrapper}>
           <img
             className={styles.imagePreview}
-            src={preview || existingPhoto}
+            src={preview || existingPhoto?.url}
             alt="Profile"
           />
         </div>
       )}
 
-      {/* FILE INPUT */}
+      {/* PROFILE PHOTO */}
       <label className={styles.label}>
         {existingPhoto ? "Change Profile Photo" : "Profile Photo"}
       </label>
+
       <input
         type="file"
         accept="image/*"
@@ -66,6 +83,7 @@ const BasicInfoSection = ({ register, errors, existingPhoto }) => {
       {/* EMAIL */}
       <label className={styles.label}>Email</label>
       <input
+        type="email"
         placeholder="Email"
         className={getInputClass("email")}
         {...register("email")}

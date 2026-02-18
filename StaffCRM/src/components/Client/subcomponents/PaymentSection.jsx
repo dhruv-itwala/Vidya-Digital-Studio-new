@@ -1,7 +1,23 @@
+import { useEffect } from "react";
 import styles from "../CreateClient.module.css";
 
-const PaymentSection = ({ register, watch, errors }) => {
+const PaymentSection = ({ register, watch, setValue, errors }) => {
   const billingType = watch("billingType");
+
+  /* =========================================
+     AUTO CLEANUP WHEN BILLING TYPE CHANGES
+  ========================================= */
+  useEffect(() => {
+    if (billingType === "one-time") {
+      setValue("monthlyAmount", "");
+      setValue("tenure", "");
+    }
+
+    if (billingType === "monthly") {
+      // totalAmount optional depending on your logic
+      // keep it if you want total = monthlyAmount * tenure
+    }
+  }, [billingType, setValue]);
 
   const getInputClass = (field) =>
     `${styles.input} ${errors?.[field] ? styles.errorInput : ""}`;
@@ -46,6 +62,7 @@ const PaymentSection = ({ register, watch, errors }) => {
           <label className={styles.label}>Total Amount</label>
           <input
             type="number"
+            step="0.01"
             placeholder="Total Amount"
             className={getInputClass("totalAmount")}
             {...register("totalAmount")}
@@ -59,20 +76,10 @@ const PaymentSection = ({ register, watch, errors }) => {
       {/* MONTHLY */}
       {billingType === "monthly" && (
         <>
-          <label className={styles.label}>Total Amount</label>
-          <input
-            type="number"
-            placeholder="Total Amount"
-            className={getInputClass("totalAmount")}
-            {...register("totalAmount")}
-          />
-          {errors?.totalAmount && (
-            <p className={styles.errorText}>{errors.totalAmount.message}</p>
-          )}
-
           <label className={styles.label}>Monthly Amount</label>
           <input
             type="number"
+            step="0.01"
             placeholder="Monthly Amount"
             className={getInputClass("monthlyAmount")}
             {...register("monthlyAmount")}

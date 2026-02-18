@@ -5,18 +5,18 @@ import {
   getAllClientsService,
   getClientByIdService,
   deleteClientService,
-  updateClientProfilePhotoService,
+  uploadClientDocumentsService,
+  deleteClientDocumentService,
 } from "./client.service.js";
 
-// CREATE
+/* =========================================
+   CREATE CLIENT
+========================================= */
 export const createClient = asyncHandler(async (req, res) => {
-  console.log("FILE:", req.file); // 👈 REQUIRED
-  console.log("BODY:", req.body);
-
   const client = await createClientService(
     req.body,
-    req.user.id,
-    req.file, // ✅ pass uploaded image (if any)
+    req.user?.id, // make sure protect middleware is enabled
+    req.file, // profilePhoto
   );
 
   res.status(201).json({
@@ -25,15 +25,14 @@ export const createClient = asyncHandler(async (req, res) => {
   });
 });
 
-// UPDATE
+/* =========================================
+   UPDATE CLIENT
+========================================= */
 export const updateClient = asyncHandler(async (req, res) => {
-  console.log("FILE:", req.file); // 👈 REQUIRED
-  console.log("BODY:", req.body);
-
   const client = await updateClientService(
     req.params.id,
     req.body,
-    req.file, // ✅ pass uploaded image (if any)
+    req.file, // optional profilePhoto
   );
 
   res.json({
@@ -42,45 +41,73 @@ export const updateClient = asyncHandler(async (req, res) => {
   });
 });
 
-// GET ALL
+/* =========================================
+   UPLOAD DOCUMENTS
+========================================= */
+export const uploadClientDocuments = asyncHandler(async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "No documents uploaded",
+    });
+  }
+
+  const documents = await uploadClientDocumentsService(
+    req.params.id,
+    req.files,
+  );
+
+  res.json({
+    success: true,
+    message: "Documents uploaded successfully",
+    data: documents,
+  });
+});
+
+/* =========================================
+   DELETE DOCUMENT
+========================================= */
+export const deleteClientDocument = asyncHandler(async (req, res) => {
+  await deleteClientDocumentService(req.params.clientId, req.params.documentId);
+
+  res.json({
+    success: true,
+    message: "Document deleted successfully",
+  });
+});
+
+/* =========================================
+   GET ALL CLIENTS
+========================================= */
 export const getAllClients = asyncHandler(async (req, res) => {
   const clients = await getAllClientsService();
+
   res.json({
     success: true,
     data: clients,
   });
 });
 
-// GET ONE
+/* =========================================
+   GET SINGLE CLIENT
+========================================= */
 export const getClientById = asyncHandler(async (req, res) => {
   const client = await getClientByIdService(req.params.id);
+
   res.json({
     success: true,
     data: client,
   });
 });
 
-// DELETE (Soft)
+/* =========================================
+   SOFT DELETE CLIENT
+========================================= */
 export const deleteClient = asyncHandler(async (req, res) => {
   await deleteClientService(req.params.id);
+
   res.json({
     success: true,
     message: "Client deleted successfully",
-  });
-});
-
-// UPDATE PROFILE PHOTO ONLY
-export const updateClientProfilePhoto = asyncHandler(async (req, res) => {
-  const { image } = req.body;
-
-  const client = await updateClientProfilePhotoService(req.params.id, image);
-
-  res.json({
-    success: true,
-    message: "Profile photo updated successfully",
-    data: {
-      _id: client._id,
-      profilePhoto: client.profilePhoto,
-    },
   });
 });

@@ -1,35 +1,61 @@
 import api from "./axios";
 
-// CREATE CLIENT
-export const createClient = async (data) => {
-  // data can be FormData OR JSON
-  const res = await api.post("/clients", data);
+/* =========================================
+   CREATE CLIENT
+   Accepts FormData
+========================================= */
+export const createClient = async (formData) => {
+  const res = await api.post("/clients", formData);
   return res.data;
 };
 
-// UPDATE CLIENT
-export const updateClient = async (clientId, data) => {
-  return api
-    .post(`/clients/${clientId}`, data, {
-      // 🚫 DO NOT set Content-Type manually
-      // Axios will set multipart boundary automatically
-    })
-    .then((res) => res.data);
+/* =========================================
+   UPDATE CLIENT
+   Accepts FormData
+========================================= */
+export const updateClient = async (clientId, formData) => {
+  const res = await api.put(`/clients/${clientId}`, formData);
+
+  return res.data;
 };
 
-// GET ALL
+/* =========================================
+   UPLOAD DOCUMENTS (MULTIPLE)
+========================================= */
+export const uploadClientDocuments = async (clientId, formData) => {
+  const res = await api.post(`/clients/${clientId}/documents`, formData);
+
+  return res.data;
+};
+
+/* =========================================
+   DELETE SINGLE DOCUMENT
+========================================= */
+export const deleteClientDocument = async (clientId, documentId) => {
+  const res = await api.delete(`/clients/${clientId}/documents/${documentId}`);
+
+  return res.data;
+};
+
+/* =========================================
+   GET ALL CLIENTS
+========================================= */
 export const getAllClients = async () => {
   const res = await api.get("/clients");
   return res.data;
 };
 
-// GET ONE
+/* =========================================
+   GET SINGLE CLIENT
+========================================= */
 export const getClientById = async (clientId) => {
   const res = await api.get(`/clients/${clientId}`);
   return res.data;
 };
 
-// DELETE
+/* =========================================
+   DELETE CLIENT (SOFT DELETE)
+========================================= */
 export const deleteClient = async (clientId) => {
   const res = await api.delete(`/clients/${clientId}`);
   return res.data;

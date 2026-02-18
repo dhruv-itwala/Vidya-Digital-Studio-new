@@ -2,30 +2,58 @@ import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
 import upload from "../../config/multer.config.js";
+
 import {
   createClient,
   updateClient,
   getAllClients,
   getClientById,
   deleteClient,
-  updateClientProfilePhoto,
+  uploadClientDocuments,
+  deleteClientDocument,
 } from "./client.controller.js";
 
 const router = express.Router();
 
-// router.use(protect);
-// router.use(roleCheck("admin", "hr"));
+/* ===============================
+   AUTH MIDDLEWARE
+=============================== */
+router.use(protect);
+router.use(roleCheck("admin", "hr"));
 
-// ✅ Enable image upload
+/* ===============================
+   CREATE CLIENT
+=============================== */
 router.post("/", upload.single("profilePhoto"), createClient);
 
-router.post("/:id", upload.single("profilePhoto"), updateClient);
+/* ===============================
+   UPDATE CLIENT
+=============================== */
+router.put("/:id", upload.single("profilePhoto"), updateClient);
 
-router.post("/:id/profile-photo", updateClientProfilePhoto);
+/* ===============================
+   UPLOAD DOCUMENTS
+=============================== */
+router.post(
+  "/:id/documents",
+  upload.array("documents", 10),
+  uploadClientDocuments,
+);
 
-// ❌ No Multer for read-only routes
+/* ===============================
+   DELETE DOCUMENT
+=============================== */
+router.delete("/:clientId/documents/:documentId", deleteClientDocument);
+
+/* ===============================
+   READ
+=============================== */
 router.get("/", getAllClients);
 router.get("/:id", getClientById);
+
+/* ===============================
+   SOFT DELETE
+=============================== */
 router.delete("/:id", deleteClient);
 
 export default router;

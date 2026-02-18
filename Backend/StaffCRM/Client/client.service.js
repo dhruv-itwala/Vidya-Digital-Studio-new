@@ -1,17 +1,15 @@
 import Client from "./client.model.js";
 import AppError from "../utils/AppError.js";
 import {
-  deleteFromCloudinary,
-  uploadImageToCloudinary,
-} from "../utils/cloudinaryUpload.js";
-import {
-  deleteClientImageByPublicId,
-  uploadClientImageFromBuffer,
+  uploadProfilePhoto,
+  uploadDocument,
+  deleteFileByPublicId,
 } from "./clientCloudinary.service.js";
 
 /* =========================
    HELPERS
 ========================= */
+
 const parseJSON = (value, defaultValue = []) => {
   if (!value) return defaultValue;
 
@@ -26,121 +24,182 @@ const parseJSON = (value, defaultValue = []) => {
   return value;
 };
 
-/* =========================
-   SERVICES
-========================= */
-export const createClientService = async (data, userId, file) => {
-  let profilePhoto;
+const parseServices = (services) => {
+  if (!services) return [];
 
-  if (file) {
-    const result = await uploadImageToCloudinary(
-      file,
-      "Vidya Digital Studio/clients/profile-photos",
-    );
-
-    profilePhoto = result.secure_url;
+  if (typeof services === "string") {
+    try {
+      return JSON.parse(services);
+    } catch {
+      return [];
+    }
   }
 
-  return Client.create({
+  if (Array.isArray(services)) return services;
+
+  return [];
+};
+
+/* =========================
+   CREATE CLIENT
+========================= */
+
+export const createClientService = async (data, userId, profileFile) => {
+  let profilePhoto;
+
+  if (profileFile) {
+    const upload = await uploadProfilePhoto(
+      profileFile.buffer,
+      `client_${Date.now()}`,
+    );
+
+    profilePhoto = {
+      url: upload.url,
+      public_id: upload.public_id,
+    };
+  }
+
+  const client = await Client.create({
     ...data,
     profilePhoto,
-    services: parseJSON(data.services),
+    services: parseServices(data.services),
     transactions: parseJSON(data.transactions),
     credentials: parseJSON(data.credentials),
     createdBy: userId,
   });
+
+  return client;
 };
 
-export const updateClientService = async (id, data, file) => {
+/* =========================
+   UPDATE CLIENT
+========================= */
+
+export const updateClientService = async (id, data, profileFile) => {
   const client = await Client.findById(id);
   if (!client) throw new AppError("Client not found", 404);
 
-  // Upload new image if provided
-  if (file) {
-    // Delete old image (optional but recommended)
-    if (client.profilePhoto) {
-      const publicId = client.profilePhoto
-        .split("/")
-        .slice(-2)
-        .join("/")
-        .split(".")[0];
-
-      await deleteFromCloudinary(publicId);
+  /* ---- Replace Profile Photo ---- */
+  if (profileFile) {
+    if (client.profilePhoto?.public_id) {
+      await deleteFileByPublicId(client.profilePhoto.public_id);
     }
 
-    const result = await uploadImageToCloudinary(
-      file,
-      "Vidya Digital Studio/clients/profile-photos",
-    );
+    const upload = await uploadProfilePhoto(profileFile.buffer, `client_${id}`);
 
-    data.profilePhoto = result.secure_url;
+    client.profilePhoto = {
+      url: upload.url,
+      public_id: upload.public_id,
+    };
   }
 
-  client.set({
-    ...data,
-    services: parseJSON(data.services),
-    transactions: parseJSON(data.transactions),
-    credentials: parseJSON(data.credentials),
-  });
+  /* ---- Safe Update ---- */
+  if (data.clientName) client.clientName = data.clientName;
+  if (data.ownerName) client.ownerName = data.ownerName;
+  if (data.email) client.email = data.email;
+  if (data.phone) client.phone = data.phone;
+  if (data.address) client.address = data.address;
+  if (data.billingType) client.billingType = data.billingType;
+  if (data.totalAmount) client.totalAmount = data.totalAmount;
+  if (data.monthlyAmount) client.monthlyAmount = data.monthlyAmount;
+  if (data.tenure) client.tenure = data.tenure;
+  if (data.paymentStatus) client.paymentStatus = data.paymentStatus;
+  if (data.notes) client.notes = data.notes;
+
+  if (data.services) {
+    client.services = parseServices(data.services);
+  }
+
+  if (data.transactions) {
+    client.transactions = parseJSON(data.transactions);
+  }
+
+  if (data.credentials) {
+    client.credentials = parseJSON(data.credentials);
+  }
 
   return client.save();
 };
 
-export const getAllClientsService = async () => {
-  return Client.find({ isActive: true }).sort({ createdAt: -1 });
+/* =========================
+   UPLOAD DOCUMENTS
+========================= */
+
+export const uploadClientDocumentsService = async (clientId, files) => {
+  const client = await Client.findById(clientId);
+  if (!client) throw new AppError("Client not found", 404);
+
+  for (const file of files) {
+    const upload = await uploadDocument(file.buffer, file.originalname);
+
+    client.documents.push({
+      name: file.originalname,
+      url: upload.url,
+      public_id: upload.public_id,
+      type: file.mimetype,
+      size: upload.size,
+    });
+  }
+
+  await client.save();
+  return client.documents;
 };
 
-export const getClientByIdService = async (id) => {
-  const client = await Client.findById(id);
+/* =========================
+   DELETE DOCUMENT
+========================= */
+export const deleteClientDocumentService = async (clientId, documentId) => {
+  const client = await Client.findById(clientId);
   if (!client) throw new AppError("Client not found", 404);
+
+  const document = client.documents.id(documentId);
+  if (!document) throw new AppError("Document not found", 404);
+
+  if (document.public_id) {
+    await deleteFileByPublicId(document.public_id, "raw");
+  }
+
+  document.deleteOne(); // better than remove()
+  await client.save();
+
+  return true;
+};
+
+/* =========================
+   GET ALL
+========================= */
+
+export const getAllClientsService = async () => {
+  return Client.find({ isActive: true }).sort({
+    createdAt: -1,
+  });
+};
+
+/* =========================
+   GET ONE
+========================= */
+
+export const getClientByIdService = async (id) => {
+  const client = await Client.findOne({
+    _id: id,
+    isActive: true,
+  });
+
+  if (!client) throw new AppError("Client not found", 404);
+
   return client;
 };
+
+/* =========================
+   SOFT DELETE
+========================= */
 
 export const deleteClientService = async (id) => {
   const client = await Client.findById(id);
   if (!client) throw new AppError("Client not found", 404);
 
   client.isActive = false;
-  return client.save();
-};
-
-export const updateClientProfilePhotoService = async (id, base64Image) => {
-  const client = await Client.findById(id);
-  if (!client) throw new AppError("Client not found", 404);
-
-  if (!base64Image) {
-    throw new AppError("Profile photo is required", 400);
-  }
-
-  // 🔹 Decode base64
-  const matches = base64Image.match(/^data:(.+);base64,(.+)$/);
-  if (!matches) {
-    throw new AppError("Invalid image format", 400);
-  }
-
-  const buffer = Buffer.from(matches[2], "base64");
-
-  // 🔹 Delete old image if exists
-  if (client.profilePhoto) {
-    const publicId = client.profilePhoto
-      .split("/")
-      .slice(-2)
-      .join("/")
-      .split(".")[0];
-
-    try {
-      await deleteClientImageByPublicId(publicId);
-    } catch (e) {
-      console.warn("Old image delete failed:", e.message);
-    }
-  }
-
-  // 🔹 Upload (quotation-style)
-  const filenameBase = `client_${client._id}`;
-  const upload = await uploadClientImageFromBuffer(buffer, filenameBase);
-
-  client.profilePhoto = upload.url;
   await client.save();
 
-  return client;
+  return true;
 };

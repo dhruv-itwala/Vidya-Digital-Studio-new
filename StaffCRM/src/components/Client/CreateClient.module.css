@@ -42,8 +42,24 @@
   border-radius: 8px;
 }
 
+.danger {
+  padding: 8px 16px;
+  background: #dc2626;
+  color: white;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.submit {
+  background: var(--color-primary);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+
 .submit:disabled,
-.createBtn:disabled {
+.createBtn:disabled .danger:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -109,13 +125,6 @@
   padding: 8px;
 }
 
-.submit {
-  background: var(--color-primary);
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 8px;
-}
-
 .btn {
   padding: 8px 16px;
   background: var(--color-primary);
@@ -135,14 +144,6 @@
   text-decoration: none;
 }
 
-.danger {
-  padding: 8px 16px;
-  background: #dc2626;
-  color: white;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-}
 .imageWrapper {
   position: relative;
   width: fit-content;

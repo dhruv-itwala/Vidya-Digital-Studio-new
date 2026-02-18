@@ -1,7 +1,22 @@
+import { useEffect } from "react";
 import styles from "../CreateClient.module.css";
 
-const ServicesSection = ({ register, errors }) => {
+const ServicesSection = ({
+  register,
+  errors,
+  existingServices = [], // pass client?.services in edit mode
+  setValue,
+}) => {
   const hasError = errors?.servicesText;
+
+  /* =========================================
+     PREFILL FOR EDIT MODE
+  ========================================= */
+  useEffect(() => {
+    if (existingServices?.length) {
+      setValue("servicesText", existingServices.join(", "));
+    }
+  }, [existingServices, setValue]);
 
   return (
     <section className={styles.section}>

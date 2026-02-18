@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 import styles from "../CreateClient.module.css";
 
@@ -6,6 +7,15 @@ const TransactionsTable = ({ control, register, errors }) => {
     control,
     name: "transactions",
   });
+
+  /* =========================================
+     AUTO ADD FIRST ROW IF EMPTY
+  ========================================= */
+  useEffect(() => {
+    if (fields.length === 0) {
+      append({ date: "", amount: "" });
+    }
+  }, [fields.length, append]);
 
   const getError = (index, field) => errors?.transactions?.[index]?.[field];
 
@@ -16,6 +26,7 @@ const TransactionsTable = ({ control, register, errors }) => {
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.h3}>Transaction History</h3>
+
         <button
           type="button"
           className={styles.btn}
@@ -56,6 +67,7 @@ const TransactionsTable = ({ control, register, errors }) => {
                 <td>
                   <input
                     type="number"
+                    step="0.01"
                     placeholder="Enter Amount"
                     className={getInputClass(i, "amount")}
                     {...register(`transactions.${i}.amount`)}

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 import styles from "../CreateClient.module.css";
 
@@ -6,6 +7,21 @@ const CredentialsTable = ({ control, register, errors }) => {
     control,
     name: "credentials",
   });
+
+  /* =========================================
+     AUTO ADD ONE EMPTY ROW IF NONE
+     (Optional but nice UX)
+  ========================================= */
+  useEffect(() => {
+    if (fields.length === 0) {
+      append({
+        platform: "",
+        username: "",
+        password: "",
+        note: "",
+      });
+    }
+  }, [fields.length, append]);
 
   const getError = (index, field) => errors?.credentials?.[index]?.[field];
 
@@ -16,6 +32,7 @@ const CredentialsTable = ({ control, register, errors }) => {
     <section className={styles.section}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.h3}>Credentials</h3>
+
         <button
           type="button"
           className={styles.btn}
@@ -78,7 +95,7 @@ const CredentialsTable = ({ control, register, errors }) => {
                 {/* PASSWORD */}
                 <td>
                   <input
-                    type="password"
+                    type="text"
                     placeholder="Password"
                     className={getInputClass(i, "password")}
                     {...register(`credentials.${i}.password`)}

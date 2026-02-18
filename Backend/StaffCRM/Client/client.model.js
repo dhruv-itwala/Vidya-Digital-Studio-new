@@ -3,7 +3,11 @@ import mongoose from "mongoose";
 const clientSchema = new mongoose.Schema(
   {
     // Basic Info
-    profilePhoto: String,
+    profilePhoto: {
+      url: String,
+      public_id: String,
+    },
+
     clientName: { type: String, required: true, trim: true },
     ownerName: { type: String, trim: true },
     email: { type: String, lowercase: true },
@@ -23,11 +27,10 @@ const clientSchema = new mongoose.Schema(
     totalAmount: {
       type: Number,
       required: function () {
-        return (
-          this.billingType === "one-time" || this.billingType === "monthly"
-        );
+        return this.billingType === "one-time";
       },
     },
+
     monthlyAmount: {
       type: Number,
       required: function () {
@@ -50,11 +53,14 @@ const clientSchema = new mongoose.Schema(
 
     transactions: [
       {
+        transactionId: {
+          type: mongoose.Schema.Types.ObjectId,
+          default: () => new mongoose.Types.ObjectId(),
+        },
         date: { type: Date, default: Date.now },
         amount: { type: Number, required: true },
       },
     ],
-
     // Credentials
     credentials: [
       {
@@ -62,9 +68,21 @@ const clientSchema = new mongoose.Schema(
         username: String,
         password: String,
         note: String,
+        addedAt: { type: Date, default: Date.now },
       },
     ],
 
+    documents: [
+      {
+        name: String,
+        url: String,
+        public_id: String,
+        type: { type: String },
+        size: Number,
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
+    notes: String,
     // Meta
     isActive: { type: Boolean, default: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

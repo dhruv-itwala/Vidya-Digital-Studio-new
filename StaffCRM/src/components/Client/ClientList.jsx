@@ -13,12 +13,15 @@ const ClientList = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  /* =========================================
+     FETCH CLIENTS
+  ========================================= */
   const fetchClients = async () => {
     try {
       setLoading(true);
       const res = await getAllClients();
-      setClients(res.data);
-    } catch (err) {
+      setClients(res.data || []);
+    } catch {
       toast.error("Failed to load clients");
     } finally {
       setLoading(false);
@@ -29,17 +32,21 @@ const ClientList = () => {
     fetchClients();
   }, []);
 
+  /* =========================================
+     DELETE CLIENT
+  ========================================= */
   const handleDelete = async (clientId) => {
-    const confirm = window.confirm(
+    const confirmDelete = window.confirm(
       "Are you sure you want to delete this client?",
     );
-    if (!confirm) return;
+    if (!confirmDelete) return;
 
     try {
       await deleteClient(clientId);
       toast.success("Client deleted successfully");
+
       setClients((prev) => prev.filter((c) => c._id !== clientId));
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete client");
     }
   };
@@ -54,6 +61,7 @@ const ClientList = () => {
         {/* HEADER */}
         <div className={styles.header}>
           <h2>Client List</h2>
+
           <button
             className={styles.createBtn}
             onClick={() => navigate(`/${role}/clients/create`)}
@@ -67,18 +75,19 @@ const ClientList = () => {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th className={styles.headerRow}>Sr.No</th>
-                <th className={styles.headerRow}>Client</th>
-                <th className={styles.headerRow}>Services</th>
-                <th className={styles.headerRow}>Onboarding Date</th>
-                <th className={styles.headerRow}>Actions</th>
+                <th>Sr.No</th>
+                <th>Client</th>
+                <th>Services</th>
+                <th>Onboarding Date</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {clients.length === 0 && (
                 <tr>
-                  <td colSpan="5" className={styles.empty}>
+                  <td colSpan="6" className={styles.empty}>
                     No clients found
                   </td>
                 </tr>
@@ -86,21 +95,25 @@ const ClientList = () => {
 
               {clients.map((client, index) => (
                 <tr key={client._id}>
+                  {/* SERIAL */}
                   <td>{index + 1}</td>
+
                   {/* CLIENT INFO */}
                   <td>
                     <div className={styles.clientCell}>
                       <img
-                        src={client.profilePhoto || "/avatar.png"}
+                        src={client.profilePhoto?.url || "/avatar.png"}
                         alt="profile"
                         className={styles.avatar}
                       />
+
                       <div>
                         <div className={styles.clientName}>
                           {client.clientName}
                         </div>
+
                         <div className={styles.ownerName}>
-                          {client.ownerName}
+                          {client.ownerName || "-"}
                         </div>
                       </div>
                     </div>
@@ -109,19 +122,36 @@ const ClientList = () => {
                   {/* SERVICES */}
                   <td>
                     <div className={styles.services}>
-                      {client.services.map((service, i) => (
-                        <span key={i} className={styles.servicePill}>
-                          {service}
-                        </span>
-                      ))}
+                      {client.services?.length ? (
+                        client.services.map((service, i) => (
+                          <span key={i} className={styles.servicePill}>
+                            {service}
+                          </span>
+                        ))
+                      ) : (
+                        <span className={styles.empty}>-</span>
+                      )}
                     </div>
                   </td>
 
                   {/* DATE */}
                   <td>
-                    {new Date(client.onboardingDate).toLocaleDateString(
-                      "en-GB",
-                    )}
+                    {client.onboardingDate
+                      ? new Date(client.onboardingDate).toLocaleDateString(
+                          "en-GB",
+                        )
+                      : "-"}
+                  </td>
+
+                  {/* PAYMENT STATUS */}
+                  <td>
+                    <span
+                      className={`${styles.status} ${
+                        styles[client.paymentStatus]
+                      }`}
+                    >
+                      {client.paymentStatus}
+                    </span>
                   </td>
 
                   {/* ACTIONS */}
@@ -135,6 +165,7 @@ const ClientList = () => {
                       >
                         <FaEye />
                       </button>
+
                       <button
                         className={styles.edit}
                         onClick={() =>
@@ -143,6 +174,7 @@ const ClientList = () => {
                       >
                         <FaPen />
                       </button>
+
                       <button
                         className={styles.delete}
                         onClick={() => handleDelete(client._id)}
