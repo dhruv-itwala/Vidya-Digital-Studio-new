@@ -1,99 +1,224 @@
-.container {
-  width: 100%;
+/* ============================= */
+/* 🌌 BACKGROUND */
+/* ============================= */
+
+.masterContainer {
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+
+  background: linear-gradient(135deg, var(--deep-forest), #0c4a36);
+}
+
+/* ============================= */
+/* 🧊 CARD */
+/* ============================= */
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  padding: 30px 22px;
+  border-radius: 20px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  justify-content: center;
+  gap: 18px;
+
+  background: rgba(244, 240, 232, 0.06);
+  backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(244, 240, 232, 0.2);
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  animation: fadeIn 0.6s ease;
 }
 
+/* ============================= */
+/* 🖼 LOGO */
+/* ============================= */
+
 .logoWrapper {
-  margin-top: 20px;
-  margin-bottom: 12px;
+  margin-top: 8px;
 }
 
 .logo {
   width: 110px;
   height: 110px;
   object-fit: contain;
+
+  animation: float 3s ease-in-out infinite;
 }
+
+/* ============================= */
+/* ✍️ TEXT */
+/* ============================= */
 
 .title {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--soft-ivory);
-  margin-bottom: 6px;
-}
-
-.subtitle {
-  font-size: 16px;
-  line-height: 1.4;
-  color: var(--soft-ivory);
-  margin-bottom: 26px;
+  letter-spacing: 0.5px;
 }
 
 .description {
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.5;
   color: var(--soft-ivory);
-  /* margin-bottom: 26px; */
-}
-.buttonGroup {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  opacity: 0.8;
+  max-width: 300px;
 }
 
-.cardBtn {
+/* ============================= */
+/* 🔘 BUTTON BASE */
+/* ============================= */
+
+.primaryBtn,
+.secondaryBtn {
   width: 100%;
   padding: 14px;
-  border-radius: 12px;
-  border: 2px solid var(--soft-ivory);
-  background: white;
-  font-size: 16px;
+  border-radius: 14px;
+
+  font-size: 15px;
   font-weight: 600;
-  color: var(--color-primary);
+
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 3px 4px 0px #97c0ae;
+  transition: all 0.25s ease;
 }
 
-.cardBtn:active {
+/* ============================= */
+/* 🚀 PRIMARY BUTTON */
+/* ============================= */
+
+.primaryBtn {
+  background: var(--vibrant-orange);
+  color: white;
+  border: none;
+
+  box-shadow:
+    0 6px 0 #c94a03,
+    0 12px 20px rgba(0, 0, 0, 0.25);
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+}
+
+.primaryBtn:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 3px 0 #c94a03,
+    0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================= */
+/* 📦 SECONDARY BUTTONS */
+/* ============================= */
+
+.buttonGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.secondaryBtn {
+  background: rgba(244, 240, 232, 0.04);
+  border: 1.5px solid rgba(244, 240, 232, 0.4);
+  color: var(--soft-ivory);
+}
+
+.secondaryBtn:hover {
+  background: rgba(244, 240, 232, 0.12);
+  transform: translateY(-2px);
+}
+
+.secondaryBtn:active {
   transform: scale(0.97);
 }
 
-.icon {
-  font-size: 18px;
+/* ============================= */
+/* ➖ DIVIDER */
+/* ============================= */
+
+.divider {
+  width: 60%;
+  height: 1px;
+  background: rgba(244, 240, 232, 0.3);
+  margin: 12px 0;
 }
 
+/* ============================= */
+/* 🌐 SOCIAL ICONS */
+/* ============================= */
+
 .socialRow {
-  margin: 28px;
   display: flex;
   gap: 22px;
+  margin-top: 4px;
 }
 
 .socialIcon {
-  font-size: 35px;
+  font-size: 30px;
   color: var(--soft-ivory);
+  opacity: 0.85;
+
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
+}
+
+.socialIcon:hover {
+  opacity: 1;
+  color: var(--vibrant-orange);
+  transform: translateY(-3px) scale(1.1);
 }
 
 .socialIcon:active {
-  transform: scale(0.88);
+  transform: scale(0.9);
 }
 
+/* ============================= */
+/* ✨ ANIMATIONS */
+/* ============================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ============================= */
+/* 📱 RESPONSIVE */
+/* ============================= */
+
 @media (min-width: 600px) {
-  .container {
-    width: 400px;
-    margin: 0 auto;
-    border-radius: 16px;
-    padding: 24px;
+  .card {
+    padding: 34px 26px;
   }
 }

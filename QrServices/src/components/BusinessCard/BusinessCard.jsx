@@ -1,113 +1,165 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import styles from "./BusinessCard.module.css";
 import { Images } from "../../assets/Data/images";
 import { Icon } from "@iconify/react";
 import { logScan } from "../../utils/api.endpoints";
 import { v4 as uuidv4 } from "uuid";
 
+const LINKS = {
+  website: {
+    url: "https://www.vidyadigitalstudio.com",
+    newTab: true,
+  },
+  projects: {
+    url: "https://vidyadigitalstudio.com/projects",
+    newTab: true,
+  },
+  contact: {
+    url: "https://vidyadigitalstudio.com/contact-us",
+    newTab: true,
+  },
+  linkedin: {
+    url: "https://www.linkedin.com/company/vidya-digital-studio/",
+    newTab: true,
+  },
+  facebook: {
+    url: "https://www.facebook.com/share/16sYVrBt8w/",
+    newTab: true,
+  },
+  instagram: {
+    url: "/ig.html",
+    newTab: true,
+  },
+  reel: {
+    url: "https://www.instagram.com/reel/DSogDWmgtDL",
+    newTab: true,
+  },
+  email: {
+    url: "mailto:contact@vidyadigitalstudio.com",
+    newTab: true,
+  },
+};
+
 const BusinessCard = () => {
-  const phoneNumber = "917096413502";
+  const phoneNumber = "7096413502"; // without country code
   const message = "Hello! I'm interested in your services.";
 
-  const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  const whatsappLink = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(
+    message,
+  )}`;
 
   useEffect(() => {
-    let deviceId = localStorage.getItem("deviceId");
+    const init = async () => {
+      let deviceId = localStorage.getItem("deviceId");
 
-    if (!deviceId) {
-      deviceId = uuidv4();
-      localStorage.setItem("deviceId", deviceId);
-    }
+      if (!deviceId) {
+        deviceId = uuidv4();
+        localStorage.setItem("deviceId", deviceId);
+      }
 
-    logScan({
-      deviceId,
-      label: "vidya-digital-studio-page",
-    });
+      try {
+        await logScan({
+          deviceId,
+          label: "vidya-digital-studio-page",
+        });
+      } catch (e) {
+        console.error("Scan logging failed:", e);
+      }
+    };
+
+    init();
   }, []);
 
-  const openLink = (url) => {
-    window.location.href = url;
-  };
-
-  const openInstagram = () => {
-    window.open("/ig.html", "_blank");
-  };
+  const open = useCallback((url, newTab = false) => {
+    if (newTab) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else {
+      window.location.href = url;
+    }
+  }, []);
 
   return (
-    <div className="masterContainer">
-      <div className={styles.container}>
+    <div className={styles.masterContainer}>
+      <div className={styles.card}>
+        {/* LOGO */}
         <div className={styles.logoWrapper}>
-          <img src={Images.Circle_logo} alt="Logo" className={styles.logo} />
+          <img
+            src={Images.Circle_logo}
+            alt="Vidya Digital Studio Logo"
+            className={styles.logo}
+            loading="lazy"
+          />
         </div>
 
+        {/* TITLE */}
         <h1 className={styles.title}>Vidya Digital Studio</h1>
+
         <p className={styles.description}>
-          The All-in-one Creative & Digital Studio for Marketing, Design, Web,
-          and 3D for brands that think, feel, and dream in more than one
-          dimension
+          All-in-one Creative & Digital Studio for Marketing, Design, Web, and
+          3D experiences.
         </p>
+
+        {/* SOCIALS */}
         <div className={styles.socialRow}>
           <Icon
             icon="la:linkedin"
             className={styles.socialIcon}
-            onClick={() =>
-              openLink("https://www.linkedin.com/company/vidya-digital-studio/")
-            }
+            aria-label="LinkedIn"
+            onClick={() => open(LINKS.linkedin.url, LINKS.linkedin.newTab)}
           />
-
           <Icon
             icon="mdi:instagram"
             className={styles.socialIcon}
-            onClick={openInstagram}
+            aria-label="Instagram"
+            onClick={() => open(LINKS.instagram.url, LINKS.instagram.newTab)}
           />
           <Icon
             icon="mdi:facebook"
             className={styles.socialIcon}
-            onClick={() =>
-              openLink("https://www.facebook.com/share/16sYVrBt8w/")
-            }
+            aria-label="Facebook"
+            onClick={() => open(LINKS.facebook.url, LINKS.facebook.newTab)}
           />
-
           <Icon
             icon="material-symbols:mail-outline"
             className={styles.socialIcon}
-            onClick={() => openLink("mailto:contact@vidyadigitalstudio.com")}
+            aria-label="Email"
+            onClick={() => open(LINKS.email.url, LINKS.email.newTab)}
           />
-
           <Icon
             icon="ic:baseline-whatsapp"
             className={styles.socialIcon}
-            onClick={() => openLink(whatsappLink)}
+            aria-label="WhatsApp"
+            onClick={() => open(whatsappLink, true)}
           />
         </div>
+
+        {/* PRIMARY CTA */}
+        <button
+          className={styles.primaryBtn}
+          onClick={() => open(LINKS.contact.url, LINKS.contact.newTab)}
+        >
+          🚀 Start Your Project
+        </button>
+
+        {/* SECONDARY BUTTONS */}
         <div className={styles.buttonGroup}>
           <button
-            className={styles.cardBtn}
-            onClick={() => openLink("https://www.vidyadigitalstudio.com")}
+            className={styles.secondaryBtn}
+            onClick={() => open(LINKS.website.url, LINKS.website.newTab)}
           >
             🌐 Visit our Website
           </button>
 
           <button
-            className={styles.cardBtn}
-            onClick={() => openLink("https://vidyadigitalstudio.com/projects")}
+            className={styles.secondaryBtn}
+            onClick={() => open(LINKS.projects.url, LINKS.projects.newTab)}
           >
             💼 Discover Our Projects
           </button>
 
           <button
-            className={styles.cardBtn}
-            onClick={() =>
-              openLink("https://vidyadigitalstudio.com/contact-us")
-            }
-          >
-            📞 Let’s Build Together - Contact us today!
-          </button>
-          <button
-            className={styles.cardBtn}
-            onClick={() =>
-              openLink("https://www.instagram.com/reel/DSogDWmgtDL")
-            }
+            className={styles.secondaryBtn}
+            onClick={() => open(LINKS.reel.url, LINKS.reel.newTab)}
           >
             ✨ Our Story in 60 Seconds
           </button>
