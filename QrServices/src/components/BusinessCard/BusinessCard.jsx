@@ -46,31 +46,6 @@ const BusinessCard = () => {
           and 3D for brands that think, feel, and dream in more than one
           dimension
         </p>
-        <div className={styles.buttonGroup}>
-          <button
-            className={styles.cardBtn}
-            onClick={() => openLink("https://www.vidyadigitalstudio.com")}
-          >
-            🌐 Website
-          </button>
-
-          <button
-            className={styles.cardBtn}
-            onClick={() => openLink("https://vidyadigitalstudio.com/projects")}
-          >
-            🎨 Portfolio
-          </button>
-
-          <button
-            className={styles.cardBtn}
-            onClick={() =>
-              openLink("https://vidyadigitalstudio.com/contact-us")
-            }
-          >
-            📞 Contact Us
-          </button>
-        </div>
-
         <div className={styles.socialRow}>
           <Icon
             icon="la:linkedin"
@@ -85,6 +60,13 @@ const BusinessCard = () => {
             className={styles.socialIcon}
             onClick={openInstagram}
           />
+          <Icon
+            icon="mdi:facebook"
+            className={styles.socialIcon}
+            onClick={() =>
+              openLink("https://www.facebook.com/share/16sYVrBt8w/")
+            }
+          />
 
           <Icon
             icon="material-symbols:mail-outline"
@@ -97,6 +79,38 @@ const BusinessCard = () => {
             className={styles.socialIcon}
             onClick={() => openLink(whatsappLink)}
           />
+        </div>
+        <div className={styles.buttonGroup}>
+          <button
+            className={styles.cardBtn}
+            onClick={() => openLink("https://www.vidyadigitalstudio.com")}
+          >
+            🌐 Visit our Website
+          </button>
+
+          <button
+            className={styles.cardBtn}
+            onClick={() => openLink("https://vidyadigitalstudio.com/projects")}
+          >
+            💼 Discover Our Projects
+          </button>
+
+          <button
+            className={styles.cardBtn}
+            onClick={() =>
+              openLink("https://vidyadigitalstudio.com/contact-us")
+            }
+          >
+            📞 Let’s Build Together - Contact us today!
+          </button>
+          <button
+            className={styles.cardBtn}
+            onClick={() =>
+              openLink("https://www.instagram.com/reel/DSogDWmgtDL")
+            }
+          >
+            ✨ Our Story in 60 Seconds
+          </button>
         </div>
       </div>
     </div>

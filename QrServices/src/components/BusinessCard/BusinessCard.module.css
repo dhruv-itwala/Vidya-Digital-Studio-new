@@ -22,22 +22,22 @@
 .title {
   font-size: 24px;
   font-weight: 700;
-  color: #0c6245;
+  color: var(--soft-ivory);
   margin-bottom: 6px;
 }
 
 .subtitle {
   font-size: 16px;
   line-height: 1.4;
-  color: #375f50;
+  color: var(--soft-ivory);
   margin-bottom: 26px;
 }
 
 .description {
   font-size: 14px;
   line-height: 1.4;
-  color: #375f50;
-  margin-bottom: 26px;
+  color: var(--soft-ivory);
+  /* margin-bottom: 26px; */
 }
 .buttonGroup {
   width: 100%;
@@ -50,11 +50,11 @@
   width: 100%;
   padding: 14px;
   border-radius: 12px;
-  border: 2px solid #0c6245;
+  border: 2px solid var(--soft-ivory);
   background: white;
   font-size: 16px;
   font-weight: 600;
-  color: #0c6245;
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,7 +80,7 @@
 
 .socialIcon {
   font-size: 35px;
-  color: #0c6245;
+  color: var(--soft-ivory);
   cursor: pointer;
   transition: 0.2s ease;
 }
