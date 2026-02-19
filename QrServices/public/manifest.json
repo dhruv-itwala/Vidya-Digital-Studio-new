@@ -1,10 +1,10 @@
 {
   "name": "Vidya Digital Studio",
-  "short_name": "VDS QR",
+  "short_name": "VDS QR SERVICES",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#f4f0e8",
+  "theme_color": "#f4f0e8",
   "icons": [
     {
       "src": "/icon-192.png",
