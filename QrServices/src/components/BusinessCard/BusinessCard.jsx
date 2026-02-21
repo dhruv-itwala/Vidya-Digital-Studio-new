@@ -78,6 +78,31 @@ const BusinessCard = () => {
     }
   }, []);
 
+  const downloadVCard = () => {
+    const vCardData = `BEGIN:VCARD
+VERSION:3.0
+FN:Vidya Digital Studio
+ORG:Vidya Digital Studio
+TITLE:Creative & Digital Studio
+TEL;TYPE=WORK,VOICE:+917096413502
+EMAIL:contact@vidyadigitalstudio.com
+URL:https://www.vidyadigitalstudio.com
+ADR;TYPE=WORK:;;India;;;; 
+END:VCARD`;
+
+    const blob = new Blob([vCardData], { type: "text/vcard;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Vidya-Digital-Studio.vcf";
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className={styles.masterContainer}>
       <div className={styles.card}>
@@ -162,6 +187,10 @@ const BusinessCard = () => {
             onClick={() => open(LINKS.reel.url, LINKS.reel.newTab)}
           >
             ✨ Our Story in 60 Seconds
+          </button>
+
+          <button className={styles.secondaryBtn} onClick={downloadVCard}>
+            📇 Save Contact
           </button>
         </div>
       </div>
