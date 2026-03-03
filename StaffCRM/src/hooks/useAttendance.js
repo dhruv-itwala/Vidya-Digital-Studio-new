@@ -100,27 +100,6 @@ export const useAttendance = () => {
     });
   }, []);
 
-  // useEffect(() => {
-  //   if (
-  //     state.weeklyStatus === "COMPLETED" ||
-  //     !state.isRunning ||
-  //     state.onBreak
-  //   ) {
-  //     return;
-  //   }
-
-  //   const interval = setInterval(() => {
-  //     dispatch((prevState) => ({
-  //       type: "SET_STATE",
-  //       payload: {
-  //         weeklySeconds: prevState.weeklySeconds + 1,
-  //       },
-  //     }));
-  //   }, 1000);
-
-  //   return () => clearInterval(interval);
-  // }, [state.isRunning, state.onBreak, state.weeklyStatus]);
-
   useEffect(() => {
     if (
       state.weeklyStatus === "COMPLETED" ||
@@ -150,12 +129,15 @@ export const useAttendance = () => {
         getAllLeavesAPI(),
       ]);
 
-      const holidays = holidayRes?.data?.data || [];
-      const today = new Date().toISOString().split("T")[0];
+      const getISTDate = (date) =>
+        new Date(date).toLocaleDateString("en-CA", {
+          timeZone: "Asia/Kolkata",
+        });
 
-      const todayHoliday = holidays.find(
-        (h) => new Date(h.date).toISOString().split("T")[0] === today,
-      );
+      const holidays = holidayRes?.data?.data || [];
+      const today = getISTDate(new Date());
+
+      const todayHoliday = holidays.find((h) => getISTDate(h.date) === today);
 
       if (todayHoliday) {
         dispatch({
@@ -173,7 +155,7 @@ export const useAttendance = () => {
 
       dispatch({ type: "SET_LOADING", payload: false });
     } catch (e) {
-      toast.error("Failed to load dashboard");
+      toast.error(`${e?.message || "Failed to load dashboard"}`);
       dispatch({ type: "SET_LOADING", payload: false });
     } finally {
       fetchingRef.current = false;
@@ -190,7 +172,7 @@ export const useAttendance = () => {
       await syncFromServer();
       toast.success(successMsg);
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Something went wrong");
+      toast.error(err?.message || "Something went wrong");
     } finally {
       dispatch({ type: "SET_ACTION_LOADING", payload: false });
     }
