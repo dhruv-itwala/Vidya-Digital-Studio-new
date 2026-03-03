@@ -14,6 +14,10 @@ const LINKS = {
     url: "https://vidyadigitalstudio.com/projects",
     newTab: true,
   },
+  modeling: {
+    url: "https://vidyadigitalstudio.com/projects/3d-modelling",
+    newTab: true,
+  },
   contact: {
     url: "https://vidyadigitalstudio.com/contact-us",
     newTab: true,
@@ -173,6 +177,13 @@ END:VCARD`;
             onClick={() => open(LINKS.website.url, LINKS.website.newTab)}
           >
             🌐 Visit our Website
+          </button>
+
+          <button
+            className={styles.secondaryBtn}
+            onClick={() => open(LINKS.modeling.url, LINKS.modeling.newTab)}
+          >
+            🏢 Explore 3D Visualizations
           </button>
 
           <button
