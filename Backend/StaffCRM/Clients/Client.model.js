@@ -50,7 +50,6 @@ const clientSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-
     credentials: [credentialSchema],
     documents: [documentSchema],
     transactions: [transactionSchema],

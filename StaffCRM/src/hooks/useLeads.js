@@ -4,6 +4,7 @@ import {
   updateLeadStatusAPI,
   deleteLeadAPI,
   convertLeadAPI,
+  updateLeadProposalAPI,
 } from "../api/leads.api";
 
 export const useLeads = () => {
@@ -16,6 +17,7 @@ export const useLeads = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [proposal, setProposal] = useState("");
 
   const limit = 10;
 
@@ -30,6 +32,7 @@ export const useLeads = () => {
         limit,
         search,
         status,
+        proposal,
       });
 
       setLeads(res.data.data);
@@ -39,7 +42,7 @@ export const useLeads = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search, status]);
+  }, [page, search, status, proposal]);
 
   useEffect(() => {
     fetchLeads();
@@ -67,6 +70,26 @@ export const useLeads = () => {
     }
   };
 
+  /* ================= PROPOSAL UPDATE ================= */
+  const updateProposal = async (id, proposal) => {
+    let previous;
+
+    setRowLoading(id);
+    setLeads((prev) => {
+      previous = prev;
+      return prev.map((l) => (l._id === id ? { ...l, proposal } : l));
+    });
+
+    try {
+      await updateLeadProposalAPI(id, proposal);
+      return { success: true };
+    } catch {
+      setLeads(previous);
+      return { success: false, message: "Failed to update proposal" };
+    } finally {
+      setRowLoading(null);
+    }
+  };
   /* ================= DELETE ================= */
   const deleteLead = async (id) => {
     let previous;
@@ -122,11 +145,14 @@ export const useLeads = () => {
     totalPages,
     search,
     status,
+    proposal,
     setStatus,
+    setProposal,
     setSearch,
     setPage,
     refetch: fetchLeads,
     updateStatus,
+    updateProposal,
     deleteLead,
     convertLead,
   };

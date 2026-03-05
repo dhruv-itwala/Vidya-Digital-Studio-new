@@ -27,6 +27,7 @@ export const getAllLeadsService = async ({
   page = 1,
   limit = 10,
   status,
+  proposal,
   search,
   date,
 }) => {
@@ -35,6 +36,11 @@ export const getAllLeadsService = async ({
   // Status filter
   if (status) {
     query.status = status;
+  }
+
+  // Proposal filter
+  if (proposal) {
+    query.proposal = proposal;
   }
 
   // Search filter (name, email, phone)
@@ -160,6 +166,26 @@ export const updateLeadStatusService = async (leadId, status, userId) => {
 
   // Optional: track status history (if you later add it)
   // lead.statusHistory.push({ status, changedBy: userId });
+
+  await lead.save();
+
+  return lead;
+};
+
+/* ================= UPDATE PROPOSAL ================= */
+export const updateProposalStatusService = async (leadId, proposal) => {
+  if (!mongoose.Types.ObjectId.isValid(leadId)) {
+    throw new AppError("Invalid lead id", 400);
+  }
+
+  const lead = await Lead.findById(leadId);
+  if (!lead) throw new AppError("Lead not found", 404);
+
+  if (lead.isConverted) {
+    throw new AppError("Converted lead cannot be modified", 400);
+  }
+
+  lead.proposal = proposal;
 
   await lead.save();
 

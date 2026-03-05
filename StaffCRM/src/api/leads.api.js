@@ -21,6 +21,10 @@ export const deleteLeadAPI = (id) => api.delete(`/leads/${id}`);
 export const updateLeadStatusAPI = (id, status) =>
   api.patch(`/leads/${id}/status`, { status });
 
+// Update lead proposal
+export const updateLeadProposalAPI = (id, proposal) =>
+  api.patch(`/leads/${id}/proposal`, { proposal });
+
 // Add meeting note
 export const addMeetingNoteAPI = (id, data) =>
   api.post(`/leads/${id}/meeting-note`, data);

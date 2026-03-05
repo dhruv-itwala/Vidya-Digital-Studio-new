@@ -125,3 +125,13 @@ export const getWeeklyProgress = asyncHandler(async (req, res) => {
     data,
   });
 });
+
+// ================= GET ALL USER WEEKLY PROGRESS ================= */
+export const getAllUsersWeeklyProgress = asyncHandler(async (req, res) => {
+  const { from, to } = req.query;
+  const data = await service.getAllUsersWeeklyProgressService(from, to);
+  res.json({
+    success: true,
+    data,
+  });
+});

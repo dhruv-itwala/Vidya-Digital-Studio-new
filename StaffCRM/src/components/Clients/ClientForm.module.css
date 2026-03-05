@@ -140,6 +140,10 @@ textarea {
 }
 
 /* ================= TABLE ================= */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -298,5 +302,9 @@ textarea {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
+  }
+  .paymentSummary {
+    flex-direction: column;
+    gap: 12px;
   }
 }

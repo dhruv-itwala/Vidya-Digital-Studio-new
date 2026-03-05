@@ -18,6 +18,8 @@ const statusOptions = [
   "Closed Loss",
 ];
 
+const proposalOptions = ["Pending", "Created"];
+
 export default function LeadForm({ mode = "create", initialData = null }) {
   const { role } = useAuth();
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ export default function LeadForm({ mode = "create", initialData = null }) {
     services: [],
     notes: "",
     status: "Raw Lead",
+    proposal: "Pending",
     meetingNotes: [],
   });
 
@@ -51,6 +54,7 @@ export default function LeadForm({ mode = "create", initialData = null }) {
         services: initialData.services || [],
         notes: initialData.notes || "",
         status: initialData.status || "Raw Lead",
+        proposal: initialData.proposal || "Pending",
         meetingNotes:
           initialData.meetingNotes?.map((note) => ({
             ...note,
@@ -225,6 +229,21 @@ export default function LeadForm({ mode = "create", initialData = null }) {
               {statusOptions.map((status) => (
                 <option key={status} value={status}>
                   {status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={`${styles.inputGroup} `}>
+            <label>Proposal</label>
+            <select
+              name="proposal"
+              value={form.proposal}
+              onChange={handleChange}
+            >
+              {proposalOptions.map((proposal) => (
+                <option key={proposal} value={proposal}>
+                  {proposal}
                 </option>
               ))}
             </select>

@@ -33,6 +33,10 @@ LeadsRoutes.post("/:id/meeting-note", ctrl.addMeetingNote);
 
 LeadsRoutes.patch("/:id/status", ctrl.updateLeadStatus);
 
+/* ================= PROPOSAL UPDATE ================= */
+
+LeadsRoutes.patch("/:id/proposal", ctrl.updateLeadProposal);
+
 /* ================= CONVERT TO CLIENT ================= */
 
 LeadsRoutes.post("/:id/convert", roleCheck("admin", "hr"), ctrl.convertLead);

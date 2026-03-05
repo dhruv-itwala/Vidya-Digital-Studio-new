@@ -421,3 +421,28 @@ export const getWeeklyProgressService = async (userId) => {
     remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
   };
 };
+
+// ================= GET ALL USER WEEKLY PROGRESS ================= */
+export const getAllUsersWeeklyProgressService = async (from, to) => {
+  const fromDate = parseISTDateOnly(from);
+  const toDate = parseISTDateOnly(to);
+  const progress = await weeklyWork
+    .find({
+      weekStart: { $gte: fromDate, $lte: toDate },
+    })
+    .sort({ weekStart: 1 })
+    .populate("user", "name email")
+    .lean();
+  return progress.map((p) => ({
+    userId: p.user._id,
+    name: p.user.name,
+    email: p.user.email,
+    weekStart: p.weekStart,
+    weekEnd: p.weekEnd,
+    totalMinutes: p.totalMinutes,
+    requiredMinutes: p.requiredMinutes,
+    status: p.status,
+    percentage: Math.min((p.totalMinutes / p.requiredMinutes) * 100, 100),
+    remainingMinutes: Math.max(p.requiredMinutes - p.totalMinutes, 0),
+  }));
+};

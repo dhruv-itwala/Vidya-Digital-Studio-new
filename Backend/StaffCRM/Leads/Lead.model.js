@@ -48,6 +48,12 @@ const leadSchema = new mongoose.Schema(
       default: "Raw Lead",
     },
 
+    proposal: {
+      type: String,
+      enum: ["Pending", "Created"],
+      default: "Pending",
+    },
+
     isConverted: {
       type: Boolean,
       default: false,

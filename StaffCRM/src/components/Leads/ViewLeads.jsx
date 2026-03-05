@@ -23,6 +23,9 @@ export default function ViewLeads() {
     "Client Won",
     "Closed Loss",
   ];
+
+  const proposalOptions = ["Pending", "Created"];
+
   const {
     leads,
     loading,
@@ -32,10 +35,13 @@ export default function ViewLeads() {
     totalPages,
     search,
     status,
+    proposal,
     setStatus,
+    setProposal,
     setSearch,
     setPage,
     updateStatus,
+    updateProposal,
     convertLead,
     deleteLead,
   } = useLeads();
@@ -68,6 +74,16 @@ export default function ViewLeads() {
 
     if (res.success) {
       toast.success("Status updated");
+    } else {
+      toast.error(res.message);
+    }
+  };
+
+  /* ================= UPDATE PROPOSAL ================= */
+  const handleProposalChange = async (id, newProposal) => {
+    const res = await updateProposal(id, newProposal);
+    if (res.success) {
+      toast.success("Proposal status updated");
     } else {
       toast.error(res.message);
     }
@@ -176,6 +192,7 @@ export default function ViewLeads() {
                 <th>Business Name</th>
                 <th>Services</th>
                 <th>Status</th>
+                <th>Proposal</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -226,6 +243,27 @@ export default function ViewLeads() {
                     </td>
 
                     <td>
+                      <select
+                        value={lead.proposal}
+                        onChange={(e) =>
+                          handleProposalChange(lead._id, e.target.value)
+                        }
+                        className={`${styles.statusSelect} ${
+                          lead.proposal === "Transferred"
+                            ? styles.transferred
+                            : ""
+                        }`}
+                        disabled={lead.proposal === "Transferred"}
+                      >
+                        {proposalOptions.map((proposal) => (
+                          <option key={proposal} value={proposal}>
+                            {proposal}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    <td>
                       {rowLoading === lead._id ? (
                         <div className={styles.spinner}></div>
                       ) : (
@@ -258,7 +296,7 @@ export default function ViewLeads() {
                           <button
                             className={styles.transfer}
                             onClick={() => handleTransfer(lead)}
-                            disabled={lead.status === "Transferred"}
+                            disabled={lead.proposal === "Transferred"}
                           >
                             <RiFileTransferFill />
                           </button>

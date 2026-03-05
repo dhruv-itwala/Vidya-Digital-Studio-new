@@ -65,5 +65,10 @@ attendanceRoutes.get(
 );
 
 attendanceRoutes.get("/weekly-progress", ctrl.getWeeklyProgress);
+attendanceRoutes.get(
+  "/weekly-progress/all",
+  roleCheck("admin", "hr"),
+  ctrl.getAllUsersWeeklyProgress,
+);
 
 export default attendanceRoutes;

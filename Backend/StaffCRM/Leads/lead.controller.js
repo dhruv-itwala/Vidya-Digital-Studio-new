@@ -17,6 +17,7 @@ export const getAllLeads = asyncHandler(async (req, res) => {
   const result = await LeadService.getAllLeadsService({
     page: req.query.page,
     limit: req.query.limit,
+    proposal: req.query.proposal,
     status: req.query.status,
     search: req.query.search,
     date: req.query.date,
@@ -91,6 +92,26 @@ export const updateLeadStatus = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Status updated",
+    data: updated,
+  });
+});
+
+/* ================= UPDATE PROPOSAL ================= */
+export const updateLeadProposal = asyncHandler(async (req, res) => {
+  const { proposal } = req.body;
+
+  if (!proposal) {
+    throw new AppError("Proposal status is required", 400);
+  }
+
+  const updated = await LeadService.updateProposalStatusService(
+    req.params.id,
+    proposal,
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Proposal status updated",
     data: updated,
   });
 });
