@@ -2,10 +2,9 @@ import styles from "./WeeklyHrs.module.css";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
-const REQUIRED_SECONDS = 48 * 60 * 60;
-
 const WeeklyHrs = ({ attendance }) => {
   const { weeklySeconds, weeklyStatus } = attendance;
+  const REQUIRED_SECONDS = attendance.weeklyRequiredSeconds;
 
   const percentage = Math.min((weeklySeconds / REQUIRED_SECONDS) * 100, 100);
 
@@ -38,6 +37,9 @@ const WeeklyHrs = ({ attendance }) => {
       </div>
 
       <div className={styles.details}>
+        <p>
+          Required: <strong>{(REQUIRED_SECONDS / 3600).toFixed(2)} hrs</strong>
+        </p>
         <p>
           Remaining: <strong>{remainingHours} hrs</strong>
         </p>

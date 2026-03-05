@@ -96,6 +96,7 @@ export const useAttendance = () => {
         // weekly
         weeklySeconds: weekly?.totalSeconds || 0,
         weeklyStatus: weekly?.status || "IN_PROGRESS",
+        weeklyRequiredSeconds: (weekly?.requiredMinutes || 2880) * 60,
       },
     });
   }, []);
