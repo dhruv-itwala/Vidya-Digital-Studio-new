@@ -143,3 +143,13 @@ export const getWeeklyProgressAPI = async () => {
     handleError(error);
   }
 };
+
+export const getAllUsersWeeklyProgressAPI = async (from, to) => {
+  try {
+    return await api.get("/attendance/weekly-progress/all", {
+      params: { from, to },
+    });
+  } catch (error) {
+    handleError(error);
+  }
+};

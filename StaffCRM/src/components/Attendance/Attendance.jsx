@@ -6,6 +6,7 @@ import {
   markAttendanceStatusAPI,
   downloadAttendancePDFWithPunchAPI,
   downloadAttendancePDFAPI,
+  getAllUsersWeeklyProgressAPI,
 } from "../../api/attendance.api";
 
 import { FaUsers, FaCalendarDay, FaCalendarAlt } from "react-icons/fa";
@@ -39,16 +40,20 @@ export default function Attendance() {
     daily: false,
     live: false,
     range: false,
+    weekly: false,
   });
 
   const liveFetchRef = useRef(null);
   const liveTickRef = useRef(null);
 
+  const [weeklyFrom, setWeeklyFrom] = useState("");
+  const [weeklyTo, setWeeklyTo] = useState("");
+  const [weekly, setWeekly] = useState([]);
+  const [weeklyLoading, setWeeklyLoading] = useState(false);
+
   const toggle = (k) => setOpen((p) => ({ ...p, [k]: !p[k] }));
 
   /* ================= HELPERS ================= */
-  const formatDateIST = (d) =>
-    new Date(d).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
 
   const formatTime = (d) =>
     new Date(d).toLocaleTimeString("en-IN", {
@@ -137,6 +142,23 @@ export default function Attendance() {
       setRange(res.data?.data || []);
     } finally {
       setRangeLoading(false);
+    }
+  };
+
+  /* ================= WEEKLY PROGRESS ================= */
+  const fetchWeekly = async () => {
+    if (!weeklyFrom || !weeklyTo) return toast.error("Select both dates");
+
+    try {
+      setWeeklyLoading(true);
+
+      const res = await getAllUsersWeeklyProgressAPI(weeklyFrom, weeklyTo);
+
+      setWeekly(res.data?.data || []);
+    } catch {
+      toast.error("Failed to load weekly progress");
+    } finally {
+      setWeeklyLoading(false);
     }
   };
 
@@ -386,6 +408,103 @@ export default function Attendance() {
                               </small>
                             </td>
                           ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ================= WEEKLY PROGRESS ================= */}
+        <div className={styles.accordion}>
+          <button
+            className={styles.accordionHeader}
+            onClick={() => toggle("weekly")}
+          >
+            <span>
+              <FaCalendarAlt /> WEEKLY PROGRESS
+            </span>
+            <IoChevronDown className={open.weekly ? styles.rotate : ""} />
+          </button>
+
+          {open.weekly && (
+            <div className={styles.accordionBody}>
+              <div className={styles.rangeFilters}>
+                <input
+                  type="date"
+                  value={weeklyFrom}
+                  max={today}
+                  onChange={(e) => setWeeklyFrom(e.target.value)}
+                />
+
+                <input
+                  type="date"
+                  value={weeklyTo}
+                  min={weeklyFrom}
+                  max={today}
+                  onChange={(e) => setWeeklyTo(e.target.value)}
+                />
+
+                <button onClick={fetchWeekly} className={styles.primaryBtn}>
+                  Get
+                </button>
+              </div>
+
+              {weeklyLoading ? (
+                <Loader />
+              ) : (
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.headerRow}>Employee</th>
+                        <th className={styles.headerRow}>Week Start</th>
+                        <th className={styles.headerRow}>Week End</th>
+                        <th className={styles.headerRow}>Worked</th>
+                        <th className={styles.headerRow}>Required</th>
+                        <th className={styles.headerRow}>Progress</th>
+                        <th className={styles.headerRow}>Remaining</th>
+                        <th className={styles.headerRow}>Status</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {weekly.map((w) => (
+                        <tr key={w.userId}>
+                          <td>{w.name}</td>
+
+                          <td>
+                            {new Date(w.weekStart).toLocaleDateString("en-IN", {
+                              timeZone: "Asia/Kolkata",
+                            })}
+                          </td>
+
+                          <td>
+                            {new Date(w.weekEnd).toLocaleDateString("en-IN", {
+                              timeZone: "Asia/Kolkata",
+                            })}
+                          </td>
+
+                          <td>{Math.floor(w.totalMinutes / 60)}h</td>
+
+                          <td>{Math.floor(w.requiredMinutes / 60)}h</td>
+
+                          <td>{w.percentage.toFixed(1)}%</td>
+
+                          <td>{Math.floor(w.remainingMinutes / 60)}h</td>
+
+                          <td
+                            className={
+                              w.status === "COMPLETED"
+                                ? styles.present
+                                : styles.absent
+                            }
+                          >
+                            {w.status}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
