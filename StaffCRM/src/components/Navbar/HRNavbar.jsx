@@ -60,6 +60,7 @@ export default function HRNavbar() {
                 <button onClick={() => navigate("/hr/employees")}>
                   Employees
                 </button>
+                <button onClick={() => navigate("/hr/leads")}>Leads</button>
                 <button onClick={() => navigate("/hr/clients")}>Clients</button>
                 <button onClick={() => navigate("/hr/hrHoliday")}>
                   Holidays
