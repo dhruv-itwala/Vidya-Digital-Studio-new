@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getMyAttendanceAPI } from "../../api/attendance.api";
 import Loader from "../../components/Loader/Loader";
 import AttendanceCalendar from "../../components/Attendance/AttendanceCalendar";
+import styles from "./EmployeeAttendance.module.css";
 
 export default function EmployeeAttendance() {
   const [records, setRecords] = useState([]);
@@ -33,11 +34,14 @@ export default function EmployeeAttendance() {
       {loading ? (
         <Loader />
       ) : (
-        <AttendanceCalendar
-          records={records}
-          currentMonth={currentMonth}
-          onMonthChange={setCurrentMonth}
-        />
+        <div className={styles.container}>
+          <h2 className={styles.title}>My Attendence</h2>
+          <AttendanceCalendar
+            records={records}
+            currentMonth={currentMonth}
+            onMonthChange={setCurrentMonth}
+          />
+        </div>
       )}
     </div>
   );

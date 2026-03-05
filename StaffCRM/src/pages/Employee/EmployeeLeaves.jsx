@@ -81,13 +81,13 @@ export default function EmployeeLeaves() {
       <div className={styles.container}>
         <h2 className={styles.title}>My Leaves</h2>
         {/* LEAVE BALANCE */}
-        <div className={styles.card} style={{ textAlign: "center" }}>
+        {/* <div className={styles.card} style={{ textAlign: "center" }}>
           <h3>Available Leaves</h3>
           <p className={styles.leaveBalance}>
             {availableLeaves !== null ? availableLeaves : "—"}
           </p>
           <small>2 leaves credited every month</small>
-        </div>
+        </div> */}
 
         {/* APPLY LEAVE FORM */}
         <div className={styles.card}>

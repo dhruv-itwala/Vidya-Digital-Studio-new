@@ -46,8 +46,8 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
 
   const roleOptions =
     loggedInUser.role === "admin"
-      ? ["employee", "hr", "admin"]
-      : ["employee", "hr"];
+      ? ["employee", "hr", "intern", "admin"]
+      : ["employee", "hr", "intern"];
 
   return (
     <div className={styles.overlay}>

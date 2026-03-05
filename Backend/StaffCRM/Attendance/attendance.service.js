@@ -13,6 +13,7 @@ import {
   calcLiveNetSeconds,
   calcLiveBreakSeconds,
   getCurrentWeekRangeIST,
+  getWorkPolicy,
 } from "./attendance.utils.js";
 
 import User from "../Users/user.model.js";
@@ -44,10 +45,11 @@ export const getMyAttendanceService = async (userId, from, to) => {
 // ================= PUNCH IN ================= */
 export const punchInService = async (userId) => {
   const now = nowUTC();
+  const user = await User.findById(userId).select("role").lean();
 
-  if (!isWithinOfficeHoursIST(now)) {
-    throw new AppError("Punch in allowed between 08AM–07PM IST", 400);
-  }
+  // if (!isWithinOfficeHoursIST(now, user.role)) {
+  //   throw new AppError("Punch in allowed between 08AM–07PM IST", 400);
+  // }
 
   const date = todayISTUTC();
 
@@ -109,10 +111,12 @@ export const punchOutService = async (userId) => {
   calcWorkMinutes(record);
   await record.save();
 
+  const user = await User.findById(userId).lean();
+
   await Attendance.findOneAndUpdate(
     { user: userId, date: record.date },
     {
-      status: suggestAttendanceStatus(record.netWorkMinutes),
+      status: suggestAttendanceStatus(record.netWorkMinutes, user.role),
       source: "SYSTEM",
     },
     { upsert: true },
@@ -164,20 +168,40 @@ export const getAllEmployeesAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);
 
   const [users, records, holiday] = await Promise.all([
-    User.find({ role: { $ne: "admin" }, isActive: true }).lean(),
+    User.find({ role: { $ne: "admin" }, isActive: true })
+      .select("name email role")
+      .lean(),
+
     Attendance.find({ date: day }).lean(),
+
     Holiday.findOne({ date: day }),
   ]);
 
   const recordMap = new Map();
   records.forEach((r) => recordMap.set(String(r.user), r));
 
+  // ROLE PRIORITY
+  const priority = {
+    hr: 1,
+    employee: 2,
+    intern: 3,
+  };
+
+  // SORT USERS
+  users.sort(
+    (a, b) =>
+      (priority[a.role] || 99) - (priority[b.role] || 99) ||
+      a.name.localeCompare(b.name),
+  );
+
   return users.map((u) => {
     const att = recordMap.get(String(u._id));
+
     return {
       _id: u._id,
       name: u.name,
       email: u.email,
+      role: u.role,
       status: att ? att.status : holiday ? "HOLIDAY" : "ABSENT",
     };
   });
@@ -261,8 +285,9 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
   const [attendance, workRecords] = await Promise.all([
     Attendance.find({ date: { $gte: fromDate, $lte: toDate } })
       .sort({ date: 1 })
-      .populate("user", "name email")
+      .populate("user", "name email role")
       .lean(),
+
     WorkRecord.find({ date: { $gte: fromDate, $lte: toDate } })
       .sort({ date: 1 })
       .lean(),
@@ -273,34 +298,125 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
     workMap.set(`${w.user}_${w.date.getTime()}`, w);
   });
 
-  return attendance.map((att) => {
-    const key = `${att.user._id}_${att.date.getTime()}`;
-    const work = workMap.get(key);
+  const priority = {
+    hr: 1,
+    employee: 2,
+    intern: 3,
+  };
 
-    return {
-      userId: att.user._id,
-      name: att.user.name,
-      email: att.user.email,
-      date: att.date,
-      status: att.status,
-      punchIn: work?.punchIn || null,
-      punchOut: work?.punchOut || null,
-    };
-  });
+  return attendance
+    .sort(
+      (a, b) =>
+        (priority[a.user.role] || 99) - (priority[b.user.role] || 99) ||
+        a.user.name.localeCompare(b.user.name),
+    )
+    .map((att) => {
+      const key = `${att.user._id}_${att.date.getTime()}`;
+      const work = workMap.get(key);
+
+      return {
+        userId: att.user._id,
+        name: att.user.name,
+        email: att.user.email,
+        role: att.user.role,
+        date: att.date,
+        status: att.status,
+        punchIn: work?.punchIn || null,
+        punchOut: work?.punchOut || null,
+      };
+    });
 };
 
 // ================= LIVE EMPLOYEES STATUS ================= */
+// export const getLiveEmployeesStatusByDateService = async (dateStr) => {
+//   const todayKey = toISTDateKey(new Date());
+//   const selectedKey = dateStr || todayKey;
+//   const isToday = selectedKey === todayKey;
+
+//   const mongoDate = parseIST(selectedKey);
+
+//   const [users, records] = await Promise.all([
+//     User.find({ role: { $ne: "admin" }, isActive: true })
+//       .select("name role")
+//       .lean(),
+//     WorkRecord.find({ date: mongoDate }).lean(),
+//   ]);
+
+//   // ROLE PRIORITY
+//   const priority = {
+//     hr: 1,
+//     employee: 2,
+//     intern: 3,
+//   };
+
+//   // SORT USERS
+//   users.sort(
+//     (a, b) =>
+//       (priority[a.role] || 99) - (priority[b.role] || 99) ||
+//       a.name.localeCompare(b.name),
+//   );
+
+//   const recordMap = new Map();
+//   records.forEach((r) => recordMap.set(String(r.user), r));
+
+//   return users.map((u) => {
+//     const record = recordMap.get(String(u._id));
+
+//     if (!record) {
+//       return {
+//         userId: u._id,
+//         name: u.name,
+//         status: "NOT_STARTED",
+//         workedSeconds: 0,
+//         breakSeconds: 0,
+//       };
+//     }
+
+//     const lastBreak = record.breaks?.at(-1);
+//     const onBreak = lastBreak && !lastBreak.out;
+
+//     let status = "WORKING";
+//     if (record.punchOut) status = "COMPLETED";
+//     else if (onBreak) status = "ON_BREAK";
+
+//     return {
+//       userId: u._id,
+//       name: u.name,
+//       status,
+//       workedSeconds: calcLiveNetSeconds(record),
+//       breakSeconds: calcLiveBreakSeconds(record),
+//       punchIn: record.punchIn,
+//       punchOut: record.punchOut,
+//     };
+//   });
+// };
+
 export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   const todayKey = toISTDateKey(new Date());
   const selectedKey = dateStr || todayKey;
-  const isToday = selectedKey === todayKey;
 
   const mongoDate = parseIST(selectedKey);
 
   const [users, records] = await Promise.all([
-    User.find({ role: { $ne: "admin" }, isActive: true }).lean(),
+    User.find({ role: { $ne: "admin" }, isActive: true })
+      .select("name role")
+      .lean(),
     WorkRecord.find({ date: mongoDate }).lean(),
   ]);
+
+  // ROLE PRIORITY
+  const priority = {
+    hr: 1,
+    employee: 2,
+    intern: 3,
+  };
+
+  // SORT USERS
+  users.sort(
+    (a, b) =>
+      (priority[a.role] || 99) - (priority[b.role] || 99) ||
+      a.name.localeCompare(b.name),
+  );
 
   const recordMap = new Map();
   records.forEach((r) => recordMap.set(String(r.user), r));
@@ -312,6 +428,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
       return {
         userId: u._id,
         name: u.name,
+        role: u.role,
         status: "NOT_STARTED",
         workedSeconds: 0,
         breakSeconds: 0,
@@ -328,6 +445,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
     return {
       userId: u._id,
       name: u.name,
+      role: u.role,
       status,
       workedSeconds: calcLiveNetSeconds(record),
       breakSeconds: calcLiveBreakSeconds(record),
@@ -336,7 +454,6 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
     };
   });
 };
-
 // ================= DAY ATTENDANCE ================= */
 export const getDayAttendanceService = async (id) => {
   return Attendance.find({ id });
@@ -414,7 +531,14 @@ export const getWeeklyProgressService = async (userId) => {
     }
   }
 
-  const requiredSeconds = (48 - holidayCount * 8) * 60 * 60;
+  const user = await User.findById(userId).lean();
+
+  const policy = getWorkPolicy(user?.role || "employee");
+
+  const requiredSeconds = Math.max(
+    (policy.weeklyHours - holidayCount * policy.dailyHours) * 3600,
+    0,
+  );
 
   // ===== STATUS LOGIC =====
   const now = new Date();
@@ -444,12 +568,48 @@ export const getWeeklyProgressService = async (userId) => {
   return {
     ...weeklyDoc.toObject(),
     totalSeconds,
+
+    dailyRequiredSeconds: policy.dailyHours * 3600,
+
     percentage: Math.min((totalSeconds / requiredSeconds) * 100, 100),
     remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
     holidayCount,
   };
 };
 // ================= GET ALL USER WEEKLY PROGRESS ================= */
+// export const getAllUsersWeeklyProgressService = async (weekStart) => {
+//   if (!weekStart) {
+//     throw new Error("weekStart is required");
+//   }
+
+//   const weekStartDate = parseISTDateOnly(weekStart);
+
+//   const progress = await weeklyWork
+//     .find({
+//       weekStart: weekStartDate,
+//     })
+//     .populate("user", "name email role")
+//     .lean();
+
+//   const priority = {
+//     hr: 1,
+//     employee: 2,
+//     intern: 3,
+//   };
+//   return progress.map((p) => ({
+//     userId: p.user._id,
+//     name: p.user.name,
+//     email: p.user.email,
+//     weekStart: p.weekStart,
+//     weekEnd: p.weekEnd,
+//     totalMinutes: p.totalMinutes,
+//     requiredMinutes: p.requiredMinutes,
+//     status: p.status,
+//     percentage: Math.min((p.totalMinutes / p.requiredMinutes) * 100, 100),
+//     remainingMinutes: Math.max(p.requiredMinutes - p.totalMinutes, 0),
+//   }));
+// };
+
 export const getAllUsersWeeklyProgressService = async (weekStart) => {
   if (!weekStart) {
     throw new Error("weekStart is required");
@@ -461,19 +621,32 @@ export const getAllUsersWeeklyProgressService = async (weekStart) => {
     .find({
       weekStart: weekStartDate,
     })
-    .populate("user", "name email")
+    .populate("user", "name email role")
     .lean();
 
-  return progress.map((p) => ({
-    userId: p.user._id,
-    name: p.user.name,
-    email: p.user.email,
-    weekStart: p.weekStart,
-    weekEnd: p.weekEnd,
-    totalMinutes: p.totalMinutes,
-    requiredMinutes: p.requiredMinutes,
-    status: p.status,
-    percentage: Math.min((p.totalMinutes / p.requiredMinutes) * 100, 100),
-    remainingMinutes: Math.max(p.requiredMinutes - p.totalMinutes, 0),
-  }));
+  const priority = {
+    hr: 1,
+    employee: 2,
+    intern: 3,
+  };
+
+  return progress
+    .sort(
+      (a, b) =>
+        (priority[a.user.role] || 99) - (priority[b.user.role] || 99) ||
+        a.user.name.localeCompare(b.user.name),
+    )
+    .map((p) => ({
+      userId: p.user._id,
+      name: p.user.name,
+      email: p.user.email,
+      role: p.user.role,
+      weekStart: p.weekStart,
+      weekEnd: p.weekEnd,
+      totalMinutes: p.totalMinutes,
+      requiredMinutes: p.requiredMinutes,
+      status: p.status,
+      percentage: Math.min((p.totalMinutes / p.requiredMinutes) * 100, 100),
+      remainingMinutes: Math.max(p.requiredMinutes - p.totalMinutes, 0),
+    }));
 };

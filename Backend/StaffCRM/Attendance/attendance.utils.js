@@ -1,9 +1,16 @@
+import { WORK_POLICIES, ROLE_WORK_POLICY } from "./workPolicy.js";
+
+export const getWorkPolicy = (role = "employee") => {
+  const policyKey = ROLE_WORK_POLICY[role] || "full_time";
+  return WORK_POLICIES[policyKey];
+};
 // Backend/Attendance/attendance.utils.js
 export const nowUTC = () => new Date();
 
-// Cap work minutes to 8 hours
-const MAX_WORK_MINUTES = 8 * 60;
-export const capWorkMinutes = (minutes) => Math.min(minutes, MAX_WORK_MINUTES);
+export const capWorkMinutes = (minutes, role = "employee") => {
+  const policy = getWorkPolicy(role);
+  return Math.min(minutes, policy.maxDailyMinutes);
+};
 
 // YYYY-MM-DD (IST) → UTC midnight
 export const parseISTDateOnly = (dateStr) => {
@@ -17,7 +24,7 @@ export const todayISTUTC = () =>
     new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }),
   );
 
-export const isWithinOfficeHoursIST = (dateUTC) => {
+export const isWithinOfficeHoursIST = (dateUTC, role = "employee") => {
   const hour = Number(
     dateUTC.toLocaleString("en-US", {
       timeZone: "Asia/Kolkata",
@@ -25,7 +32,10 @@ export const isWithinOfficeHoursIST = (dateUTC) => {
       hour12: false,
     }),
   );
-  return hour >= 8 && hour < 19;
+
+  const policy = getWorkPolicy(role);
+
+  return hour >= policy.officeHours.start && hour < policy.officeHours.end;
 };
 
 export const calcWorkMinutes = (record) => {
@@ -41,12 +51,16 @@ export const calcWorkMinutes = (record) => {
 
   record.totalWorkMinutes = Math.floor(total);
   record.totalBreakMinutes = Math.floor(breaks);
-  record.netWorkMinutes = capWorkMinutes(Math.floor(net)); // 🔥 CAP HERE
+  record.netWorkMinutes = capWorkMinutes(Math.floor(net), record.role); // 🔥 CAP HERE
 };
 
-export const suggestAttendanceStatus = (minutes) => {
-  if (minutes >= 480) return "PRESENT";
-  if (minutes >= 240) return "HALF_DAY";
+export const suggestAttendanceStatus = (minutes, role = "employee") => {
+  const policy = getWorkPolicy(role);
+
+  if (minutes >= policy.attendance.presentMinutes) return "PRESENT";
+
+  if (minutes >= policy.attendance.halfDayMinutes) return "HALF_DAY";
+
   return "ABSENT";
 };
 

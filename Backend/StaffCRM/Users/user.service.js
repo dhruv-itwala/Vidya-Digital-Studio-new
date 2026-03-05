@@ -37,8 +37,17 @@ export const updateUserService = async (loggedInUser, userId, data) => {
   }
 
   // Only Admin can change role
-  if (loggedInUser.role !== "admin") {
+  // if (loggedInUser.role !== "admin") {
+  //   delete data.role;
+  // }
+  // Only Admin and HR can change role
+  if (!["admin", "hr"].includes(loggedInUser.role)) {
     delete data.role;
+  }
+
+  // HR cannot assign admin role
+  if (loggedInUser.role === "hr" && data.role === "admin") {
+    throw new AppError("HR cannot assign admin role", 403);
   }
 
   // Hash password if changed

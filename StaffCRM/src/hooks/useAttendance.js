@@ -13,7 +13,6 @@ import { getHolidaysAPI } from "../api/holiday.api";
 import { getAllLeavesAPI } from "../api/leave.api";
 
 /* ================= CONSTANTS ================= */
-const WORK_TARGET_SECONDS = 8 * 60 * 60;
 const BREAK_LIMIT_SECONDS = 60 * 60;
 
 const initialState = {
@@ -75,6 +74,8 @@ export const useAttendance = () => {
     const record = recordRes?.data?.data;
     const weekly = weeklyRes?.data?.data;
 
+    const dailyRequiredSeconds = weekly?.dailyRequiredSeconds || 8 * 3600;
+
     const breakSecs =
       record?.breaks?.reduce((sum, b) => {
         if (!b.in) return sum;
@@ -97,6 +98,7 @@ export const useAttendance = () => {
         weeklySeconds: weekly?.totalSeconds || 0,
         weeklyStatus: weekly?.status || "IN_PROGRESS",
         weeklyRequiredSeconds: (weekly?.requiredMinutes || 2880) * 60,
+        dailyRequiredSeconds,
       },
     });
   }, []);
@@ -186,7 +188,7 @@ export const useAttendance = () => {
 
   return {
     ...state,
-    WORK_TARGET_SECONDS,
+    WORK_TARGET_SECONDS: state.dailyRequiredSeconds,
     BREAK_LIMIT_SECONDS,
 
     punchIn: () => handleAction(punchInAPI, "👋 Have a great day!"),
