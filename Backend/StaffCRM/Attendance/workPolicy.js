@@ -1,7 +1,7 @@
 export const WORK_POLICIES = {
   full_time: {
     weeklyHours: 48,
-    dailyHours: 8,
+    dailyHours: 9,
 
     officeHours: {
       start: 8,
