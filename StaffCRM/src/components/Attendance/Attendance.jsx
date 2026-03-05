@@ -4,7 +4,6 @@ import {
   getLiveEmployeesStatusAPI,
   getAllEmployeesAttendanceByDateRangeAPI,
   markAttendanceStatusAPI,
-  downloadAttendancePDFWithPunchAPI,
   downloadAttendancePDFAPI,
   getAllUsersWeeklyProgressAPI,
 } from "../../api/attendance.api";
@@ -47,7 +46,6 @@ export default function Attendance() {
   const liveTickRef = useRef(null);
 
   const [weeklyFrom, setWeeklyFrom] = useState("");
-  const [weeklyTo, setWeeklyTo] = useState("");
   const [weekly, setWeekly] = useState([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
 
@@ -147,12 +145,12 @@ export default function Attendance() {
 
   /* ================= WEEKLY PROGRESS ================= */
   const fetchWeekly = async () => {
-    if (!weeklyFrom || !weeklyTo) return toast.error("Select both dates");
+    if (!weeklyFrom) return toast.error("Select a week");
 
     try {
       setWeeklyLoading(true);
 
-      const res = await getAllUsersWeeklyProgressAPI(weeklyFrom, weeklyTo);
+      const res = await getAllUsersWeeklyProgressAPI(weeklyFrom);
 
       setWeekly(res.data?.data || []);
     } catch {
@@ -438,14 +436,6 @@ export default function Attendance() {
                   value={weeklyFrom}
                   max={today}
                   onChange={(e) => setWeeklyFrom(e.target.value)}
-                />
-
-                <input
-                  type="date"
-                  value={weeklyTo}
-                  min={weeklyFrom}
-                  max={today}
-                  onChange={(e) => setWeeklyTo(e.target.value)}
                 />
 
                 <button onClick={fetchWeekly} className={styles.primaryBtn}>

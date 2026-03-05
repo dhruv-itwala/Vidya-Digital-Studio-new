@@ -6,6 +6,8 @@ import "../StaffCRM/Attendance/attendance.cron.js";
 import "../StaffCRM/Attendance/attendanceHoliday.cron.js";
 // Leave crons
 import "../StaffCRM/leaveBalance/leaveCredit.cron.js";
+// Weekly Progress crons
+import "../StaffCRM/Attendance/weeklyProgress.cron.js";
 
 console.log("🕒 Cron jobs initialized");
 

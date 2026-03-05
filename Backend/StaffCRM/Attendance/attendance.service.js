@@ -380,6 +380,47 @@ export const getTodayWorkRecordService = async (userId) => {
 };
 
 // ================ GET WEEKLY PROGRESS ================= */
+// export const getWeeklyProgressService = async (userId) => {
+//   const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
+
+//   const records = await WorkRecord.find({
+//     user: userId,
+//     date: { $gte: weekStartUTC, $lte: weekEndUTC },
+//   });
+
+//   let totalSeconds = 0;
+
+//   for (const record of records) {
+//     if (!record.punchIn) continue;
+
+//     const endTime = record.punchOut ?? new Date();
+
+//     const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
+
+//     totalSeconds += workedSeconds; // ✅ DO NOT subtract break
+//   }
+
+//   const requiredSeconds = 48 * 60 * 60;
+//   const totalMinutes = Math.floor(totalSeconds / 60);
+
+//   const weeklyDoc = await weeklyWork.findOneAndUpdate(
+//     { user: userId, weekStart: weekStartUTC },
+//     {
+//       weekEnd: weekEndUTC,
+//       totalMinutes,
+//       requiredMinutes: 48 * 60,
+//       status: totalSeconds >= requiredSeconds ? "COMPLETED" : "IN_PROGRESS",
+//     },
+//     { upsert: true, new: true },
+//   );
+
+//   return {
+//     ...weeklyDoc.toObject(),
+//     totalSeconds,
+//     percentage: Math.min((totalSeconds / requiredSeconds) * 100, 100),
+//     remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
+//   };
+// };
 export const getWeeklyProgressService = async (userId) => {
   const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
 
@@ -394,13 +435,40 @@ export const getWeeklyProgressService = async (userId) => {
     if (!record.punchIn) continue;
 
     const endTime = record.punchOut ?? new Date();
-
     const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
 
-    totalSeconds += workedSeconds; // ✅ DO NOT subtract break
+    totalSeconds += workedSeconds;
   }
 
-  const requiredSeconds = 48 * 60 * 60;
+  // ===== HOLIDAY ADJUSTMENT =====
+  const holidays = await Holiday.find({
+    date: { $gte: weekStartUTC, $lte: weekEndUTC },
+  });
+
+  let holidayCount = 0;
+
+  for (const h of holidays) {
+    const day = new Date(h.date).getUTCDay();
+
+    if (day !== 0 && day !== 6) {
+      holidayCount++;
+    }
+  }
+
+  const requiredSeconds = (48 - holidayCount * 8) * 60 * 60;
+
+  // ===== STATUS LOGIC =====
+  const now = new Date();
+  const weekFinished = now > weekEndUTC;
+
+  let status = "IN_PROGRESS";
+
+  if (totalSeconds >= requiredSeconds) {
+    status = "COMPLETED";
+  } else if (weekFinished) {
+    status = "DEFICIT";
+  }
+
   const totalMinutes = Math.floor(totalSeconds / 60);
 
   const weeklyDoc = await weeklyWork.findOneAndUpdate(
@@ -408,8 +476,8 @@ export const getWeeklyProgressService = async (userId) => {
     {
       weekEnd: weekEndUTC,
       totalMinutes,
-      requiredMinutes: 48 * 60,
-      status: totalSeconds >= requiredSeconds ? "COMPLETED" : "IN_PROGRESS",
+      requiredMinutes: requiredSeconds / 60,
+      status,
     },
     { upsert: true, new: true },
   );
@@ -419,20 +487,24 @@ export const getWeeklyProgressService = async (userId) => {
     totalSeconds,
     percentage: Math.min((totalSeconds / requiredSeconds) * 100, 100),
     remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
+    holidayCount,
   };
 };
-
 // ================= GET ALL USER WEEKLY PROGRESS ================= */
-export const getAllUsersWeeklyProgressService = async (from, to) => {
-  const fromDate = parseISTDateOnly(from);
-  const toDate = parseISTDateOnly(to);
+export const getAllUsersWeeklyProgressService = async (weekStart) => {
+  if (!weekStart) {
+    throw new Error("weekStart is required");
+  }
+
+  const weekStartDate = parseISTDateOnly(weekStart);
+
   const progress = await weeklyWork
     .find({
-      weekStart: { $gte: fromDate, $lte: toDate },
+      weekStart: weekStartDate,
     })
-    .sort({ weekStart: 1 })
     .populate("user", "name email")
     .lean();
+
   return progress.map((p) => ({
     userId: p.user._id,
     name: p.user.name,

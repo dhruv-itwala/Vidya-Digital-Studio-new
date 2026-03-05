@@ -144,10 +144,10 @@ export const getWeeklyProgressAPI = async () => {
   }
 };
 
-export const getAllUsersWeeklyProgressAPI = async (from, to) => {
+export const getAllUsersWeeklyProgressAPI = async (weekStart) => {
   try {
     return await api.get("/attendance/weekly-progress/all", {
-      params: { from, to },
+      params: { weekStart },
     });
   } catch (error) {
     handleError(error);
