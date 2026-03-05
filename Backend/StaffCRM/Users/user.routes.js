@@ -8,8 +8,6 @@ import {
   updateUser,
   deleteUser,
   getEmployeeBirthdays,
-  mySalaryDeduction,
-  employeeSalaryDeduction,
   inactiveUser,
   getAllUsersForAdmin,
 } from "./user.controller.js";
@@ -20,18 +18,13 @@ const userRoutes = express.Router();
 
 /* ================= AUTH ================= */
 userRoutes.post("/login", login);
+
 userRoutes.use(protect);
 
 userRoutes.get("/me", getProfile);
 userRoutes.get("/", getAllUsers);
 userRoutes.get("/birthdays", getEmployeeBirthdays);
 
-userRoutes.get("/salary/my", mySalaryDeduction);
-userRoutes.get(
-  "/salary/employee",
-  roleCheck("admin", "hr"),
-  employeeSalaryDeduction,
-);
 userRoutes.get("/admin/all", roleCheck("admin", "hr"), getAllUsersForAdmin);
 userRoutes.post("/", roleCheck("admin", "hr"), createUser);
 userRoutes.put("/:id", roleCheck("admin", "hr"), updateUser);

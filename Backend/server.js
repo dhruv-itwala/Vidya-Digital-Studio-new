@@ -21,7 +21,9 @@ import taskRoutes from "./StaffCRM/Tasks/task.routes.js";
 import leaveRoutes from "./StaffCRM/Leaves/leave.routes.js";
 import LeaveBalanceRoutes from "./StaffCRM/leaveBalance/leaveBalance.routes.js";
 import todoRoutes from "./StaffCRM/Todo/todo.routes.js";
-import clientRoutes from "./StaffCRM/Client/client.routes.js";
+import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
+import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
+
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 
 const app = express();
@@ -80,7 +82,10 @@ app.use(`/api/${VERSION}/tasks`, taskRoutes);
 app.use(`/api/${VERSION}/todo`, todoRoutes);
 
 // Client Routes
-app.use(`/api/${VERSION}/clients`, clientRoutes);
+app.use(`/api/${VERSION}/clients`, ClientRoutes);
+
+// Lead Routes
+app.use(`/api/${VERSION}/leads`, LeadsRoutes);
 
 app.use(globalErrorHandler);
 

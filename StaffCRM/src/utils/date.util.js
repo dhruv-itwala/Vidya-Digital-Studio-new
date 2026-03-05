@@ -35,3 +35,16 @@ export const formatToIST = (utcDate) => {
     minute: "2-digit",
   });
 };
+
+export const formatISTDate = (date) => {
+  if (!date) return "-";
+
+  const d = new Date(date);
+  const ist = new Date(d.getTime() + 330 * 60000);
+
+  const day = String(ist.getUTCDate()).padStart(2, "0");
+  const month = String(ist.getUTCMonth() + 1).padStart(2, "0");
+  const year = ist.getUTCFullYear();
+
+  return `${day}/${month}/${year}`;
+};

@@ -1,0 +1,311 @@
+.container {
+  width: 100%;
+  margin: auto;
+}
+
+/* ================= HEADER ================= */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.heading {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.headerActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  min-width: 200px;
+}
+
+.filterBtn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: white;
+  cursor: pointer;
+}
+
+.createBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.createBtn:hover {
+  background: var(--color-button-hover);
+}
+
+/* ================= FILTER MODAL ================= */
+
+.filterWrapper {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.showFilter {
+  max-height: 200px;
+  margin-bottom: 20px;
+}
+
+.filterContent {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px var(--color-shadow);
+}
+
+/* ================= TABLE ================= */
+
+.tableWrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px var(--color-shadow);
+  overflow-x: auto; /* MOBILE SCROLL */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* ensures horizontal scroll on small devices */
+}
+
+.table th,
+.table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.table th {
+  background: var(--color-primary);
+  color: white;
+  font-weight: 500;
+}
+
+.tableRow {
+  transition: all 0.2s ease;
+}
+
+.businessName {
+  font-weight: 500;
+}
+
+.clientCell {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border);
+  border-radius: 20%;
+  object-fit: cover;
+}
+
+.clientName {
+  font-weight: 500;
+}
+
+.ownerName {
+  color: var(--color-secondary);
+  font-size: 14px;
+}
+
+/* ================= PILLS ================= */
+
+.services {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.servicePill {
+  background: var(--color-primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pill {
+  background: var(--color-primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+/* ================= STATUS ================= */
+
+.statusBadge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-secondary);
+  color: white;
+}
+
+.transferred {
+  opacity: 0.6;
+}
+
+/* ================= ACTIONS ================= */
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #f3f4f6;
+}
+
+.view {
+  background: #d1fae5 !important;
+  color: #065f46;
+}
+
+.edit {
+  background: #e0f2fe !important;
+  color: #0369a1;
+}
+
+.delete {
+  background: #fee2e2 !important;
+  color: #991b1b;
+}
+
+.transfer {
+  background: #e0e7ff !important;
+  color: #3730a3;
+}
+
+/* ================= SPINNER ================= */
+
+/* Toggle */
+.toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+}
+
+.toggle input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #ccc;
+  border-radius: 20px;
+  transition: 0.3s;
+}
+
+.toggle input:checked + .slider {
+  background: #10b981;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  top: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle input:checked + .slider::before {
+  transform: translateX(16px);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ddd;
+  border-top: 3px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================= PAGINATION ================= */
+
+.pagination {
+  width: 100%;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-primary);
+  cursor: pointer;
+}
+
+.pagination button:hover {
+  background: var(--color-secondary);
+  color: white;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .search {
+    width: 100%;
+  }
+}

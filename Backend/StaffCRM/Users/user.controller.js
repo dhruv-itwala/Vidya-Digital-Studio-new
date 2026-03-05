@@ -6,7 +6,6 @@ import {
   updateUserService,
   deleteUserService,
   getEmployeeBirthdaysService,
-  salaryDeductionService,
   inactiveUserService,
   getAllUsersForAdminService,
 } from "./user.service.js";
@@ -126,38 +125,5 @@ export const getEmployeeBirthdays = asyncHandler(async (req, res) => {
     success: true,
     total: birthdays.length,
     birthdays,
-  });
-});
-
-/* ================= SALARY ================= */
-export const mySalaryDeduction = asyncHandler(async (req, res) => {
-  const { from, to } = req.query;
-
-  if (!from || !to) {
-    throw new AppError("from and to dates are required", 400);
-  }
-
-  const data = await salaryDeductionService(req.user.id, from, to);
-
-  res.json({
-    success: true,
-    userId: req.user.id,
-    ...data,
-  });
-});
-
-export const employeeSalaryDeduction = asyncHandler(async (req, res) => {
-  const { userId, from, to } = req.query;
-
-  if (!userId || !from || !to) {
-    throw new AppError("userId, from, and to dates are required", 400);
-  }
-
-  const data = await salaryDeductionService(userId, from, to);
-
-  res.json({
-    success: true,
-    userId,
-    ...data,
   });
 });

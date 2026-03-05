@@ -1,0 +1,149 @@
+.container {
+  width: 100%;
+}
+
+/* ================= HEADER ================= */
+
+.headerCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-background);
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+}
+
+.businessName {
+  margin: 0;
+  font-size: 26px;
+  color: var(--color-primary);
+}
+
+.statusBadge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--color-secondary);
+  color: white;
+  font-size: 13px;
+}
+
+.editBtn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ================= CARDS ================= */
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px var(--color-shadow);
+  margin-bottom: 20px;
+}
+
+.card h3 {
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+/* ================= INFO GRID ================= */
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.infoGrid span {
+  font-size: 12px;
+  color: #888;
+}
+
+.infoGrid p {
+  margin: 4px 0 0;
+}
+
+/* ================= SERVICES ================= */
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  background: #fff;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* ================= NOTES ================= */
+
+.leadNotes {
+  line-height: 1.6;
+}
+
+/* ================= TIMELINE ================= */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.timelineItem {
+  padding: 14px;
+  background: var(--color-background);
+  border-radius: 12px;
+}
+
+.timelineDate {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.timelineContent {
+  font-size: 14px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .headerInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}

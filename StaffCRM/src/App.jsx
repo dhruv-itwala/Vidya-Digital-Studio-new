@@ -2,21 +2,23 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import useBackendStatus from "./hooks/useBackendStatus";
 
 import Login from "./pages/Auth/Login";
+
 import EmployeeLayout from "./layouts/EmployeeLayout";
 import AdminLayout from "./layouts/AdminLayout";
-
-import AdminEmployees from "./pages/Admin/AdminEmployees";
-import AdminTasks from "./pages/Admin/AdminTasks";
-
-import HRHoliday from "./pages/HR/HRHoliday";
-import EmployeeTasks from "./pages/Employee/EmployeeTasks";
-import EmployeeDashboard from "./pages/Employee/EmployeeDashboard";
-import EmployeeAttendance from "./pages/Employee/EmployeeAttendance";
-import EmployeeLeaves from "./pages/Employee/EmployeeLeaves";
+import HRLayout from "./layouts/HRLayout";
 
 import NavigateBasedOnRole from "./routes/NavigateBasedOnRole";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import HRLayout from "./layouts/HRLayout";
+
+import AdminEmployees from "./pages/Admin/AdminEmployees";
+import AdminTasks from "./pages/Admin/AdminTasks";
+import AllQuotations from "./pages/Admin/AllQuotations";
+
+import HRHoliday from "./pages/HR/HRHoliday";
+import EmployeeTasks from "./pages/Employee/EmployeeTasks";
+import Dashboard from "./components/Dashboard/Dashboard";
+import EmployeeAttendance from "./pages/Employee/EmployeeAttendance";
+import EmployeeLeaves from "./pages/Employee/EmployeeLeaves";
 
 import Reports from "./components/Reports/Reports";
 import Holiday from "./components/Holidays/Holiday";
@@ -24,17 +26,21 @@ import LeaveApproval from "./components/LeaveApproval/LeaveApproval";
 import Attendance from "./components/Attendance/Attendance";
 import Profile from "./components/Profile/Profile";
 import TodoList from "./components/TodoList/TodoList";
-import AllQuotations from "./pages/Admin/AllQuotations";
 
-import CreateClient from "./components/Client/CreateClient";
-import ClientList from "./components/Client/ClientList";
-import ClientView from "./components/Client/ClientView";
-import EditClient from "./components/Client/EditClient";
+import ViewLeads from "./components/Leads/ViewLeads";
+import EditLead from "./components/Leads/EditLead";
+import CreateLead from "./components/Leads/CreateLead";
+import DetailLead from "./components/Leads/DetailLead";
+
+import ViewClients from "./components/Clients/ViewClients";
+import CreateClient from "./components/Clients/CreateClient";
+import EditClient from "./components/Clients/EditClient";
+import DetailClient from "./components/Clients/DetailClient";
 
 import Maintenance from "./components/Maintenance/Maintenance";
+
 import { Toaster } from "react-hot-toast";
 import "./App.css";
-import Dashboard from "./components/Dashboard/Dashboard";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -86,11 +92,6 @@ export default function App() {
           <Route path="todo" element={<TodoList />} />
 
           <Route path="quotations" element={<AllQuotations />} />
-
-          <Route path="clients" element={<ClientList />} />
-          <Route path="clients/create" element={<CreateClient />} />
-          <Route path="clients/:id" element={<ClientView />} />
-          <Route path="clients/:id/edit" element={<EditClient />} />
         </Route>
 
         {/* EMPLOYEE ROUTES */}
@@ -137,9 +138,14 @@ export default function App() {
           <Route path="hrReports" element={<Reports />} />
           <Route path="hrHoliday" element={<HRHoliday />} />
 
-          <Route path="clients" element={<ClientList />} />
+          <Route path="leads" element={<ViewLeads />} />
+          <Route path="leads/:id" element={<DetailLead />} />
+          <Route path="leads/create" element={<CreateLead />} />
+          <Route path="leads/:id/edit" element={<EditLead />} />
+
+          <Route path="clients" element={<ViewClients />} />
+          <Route path="clients/:id" element={<DetailClient />} />
           <Route path="clients/create" element={<CreateClient />} />
-          <Route path="clients/:id" element={<ClientView />} />
           <Route path="clients/:id/edit" element={<EditClient />} />
         </Route>
 

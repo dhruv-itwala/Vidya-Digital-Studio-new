@@ -1,178 +1,228 @@
-import { useState } from "react";
-import toast from "react-hot-toast";
+import { useEffect, useState, useCallback } from "react";
 import {
-  createClient,
-  updateClient,
-  uploadClientDocuments,
-  deleteClientDocument,
-} from "../api/client.api";
+  getClientsAPI,
+  createClientAPI,
+  updateClientAPI,
+  deactivateClientAPI,
+  addCredentialAPI,
+  uploadDocumentAPI,
+  deleteDocumentAPI,
+  updateCredentialAPI,
+  deleteCredentialAPI,
+  addTransactionAPI,
+  deleteTransactionAPI,
+  updateTransactionAPI,
+} from "../api/clients.api";
 
-export const useClient = () => {
-  const [loading, setLoading] = useState(false);
+export const useClients = () => {
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [rowLoading, setRowLoading] = useState(null);
 
-  /* =========================================
-     CREATE CLIENT
-  ========================================= */
-  const handleCreateClient = async (data) => {
-    if (loading) return;
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
 
+  const limit = 10;
+
+  /* ================= FETCH ================= */
+  const fetchClients = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
 
-      const fd = new FormData();
-
-      /* ---- SERVICES ---- */
-      if (data.servicesText) {
-        const services = data.servicesText
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-
-        fd.append("services", JSON.stringify(services));
-      }
-
-      /* ---- LOOP FIELDS ---- */
-      Object.entries(data).forEach(([key, value]) => {
-        if (value === undefined || value === null) return;
-
-        if (key === "servicesText") return;
-        if (key === "documents") return; // handled separately
-
-        if (Array.isArray(value)) {
-          fd.append(key, JSON.stringify(value));
-          return;
-        }
-
-        if (key === "profilePhoto" && value?.[0]) {
-          fd.append("profilePhoto", value[0]);
-          return;
-        }
-
-        fd.append(key, value);
+      const res = await getClientsAPI({
+        page,
+        limit,
+        search,
       });
 
-      const created = await createClient(fd);
-      const clientId = created.data._id;
-
-      /* ---- DOCUMENT UPLOAD ---- */
-      if (data.documents?.length) {
-        const docFormData = new FormData();
-
-        data.documents.forEach((doc) => {
-          if (!doc.removed && doc.file?.[0]) {
-            docFormData.append("documents", doc.file[0]);
-          }
-        });
-
-        if ([...docFormData.entries()].length > 0) {
-          await uploadClientDocuments(clientId, docFormData);
-        }
-      }
-
-      toast.success("Client created successfully");
-
-      return created.data;
+      setClients(res.data.data);
+      setTotalPages(res.data.pages);
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to create client");
-      throw err;
+      setError(err?.message || "Failed to load clients");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search]);
 
-  /* =========================================
-     UPDATE CLIENT
-  ========================================= */
-  const handleUpdateClient = async (clientId, data) => {
-    if (loading) return;
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
+  /* ================= CREATE ================= */
+  const createClient = async (data) => {
     try {
-      setLoading(true);
-
-      const fd = new FormData();
-
-      if (data.servicesText) {
-        const services = data.servicesText
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-
-        fd.append("services", JSON.stringify(services));
-      }
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (value === undefined || value === null) return;
-
-        if (key === "servicesText") return;
-        if (key === "documents") return;
-
-        if (Array.isArray(value)) {
-          fd.append(key, JSON.stringify(value));
-          return;
-        }
-
-        if (key === "profilePhoto" && value?.[0]) {
-          fd.append("profilePhoto", value[0]);
-          return;
-        }
-
-        fd.append(key, value);
-      });
-
-      const updated = await updateClient(clientId, fd);
-
-      /* ---- NEW DOCUMENTS ---- */
-      if (data.documents?.length) {
-        const docFormData = new FormData();
-
-        data.documents.forEach((doc) => {
-          if (!doc.removed && doc.file?.[0]) {
-            docFormData.append("documents", doc.file[0]);
-          }
-        });
-
-        if ([...docFormData.entries()].length > 0) {
-          await uploadClientDocuments(clientId, docFormData);
-        }
-      }
-
-      toast.success("Client updated successfully");
-
-      return updated.data;
+      await createClientAPI(data);
+      await fetchClients(); // refresh properly
+      return { success: true };
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to update client");
-      throw err;
-    } finally {
-      setLoading(false);
+      return { success: false, message: err.message };
     }
   };
 
-  /* =========================================
-     DELETE DOCUMENT
-  ========================================= */
-  const handleDeleteDocument = async (clientId, documentId) => {
+  /* ================= UPDATE ================= */
+  const updateClient = async (id, data) => {
     try {
-      setLoading(true);
+      const res = await updateClientAPI(id, data);
 
-      await deleteClientDocument(clientId, documentId);
+      setClients((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
 
-      toast.success("Document deleted");
-
-      return documentId; // 👈 return deleted id
+      return { success: true };
     } catch (err) {
-      toast.error("Failed to delete document");
-      throw err;
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ================= DEACTIVATE ================= */
+  const deactivateClient = async (id) => {
+    let previous;
+
+    setRowLoading(id);
+
+    setClients((prev) => {
+      previous = prev;
+      return prev.filter((c) => c._id !== id);
+    });
+
+    try {
+      await deactivateClientAPI(id);
+      return { success: true };
+    } catch (err) {
+      setClients(previous);
+      return { success: false, message: err.message };
     } finally {
-      setLoading(false);
+      setRowLoading(null);
+    }
+  };
+
+  /* ================= ADD CREDENTIAL ================= */
+  const addCredential = async (id, data) => {
+    try {
+      const res = await addCredentialAPI(id, data);
+
+      setClients((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
+
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+  /* ================= UPDATE CREDENTIAL ================= */
+  const updateCredential = async (clientId, credId, data) => {
+    try {
+      const res = await updateCredentialAPI(clientId, credId, data);
+      setClients((prev) =>
+        prev.map((c) => (c._id === clientId ? res.data.data : c)),
+      );
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ================= DELETE CREDENTIAL ================= */
+  const deleteCredential = async (clientId, credId) => {
+    try {
+      const res = await deleteCredentialAPI(clientId, credId);
+      setClients((prev) =>
+        prev.map((c) => (c._id === clientId ? res.data.data : c)),
+      );
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ================= ADD TRANSACTION ================= */
+  const addTransaction = async (id, data) => {
+    try {
+      const res = await addTransactionAPI(id, data);
+
+      setClients((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
+
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ================= UPDATE TRANSACTION ================= */
+  const updateTransaction = async (clientId, txnId, data) => {
+    try {
+      const res = await updateTransactionAPI(clientId, txnId, data);
+      setClients((prev) =>
+        prev.map((c) => (c._id === clientId ? res.data.data : c)),
+      );
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ================= DELETE TRANSACTION ================= */
+  const deleteTransaction = async (clientId, txnId) => {
+    try {
+      const res = await deleteTransactionAPI(clientId, txnId);
+
+      setClients((prev) =>
+        prev.map((c) => (c._id === clientId ? res.data.data : c)),
+      );
+
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ================= UPLOAD DOCUMENT ================= */
+  const uploadDocument = async (id, file) => {
+    try {
+      const res = await uploadDocumentAPI(id, file);
+
+      setClients((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
+
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ================= DELETE DOCUMENT ================= */
+  const deleteDocument = async (id, publicId) => {
+    try {
+      const res = await deleteDocumentAPI(id, publicId);
+
+      setClients((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
+
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
   };
 
   return {
+    clients,
     loading,
-    handleCreateClient,
-    handleUpdateClient,
-    handleDeleteDocument,
+    error,
+    rowLoading,
+    page,
+    totalPages,
+    search,
+    setSearch,
+    setPage,
+    refetch: fetchClients,
+    createClient,
+    updateClient,
+    deactivateClient,
+    addCredential,
+    updateCredential,
+    deleteCredential,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    uploadDocument,
+    deleteDocument,
   };
 };

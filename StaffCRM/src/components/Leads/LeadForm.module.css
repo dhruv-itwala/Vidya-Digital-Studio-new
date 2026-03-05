@@ -1,0 +1,268 @@
+.form {
+  width: 100%;
+  margin: 30px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px var(--color-shadow);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.heading {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* ================= SECTION CARD ================= */
+
+.section {
+  margin-bottom: 28px;
+  padding: 22px;
+  background: var(--color-background);
+  border-radius: 14px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  color: var(--color-primary);
+}
+
+/* ================= GRID ================= */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 calc(50% - 9px); /* 2 columns */
+  min-width: 260px;
+}
+
+.full {
+  flex: 1 1 100%;
+}
+
+.inputGroup label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.inputGroup input,
+.inputGroup textarea,
+.inputGroup select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  transition: 0.2s ease;
+}
+
+.inputGroup input:focus,
+.inputGroup textarea:focus,
+.inputGroup select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ================= MODERN TAG INPUT ================= */
+
+.tagInput {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  min-height: 44px;
+  padding: 8px 10px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+
+  cursor: text;
+  transition: 0.2s ease;
+}
+
+.tagInput:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.08);
+}
+
+/* Input inside container */
+.tagInput input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  font-size: 14px;
+  padding: 4px;
+  background: transparent;
+}
+
+/* Individual tag */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  background: rgba(0, 123, 255, 0.1);
+  color: var(--color-primary);
+
+  padding: 5px 10px;
+  border-radius: 20px;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  transition: 0.15s ease;
+}
+
+/* Remove button */
+.tag button {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.tag button:hover {
+  opacity: 1;
+}
+
+/* Subtle hover effect */
+.tag:hover {
+  background: rgba(0, 123, 255, 0.15);
+}
+
+/* ================= MEETING NOTES ================= */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.notesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notesTable {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+
+.notesWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.noteCard {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.noteCard input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.removeRow {
+  flex-shrink: 0;
+}
+.removeRow {
+  background: var(--color-accent);
+  border: none;
+  color: white;
+  border-radius: 8px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.addMeetingBtn {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  cursor: pointer;
+}
+
+/* ================= ACTIONS ================= */
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelBtn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: white;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.submitBtn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  cursor: pointer;
+}
+
+.submitBtn:hover {
+  background: var(--color-button-hover);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .inputGroup {
+    flex: 1 1 100%;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .submitBtn,
+  .cancelBtn {
+    width: 100%;
+  }
+}

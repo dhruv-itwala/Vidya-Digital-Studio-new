@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+#env files
+.env
+.env.*.local
+
+#zip and rar files
+*.zip
+*.rar
+

@@ -1,10 +1,7 @@
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import User from "./user.model.js";
-import Attendance from "../Attendance/attendance.model.js";
-import Leave from "../Leaves/leave.model.js";
-import Holiday from "../Holidays/holiday.model.js";
-import { toISTDateKey, parseIST } from "../utils/date.utils.js";
+import AppError from "../utils/AppError.js";
 
 /* ================= LOGIN ================= */
 export const loginService = async (email, password) => {
@@ -125,7 +122,7 @@ export const getEmployeeBirthdaysService = async () => {
 export const getAllUsersService = async () => {
   const users = await User.find({ isActive: true }).select("-password").lean();
 
-  const priority = { admin: 1, hr: 2, employee: 3 };
+  const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
 
   return users.sort(
     (a, b) =>
@@ -136,7 +133,7 @@ export const getAllUsersService = async () => {
 export const getAllUsersForAdminService = async () => {
   const users = await User.find().select("-password").lean();
 
-  const priority = { admin: 1, hr: 2, employee: 3 };
+  const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
 
   return users.sort(
     (a, b) =>
@@ -154,101 +151,4 @@ export const getProfileService = async (userId) => {
   if (!user) throw new AppError("User not found", 404);
 
   return user;
-};
-
-/* ================= PAYROLL ================= */
-export const salaryDeductionService = async (userId, from, to) => {
-  const user = await User.findById(userId).select("salary");
-  if (!user?.salary) {
-    throw new AppError("User or salary not found", 404);
-  }
-
-  const start = parseIST(from);
-  const end = parseIST(to);
-
-  // Fetch in parallel
-  const [holidays, attendance, leaves] = await Promise.all([
-    Holiday.find({ date: { $gte: start, $lte: end } }),
-    Attendance.find({ user: userId, date: { $gte: start, $lte: end } }),
-    Leave.find({
-      user: userId,
-      status: "APPROVED",
-      fromDate: { $lte: end },
-      toDate: { $gte: start },
-    }),
-  ]);
-
-  const holidaySet = new Set(holidays.map((h) => toISTDateKey(h.date)));
-
-  const dateMap = {};
-  const workingDays = [];
-
-  for (
-    let d = new Date(start);
-    d <= end;
-    d = new Date(d.getTime() + 86400000)
-  ) {
-    const day = d.getUTCDay();
-    const key = toISTDateKey(d);
-
-    // Skip weekends
-    if (day === 0 || day === 6) continue;
-
-    const isHoliday = holidaySet.has(key);
-
-    dateMap[key] = {
-      weight: 0,
-      type: isHoliday ? "HOLIDAY" : "PRESENT",
-    };
-
-    workingDays.push(key);
-  }
-
-  if (!workingDays.length) {
-    throw new AppError("Invalid payroll cycle", 400);
-  }
-
-  // Attendance mapping
-  for (const a of attendance) {
-    const key = toISTDateKey(a.date);
-    if (!dateMap[key]) continue;
-
-    if (a.status === "HALF_DAY") {
-      dateMap[key].weight = 0.5;
-    }
-  }
-
-  // Leave mapping
-  for (const leave of leaves) {
-    for (
-      let d = new Date(leave.fromDate);
-      d <= leave.toDate;
-      d = new Date(d.getTime() + 86400000)
-    ) {
-      const key = toISTDateKey(d);
-      if (!dateMap[key]) continue;
-
-      if (leave.type === "UNPAID") {
-        dateMap[key].weight = leave.isHalfDay ? 0.5 : 1;
-      }
-    }
-  }
-
-  const absentDays = Object.values(dateMap).reduce(
-    (sum, d) => sum + d.weight,
-    0,
-  );
-
-  const perDaySalary = user.salary / workingDays.length;
-  const deduction = perDaySalary * absentDays;
-
-  return {
-    cycle: `${from} → ${to}`,
-    totalWorkingDays: workingDays.length,
-    absentDays,
-    perDaySalary: Math.round(perDaySalary),
-    deduction: Math.round(deduction),
-    payableSalary: Math.round(user.salary - deduction),
-    breakdown: dateMap,
-  };
 };
