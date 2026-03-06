@@ -44,12 +44,12 @@ const taskSchema = new mongoose.Schema(
       },
       role: {
         type: String,
-        enum: ["admin", "employee", "hr"],
+        enum: ["admin", "employee", "hr", "intern"],
         required: true,
       },
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Task", taskSchema);

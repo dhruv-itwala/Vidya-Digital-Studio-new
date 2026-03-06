@@ -1,5 +1,6 @@
 import Task from "./task.model.js";
 
+// ================= CREATE =================
 export const createTaskService = async (user, data) => {
   if (!data.assignedTo || data.assignedTo.length === 0) {
     throw new Error("At least one employee must be assigned");
@@ -13,6 +14,8 @@ export const createTaskService = async (user, data) => {
     },
   });
 };
+
+// ================= GET MY TASK =================
 export const getMyTasksService = async (userId) => {
   return Task.find({
     $or: [{ assignedTo: userId }, { "createdBy.user": userId }],
@@ -22,6 +25,7 @@ export const getMyTasksService = async (userId) => {
     .sort({ createdAt: -1 });
 };
 
+// ================= GET COMPLETED TASKS =================
 export const getMyCompletedTasksService = async (userId) => {
   return Task.find({
     status: "complete",
@@ -32,6 +36,7 @@ export const getMyCompletedTasksService = async (userId) => {
     .sort({ updatedAt: -1 }); // completed recently first
 };
 
+// ================= GET ALL TASKS (ADMIN/HR) =================
 export const getAllTasksService = async () => {
   return Task.find()
     .populate("assignedTo", "name email")
@@ -39,16 +44,16 @@ export const getAllTasksService = async () => {
     .sort({ createdAt: -1 });
 };
 
+// ================= UPDATE =================
 export const updateTaskService = async (taskId, data, user) => {
   const task = await Task.findById(taskId);
   if (!task) throw new Error("Task not found");
 
-  // Employee cannot update admin-created task except if assigned
-  if (user.role === "employee" && task.createdBy.role === "admin") {
-    throw new Error("You cannot update admin-created tasks");
+  // Only admin can update admin-created tasks
+  if (task.createdBy.role === "admin" && user.role !== "admin") {
+    throw new Error("Only admin can update admin-created tasks");
   }
 
-  // Only allow updating certain fields
   const updatableFields = [
     "name",
     "details",
@@ -58,6 +63,7 @@ export const updateTaskService = async (taskId, data, user) => {
     "endDate",
     "status",
   ];
+
   updatableFields.forEach((field) => {
     if (data[field] !== undefined) {
       task[field] = data[field];
@@ -68,6 +74,7 @@ export const updateTaskService = async (taskId, data, user) => {
   return task;
 };
 
+// ================= UPDATE STATUS =================
 export const updateTaskStatusService = async (taskId, status) => {
   const task = await Task.findById(taskId);
   if (!task) throw new Error("Task not found");
@@ -78,16 +85,13 @@ export const updateTaskStatusService = async (taskId, status) => {
   return task;
 };
 
+// ================= DELETE =================
 export const deleteTaskService = async (taskId, user) => {
   const task = await Task.findById(taskId);
   if (!task) throw new Error("Task not found");
 
-  // Employee cannot delete admin-created task
-  if (
-    (user.role === "employee" && task.createdBy.role === "admin") ||
-    (user.role === "hr" && task.createdBy.role === "admin")
-  ) {
-    throw new Error("You cannot delete admin-created tasks");
+  if (task.createdBy.role === "admin" && user.role !== "admin") {
+    throw new Error("Only admin can delete admin-created tasks");
   }
 
   await task.deleteOne();

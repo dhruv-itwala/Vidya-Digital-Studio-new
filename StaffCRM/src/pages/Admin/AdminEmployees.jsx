@@ -133,7 +133,7 @@ export default function AdminEmployees() {
                   {user.role === "admin" && (
                     <td>
                       <button
-                        disabled={u.role === "admin"}
+                        disabled={user.role === "hr" && u.role === "admin"}
                         onClick={async () => {
                           if (!confirm(`Delete ${u.name} permanently?`)) return;
                           await deleteUserAPI(u._id);

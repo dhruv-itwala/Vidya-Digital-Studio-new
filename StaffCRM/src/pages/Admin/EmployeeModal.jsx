@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 export default function EmployeeModal({ user, onClose, onSaved }) {
   const { user: loggedInUser } = useAuth();
   const isEdit = Boolean(user._id);
-
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: user.name || "",
     email: user.email || "",
@@ -28,6 +28,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const submit = async () => {
+    setLoading(true);
     try {
       const payload = { ...form };
       if (!payload.password) delete payload.password;
@@ -39,8 +40,9 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
       onSaved();
       toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
     } catch (err) {
-      // alert(err.response?.data?.message || err.message);
       toast.error("Failed to save employee");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -229,8 +231,12 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
           {/* Actions */}
           <div className={styles.actions}>
             <div className={styles.buttonGroup}>
-              <button type="submit" className={styles.saveBtn}>
-                Save
+              <button
+                type="submit"
+                className={styles.saveBtn}
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save"}
               </button>
               <button
                 type="button"

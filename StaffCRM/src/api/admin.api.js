@@ -32,14 +32,3 @@ export const downloadAllReportsPDF = (date) =>
 export const getAllQuotesAPI = () => api.get("/quotation");
 
 export const deleteQuoteAPI = (id) => api.delete(`/quotation/${id}`);
-
-// Salary Deduction Reports
-export const getMySalaryDeductionAPI = (from, to) =>
-  api.get("/users/salary/my", {
-    params: { from, to },
-  });
-
-export const getEmployeeSalaryDeductionAPI = (userId, from, to) =>
-  api.get("/users/salary/employee", {
-    params: { userId, from, to },
-  });

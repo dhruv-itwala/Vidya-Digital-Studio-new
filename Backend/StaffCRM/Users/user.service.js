@@ -36,10 +36,6 @@ export const updateUserService = async (loggedInUser, userId, data) => {
     throw new AppError("HR cannot modify Admin", 403);
   }
 
-  // Only Admin can change role
-  // if (loggedInUser.role !== "admin") {
-  //   delete data.role;
-  // }
   // Only Admin and HR can change role
   if (!["admin", "hr"].includes(loggedInUser.role)) {
     delete data.role;
