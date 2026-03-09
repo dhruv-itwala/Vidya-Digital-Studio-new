@@ -143,6 +143,11 @@
     font-size: 22px;
   }
 
+  .cards {
+    flex-direction: column;
+    gap: 15px;
+  }
+
   .card p {
     font-size: 20px;
   }
