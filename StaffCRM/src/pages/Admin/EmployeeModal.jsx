@@ -11,6 +11,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
   const [form, setForm] = useState({
     name: user.name || "",
     email: user.email || "",
+    phone: user.phone || "",
     password: "",
     designation: user.designation || "",
     joiningDate: user.joiningDate?.slice(0, 10) || "",
@@ -74,6 +75,17 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 placeholder="Jethalal Gada"
                 value={form.name}
                 onChange={(e) => handleChange("name", e.target.value)}
+                required
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label>Phone No:</label>
+              <input
+                type="tel"
+                placeholder="9876543210"
+                value={form.phone}
+                maxLength={10}
+                onChange={(e) => handleChange("phone", e.target.value)}
                 required
               />
             </div>

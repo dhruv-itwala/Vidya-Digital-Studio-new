@@ -1,4 +1,4 @@
-// Backend/Attendance/attendancePdfWithPunch.service.js
+// Backend/Attendance/attendancePdf.service.js
 import PDFDocument from "pdfkit";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
@@ -9,7 +9,7 @@ dayjs.extend(timezone);
 
 const IST = "Asia/Kolkata";
 
-import { getAllAttendanceByDateRangeService } from "./attendance.service.js";
+import { getAllAttendanceByDateRangeService } from "../attendance.service.js";
 
 /* ---------------- STATUS MAPS ---------------- */
 const STATUS_MAP = {
@@ -86,7 +86,7 @@ function buildAttendanceMatrixWithPunch(data = []) {
 }
 
 /* ---------------- PDF SERVICE ---------------- */
-export const downloadAttendanceWithPunchPDFService = async (req, res) => {
+export const downloadAttendancePDFService = async (req, res) => {
   try {
     const { from, to } = req.query;
     const data = await getAllAttendanceByDateRangeService(from, to);
@@ -102,7 +102,7 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="attendance_punch.pdf"`,
+      `attachment; filename="attendance.pdf"`,
     );
 
     doc.pipe(res);
@@ -151,7 +151,7 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
       doc
         .fontSize(7)
         .fillColor("black")
-        .text("Status | In | Out", x + 2, startY + 14, {
+        .text("Status", x + 2, startY + 14, {
           width: empColWidth - 4,
           align: "center",
         });
@@ -180,12 +180,10 @@ export const downloadAttendanceWithPunchPDFService = async (req, res) => {
         doc
           .fillColor(color)
           .fontSize(9)
-          .text(
-            `${empData.status} | ${empData.punchIn} | ${empData.punchOut}`,
-            x,
-            startY + 7,
-            { width: empColWidth, align: "center" },
-          )
+          .text(`${empData.status}`, x, startY + 7, {
+            width: empColWidth,
+            align: "center",
+          })
           .fillColor("black");
       });
 

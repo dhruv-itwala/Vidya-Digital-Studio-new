@@ -1,13 +1,13 @@
 // Backend/Attendance/attendance.cron.js
 import cron from "node-cron";
-import WorkRecord from "./workRecord.model.js";
-import Attendance from "./attendance.model.js";
+import WorkRecord from "../workRecord.model.js";
+import Attendance from "../attendance.model.js";
 import {
   nowUTC,
   todayISTUTC,
   calcWorkMinutes,
   suggestAttendanceStatus,
-} from "./attendance.utils.js";
+} from "../utils/attendance.utils.js";
 
 cron.schedule("0 0 * * *", async () => {
   const yesterday = new Date(todayISTUTC().getTime() - 86400000);
@@ -35,7 +35,7 @@ cron.schedule("0 0 * * *", async () => {
         source: "SYSTEM",
         remarks: "Auto closed at midnight (forgot punch-out)",
       },
-      { upsert: true }
+      { upsert: true },
     );
   }
 });

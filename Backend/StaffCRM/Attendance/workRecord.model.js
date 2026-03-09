@@ -21,7 +21,13 @@ const workRecordSchema = new mongoose.Schema(
     netWorkMinutes: { type: Number, default: 0 },
 
     autoClosed: { type: Boolean, default: false },
+
+    punchInReminderSent: { type: Boolean, default: false },
+    breakReminderSent: { type: Boolean, default: false },
+    breakEndReminderSent: { type: Boolean, default: false },
+    breakOvertimeAlertSent: { type: Boolean, default: false },
     reportReminderSent: { type: Boolean, default: false },
+    workCompletedSent: { type: Boolean, default: false },
     punchOutReminderSent: { type: Boolean, default: false },
   },
   { timestamps: true },

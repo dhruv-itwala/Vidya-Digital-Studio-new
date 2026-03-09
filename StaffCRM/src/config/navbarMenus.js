@@ -1,0 +1,52 @@
+export const NAVBAR_MENUS = {
+  admin: [
+    { label: "Dashboard", path: "/admin/dashboard" },
+    { label: "Employees", path: "/admin/employees" },
+    { label: "Quotations", path: "/admin/quotations" },
+    { label: "Leads", path: "/admin/leads" },
+    { label: "Clients", path: "/admin/clients" },
+    { label: "Profile", path: "/admin/profile" },
+    { label: "Tasks", path: "/admin/tasks" },
+    { label: "To Do List", path: "/admin/todo" },
+    "divider",
+    { label: "Attendance", path: "/admin/attendance" },
+    { label: "Holidays", path: "/admin/holidays" },
+    { label: "Reports", path: "/admin/reports" },
+    { label: "Leave Approvals", path: "/admin/leaves" },
+  ],
+
+  employee: [
+    { label: "Dashboard", path: "/employee/dashboard" },
+    { label: "Attendance", path: "/employee/attendance" },
+    { label: "Holidays", path: "/employee/holidays" },
+    { label: "To Do List", path: "/employee/todo" },
+    { label: "Profile", path: "/employee/profile" },
+    { label: "Leaves", path: "/employee/leaves" },
+  ],
+
+  hr: [
+    { label: "Dashboard", path: "/hr/dashboard" },
+    { label: "Work Dashboard", path: "/hr/work-dashboard" },
+    { label: "Profile", path: "/hr/profile" },
+    { label: "Attendance", path: "/hr/attendance" },
+    { label: "Leaves", path: "/hr/leaves" },
+    { label: "To Do List", path: "/hr/todo" },
+    "divider",
+    { label: "Mark Attendance", path: "/hr/mark-attendance" },
+    { label: "Employees", path: "/hr/employees" },
+    { label: "Leads", path: "/hr/leads" },
+    { label: "Clients", path: "/hr/clients" },
+    { label: "Holidays", path: "/hr/hrHoliday" },
+    { label: "Reports", path: "/hr/hrReports" },
+    { label: "Leave Approvals", path: "/hr/hrLeaveApproval" },
+  ],
+
+  intern: [
+    { label: "Dashboard", path: "/employee/dashboard" },
+    { label: "Attendance", path: "/employee/attendance" },
+    { label: "Holidays", path: "/employee/holidays" },
+    { label: "To Do List", path: "/employee/todo" },
+    { label: "Profile", path: "/employee/profile" },
+    { label: "Leaves", path: "/employee/leaves" },
+  ],
+};

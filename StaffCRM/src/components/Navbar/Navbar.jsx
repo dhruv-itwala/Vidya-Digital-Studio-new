@@ -3,13 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getInitials } from "../../utils/name.util";
 import { Images } from "../../assets/Data/images";
+import { NAVBAR_MENUS } from "../../config/navbarMenus";
 import styles from "./Navbar.module.css";
 
-export default function HRNavbar() {
+export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const role = user?.role?.toLowerCase();
+  const menu = NAVBAR_MENUS[role] || [];
 
   useEffect(() => {
     const handler = (e) => {
@@ -17,6 +22,7 @@ export default function HRNavbar() {
         setOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
@@ -24,6 +30,11 @@ export default function HRNavbar() {
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
+  };
+
+  const goTo = (path) => {
+    navigate(path);
+    setOpen(false);
   };
 
   return (
@@ -35,7 +46,7 @@ export default function HRNavbar() {
             <img src={Images.navbar_logo} alt="VIDYA Digital Studio" />
           </div>
 
-          {/* Right side */}
+          {/* Profile */}
           <div className={styles.rightButtons} ref={dropdownRef}>
             <div className={styles.profileBtn} onClick={() => setOpen(!open)}>
               <div className={styles.avatar}>{getInitials(user?.name)}</div>
@@ -44,34 +55,18 @@ export default function HRNavbar() {
 
             {open && (
               <div className={styles.dropdown}>
-                <button onClick={() => navigate("/hr/dashboard")}>
-                  Dashboard
-                </button>
-                <button onClick={() => navigate("/hr/profile")}>Profile</button>
-                <button onClick={() => navigate("/hr/attendance")}>
-                  Attendance
-                </button>
-                <button onClick={() => navigate("/hr/leaves")}>Leaves</button>
-                <button onClick={() => navigate("/hr/todo")}>To Do List</button>
+                {menu.map((item, i) =>
+                  item === "divider" ? (
+                    <hr key={i} />
+                  ) : (
+                    <button key={i} onClick={() => goTo(item.path)}>
+                      {item.label}
+                    </button>
+                  ),
+                )}
+
                 <hr />
-                <button onClick={() => navigate("/hr/mark-attendance")}>
-                  Mark Attendence
-                </button>
-                <button onClick={() => navigate("/hr/employees")}>
-                  Employees
-                </button>
-                <button onClick={() => navigate("/hr/leads")}>Leads</button>
-                <button onClick={() => navigate("/hr/clients")}>Clients</button>
-                <button onClick={() => navigate("/hr/hrHoliday")}>
-                  Holidays
-                </button>
-                <button onClick={() => navigate("/hr/hrReports")}>
-                  Reports
-                </button>
-                <button onClick={() => navigate("/hr/hrLeaveApproval")}>
-                  Leave Approvals
-                </button>
-                <hr />
+
                 <button className={styles.logout} onClick={handleLogout}>
                   Logout
                 </button>

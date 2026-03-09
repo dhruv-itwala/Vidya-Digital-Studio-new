@@ -41,6 +41,7 @@ import Maintenance from "./components/Maintenance/Maintenance";
 
 import { Toaster } from "react-hot-toast";
 import "./App.css";
+import SeniorDashboard from "./components/Dashboard/SeniorDashboard";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -82,6 +83,7 @@ export default function App() {
         >
           {/* ADMIN ROUTES */}
           <Route index element={<Navigate to="attendance" replace />} />
+          <Route path="dashboard" element={<SeniorDashboard />} />
           <Route path="profile" element={<Profile />} />
           <Route path="holidays" element={<Holiday />} />
           <Route path="employees" element={<AdminEmployees />} />
@@ -129,6 +131,7 @@ export default function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="work-dashboard" element={<SeniorDashboard />} />
           <Route path="test" element={<Dashboard />} />
           <Route path="employees" element={<AdminEmployees />} />
           <Route path="attendance" element={<EmployeeAttendance />} />

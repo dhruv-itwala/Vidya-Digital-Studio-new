@@ -1,10 +1,10 @@
 import cron from "node-cron";
-import WorkRecord from "./workRecord.model.js";
-import weeklyWork from "./weeklyWork.model.js";
-import User from "../Users/user.model.js";
-import Holiday from "../Holidays/holiday.model.js";
+import WorkRecord from "../workRecord.model.js";
+import weeklyWork from "../weeklyWork.model.js";
+import User from "../../Users/user.model.js";
+import Holiday from "../../Holidays/holiday.model.js";
 
-import { getCurrentWeekRangeIST } from "./attendance.utils.js";
+import { getCurrentWeekRangeIST } from "../utils/attendance.utils.js";
 
 cron.schedule("59 23 * * *", async () => {
   console.log("Running Weekly Progress Cron");

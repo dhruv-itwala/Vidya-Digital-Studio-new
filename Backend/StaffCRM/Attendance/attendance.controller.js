@@ -1,8 +1,8 @@
 // Backend/StaffCRM/Attendance/attendance.controller.js
 import { asyncHandler } from "../utils/asyncHandler.js";
 import * as service from "./attendance.service.js";
-import { downloadAttendancePDFService } from "./attendancePdf.service.js";
-import { downloadAttendanceWithPunchPDFService } from "./attendancePdfWithPunch.js";
+import { downloadAttendancePDFService } from "./pdf/attendancePdf.service.js";
+import { downloadAttendanceWithPunchPDFService } from "./pdf/attendancePdfWithPunch.js";
 
 // ================= TODAY WORK RECORD ================= */
 export const getTodayWorkRecord = asyncHandler(async (req, res) => {

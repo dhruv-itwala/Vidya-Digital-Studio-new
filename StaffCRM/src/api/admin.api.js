@@ -1,5 +1,8 @@
 import api from "./axios";
 
+// DASHBOARD
+export const getDashboardOverviewAPI = () => api.get("/users/dashboard");
+
 // USERS
 export const getAllUsersAPI = () => api.get("/users");
 

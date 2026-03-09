@@ -1,9 +1,9 @@
 // attendanceHoliday.cron.js
 import cron from "node-cron";
-import { todayISTUTC } from "./attendance.utils.js";
-import holidayModel from "../Holidays/holiday.model.js";
-import userModel from "../Users/user.model.js";
-import attendanceModel from "./attendance.model.js";
+import { todayISTUTC } from "../utils/attendance.utils.js";
+import holidayModel from "../../Holidays/holiday.model.js";
+import userModel from "../../Users/user.model.js";
+import attendanceModel from "../attendance.model.js";
 
 cron.schedule("0 0 * * *", async () => {
   const today = todayISTUTC();
@@ -21,7 +21,7 @@ cron.schedule("0 0 * * *", async () => {
         source: "SYSTEM",
         remarks: isHoliday.name,
       },
-      { upsert: true }
+      { upsert: true },
     );
   }
 });

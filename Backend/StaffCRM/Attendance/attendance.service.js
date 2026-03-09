@@ -14,7 +14,7 @@ import {
   calcLiveBreakSeconds,
   getCurrentWeekRangeIST,
   getWorkPolicy,
-} from "./attendance.utils.js";
+} from "./utils/attendance.utils.js";
 
 import User from "../Users/user.model.js";
 import Holiday from "../Holidays/holiday.model.js";

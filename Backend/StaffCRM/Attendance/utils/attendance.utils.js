@@ -1,4 +1,4 @@
-import { WORK_POLICIES, ROLE_WORK_POLICY } from "./workPolicy.js";
+import { WORK_POLICIES, ROLE_WORK_POLICY } from "../workPolicy.js";
 
 export const getWorkPolicy = (role = "employee") => {
   const policyKey = ROLE_WORK_POLICY[role] || "full_time";
