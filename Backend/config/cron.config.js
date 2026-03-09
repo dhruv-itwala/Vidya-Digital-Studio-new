@@ -3,7 +3,7 @@ import cron from "node-cron";
 // Attendance crons
 import "../StaffCRM/Attendance/attendance.cron.js";
 // Reminder crons
-import "../StaffCRM/Attendance/reminder.cron.js";
+// import "../StaffCRM/Attendance/reminder.cron.js";
 // Holiday crons
 import "../StaffCRM/Attendance/attendanceHoliday.cron.js";
 // Leave crons
