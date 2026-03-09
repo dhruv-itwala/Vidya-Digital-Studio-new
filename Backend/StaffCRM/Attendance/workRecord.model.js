@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const breakSchema = new mongoose.Schema(
   { in: Date, out: Date },
-  { _id: false }
+  { _id: false },
 );
 
 const workRecordSchema = new mongoose.Schema(
@@ -21,8 +21,10 @@ const workRecordSchema = new mongoose.Schema(
     netWorkMinutes: { type: Number, default: 0 },
 
     autoClosed: { type: Boolean, default: false },
+    reportReminderSent: { type: Boolean, default: false },
+    punchOutReminderSent: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 workRecordSchema.index({ user: 1, date: 1 }, { unique: true });
