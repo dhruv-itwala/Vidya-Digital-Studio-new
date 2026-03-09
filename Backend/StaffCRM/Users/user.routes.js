@@ -10,6 +10,7 @@ import {
   getEmployeeBirthdays,
   inactiveUser,
   getAllUsersForAdmin,
+  getDashboardOverview,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
@@ -24,6 +25,8 @@ userRoutes.use(protect);
 userRoutes.get("/me", getProfile);
 userRoutes.get("/", getAllUsers);
 userRoutes.get("/birthdays", getEmployeeBirthdays);
+
+userRoutes.get("/dashboard", getDashboardOverview);
 
 userRoutes.get("/admin/all", roleCheck("admin", "hr"), getAllUsersForAdmin);
 userRoutes.post("/", roleCheck("admin", "hr"), createUser);

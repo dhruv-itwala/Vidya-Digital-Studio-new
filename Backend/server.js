@@ -25,6 +25,7 @@ import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
 import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
+import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -56,6 +57,9 @@ app.use(`/api/${VERSION}/service-prices`, servicePricesRoute);
 
 //Quotation Routes
 app.use(`/api/${VERSION}/quotation`, quotationRoutes);
+
+// Whatsapp Routes
+app.use(`/api/${VERSION}/whatsapp`, whatsappRoutes);
 
 // User Routes
 app.use(`/api/${VERSION}/users`, userRoutes);

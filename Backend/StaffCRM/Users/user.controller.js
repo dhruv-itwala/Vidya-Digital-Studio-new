@@ -8,6 +8,7 @@ import {
   getEmployeeBirthdaysService,
   inactiveUserService,
   getAllUsersForAdminService,
+  getDashboardOverviewService,
 } from "./user.service.js";
 
 import { signToken } from "../utils/jwt.util.js";
@@ -125,5 +126,15 @@ export const getEmployeeBirthdays = asyncHandler(async (req, res) => {
     success: true,
     total: birthdays.length,
     birthdays,
+  });
+});
+
+/* ================= DASHBOARD ================= */
+export const getDashboardOverview = asyncHandler(async (req, res) => {
+  const data = await getDashboardOverviewService();
+
+  res.json({
+    success: true,
+    data,
   });
 });
