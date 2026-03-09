@@ -6,56 +6,65 @@ export const processMessage = async (body) => {
   if (!message) return;
 
   const from = message.from;
-  const text = message.text?.body?.toLowerCase();
+  const text = message?.text?.body?.toLowerCase?.();
 
-  if (text?.includes("hello")) {
+  console.log("Incoming message:", text);
+
+  if (text && text.includes("hello")) {
     await sendServiceMenu(from);
   }
 };
+
 const sendServiceMenu = async (to) => {
-  await axios.post(
-    `https://graph.facebook.com/v22.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
-    {
-      messaging_product: "whatsapp",
-      to: to,
-      type: "interactive",
-      interactive: {
-        type: "button",
-        body: {
-          text: "Please select a service 👇",
-        },
-        action: {
-          buttons: [
-            {
-              type: "reply",
-              reply: {
-                id: "service_1",
-                title: "Website Development",
+  try {
+    const response = await axios.post(
+      `https://graph.facebook.com/v22.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: to,
+        type: "interactive",
+        interactive: {
+          type: "button",
+          body: {
+            text: "Please select a service 👇",
+          },
+          action: {
+            buttons: [
+              {
+                type: "reply",
+                reply: {
+                  id: "service_1",
+                  title: "Website Development",
+                },
               },
-            },
-            {
-              type: "reply",
-              reply: {
-                id: "service_2",
-                title: "Digital Marketing",
+              {
+                type: "reply",
+                reply: {
+                  id: "service_2",
+                  title: "Digital Marketing",
+                },
               },
-            },
-            {
-              type: "reply",
-              reply: {
-                id: "service_3",
-                title: "Talk to Expert",
+              {
+                type: "reply",
+                reply: {
+                  id: "service_3",
+                  title: "Talk to Expert",
+                },
               },
-            },
-          ],
+            ],
+          },
         },
       },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
       },
-    },
-  );
+    );
+
+    console.log("Menu sent:", response.data);
+  } catch (error) {
+    console.error("Error sending menu:", error.response?.data || error);
+  }
 };
