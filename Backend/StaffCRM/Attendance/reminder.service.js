@@ -26,6 +26,10 @@ export const checkWorkReminders = async () => {
 
     let updated = false;
 
+    console.log("Checking record:", record.user?.name);
+    console.log("workedMinutes:", workedMinutes);
+    console.log("requiredMinutes:", requiredMinutes);
+    console.log("remaining:", remaining);
     /* ================= BREAK REMINDER ================= */
 
     if (workedMinutes >= requiredMinutes * 0.5 && !record.breakReminderSent) {
