@@ -13,7 +13,7 @@ export const WORK_POLICIES = {
       halfDayMinutes: 240,
     },
 
-    maxDailyMinutes: 480,
+    maxDailyMinutes: 540,
   },
 
   intern: {

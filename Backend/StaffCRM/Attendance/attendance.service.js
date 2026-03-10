@@ -569,46 +569,13 @@ export const getWeeklyProgressService = async (userId) => {
     ...weeklyDoc.toObject(),
     totalSeconds,
 
-    dailyRequiredSeconds: policy.dailyHours * 3600,
+    dailyRequiredSeconds: (policy.dailyHours - 1) * 3600,
 
     percentage: Math.min((totalSeconds / requiredSeconds) * 100, 100),
     remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
     holidayCount,
   };
 };
-// ================= GET ALL USER WEEKLY PROGRESS ================= */
-// export const getAllUsersWeeklyProgressService = async (weekStart) => {
-//   if (!weekStart) {
-//     throw new Error("weekStart is required");
-//   }
-
-//   const weekStartDate = parseISTDateOnly(weekStart);
-
-//   const progress = await weeklyWork
-//     .find({
-//       weekStart: weekStartDate,
-//     })
-//     .populate("user", "name email role")
-//     .lean();
-
-//   const priority = {
-//     hr: 1,
-//     employee: 2,
-//     intern: 3,
-//   };
-//   return progress.map((p) => ({
-//     userId: p.user._id,
-//     name: p.user.name,
-//     email: p.user.email,
-//     weekStart: p.weekStart,
-//     weekEnd: p.weekEnd,
-//     totalMinutes: p.totalMinutes,
-//     requiredMinutes: p.requiredMinutes,
-//     status: p.status,
-//     percentage: Math.min((p.totalMinutes / p.requiredMinutes) * 100, 100),
-//     remainingMinutes: Math.max(p.requiredMinutes - p.totalMinutes, 0),
-//   }));
-// };
 
 export const getAllUsersWeeklyProgressService = async (weekStart) => {
   if (!weekStart) {
