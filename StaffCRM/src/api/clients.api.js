@@ -39,10 +39,12 @@ export const createClientAPI = (data) =>
 export const updateClientAPI = (id, data) =>
   api.patch(`/clients/${id}`, buildFormData(data));
 
-/* ================= DEACTIVATE ================= */
+/* ================= TOGGLE CLIENT STATUS ================= */
 
-export const deactivateClientAPI = (id) =>
-  api.patch(`/clients/${id}/deactivate`);
+export const toggleClientStatusAPI = (id) => api.patch(`/clients/${id}/toggle`);
+
+/* ================= DELETE CLIENT ================= */
+export const deleteClientAPI = (id) => api.delete(`/clients/${id}`);
 
 /* ================= CREDENTIALS ================= */
 

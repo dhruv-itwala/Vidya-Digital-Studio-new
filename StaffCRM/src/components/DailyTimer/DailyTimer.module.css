@@ -49,6 +49,13 @@
   line-height: 1.2;
 }
 
+.warning {
+  font-size: 12px;
+  color: #b91c1c;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
 .statusWrapper {
   display: flex;
   flex-direction: row; /* status on top, message below */

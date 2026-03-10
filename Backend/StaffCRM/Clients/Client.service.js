@@ -6,6 +6,7 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinaryUpload.js";
 import { parseIST } from "../utils/date.utils.js";
+import cloudinary from "../../config/cloudinary.config.js";
 
 /* ================= CREATE CLIENT ================= */
 export const createClientService = async (data, userId, file) => {
@@ -31,7 +32,7 @@ export const createClientService = async (data, userId, file) => {
       data.services = [];
     }
   }
-  return Client.create(data);
+  return await Client.create(data);
 };
 
 /* ================= GET ALL CLIENTS ================= */
@@ -40,7 +41,7 @@ export const getAllClientsService = async ({
   limit = 10,
   search,
 }) => {
-  const query = { isActive: true };
+  const query = {};
 
   if (search) {
     query.$or = [
@@ -95,7 +96,10 @@ export const updateClientService = async (clientId, data, file) => {
   const client = await Client.findById(clientId);
   if (!client) throw new AppError("Client not found", 404);
 
-  // ✅ ALWAYS parse services (not inside file condition)
+  // ❗ Prevent createdBy overwrite
+  delete data.createdBy;
+
+  // Parse services
   if (typeof data.services === "string") {
     try {
       data.services = JSON.parse(data.services);
@@ -104,7 +108,6 @@ export const updateClientService = async (clientId, data, file) => {
     }
   }
 
-  // Replace profile photo if new file provided
   if (file) {
     if (client.profilePhoto?.public_id) {
       await deleteFromCloudinary(client.profilePhoto.public_id);
@@ -127,19 +130,49 @@ export const updateClientService = async (clientId, data, file) => {
   });
 };
 
-/* ================= DEACTIVATE CLIENT ================= */
-export const deactivateClientService = async (clientId) => {
+/* ================= TOGGLE CLIENT STATUS ================= */
+export const toggleClientStatusService = async (clientId) => {
   if (!mongoose.Types.ObjectId.isValid(clientId)) {
     throw new AppError("Invalid client id", 400);
   }
 
   const client = await Client.findById(clientId);
-  if (!client) throw new AppError("Client not found", 404);
 
-  client.isActive = false;
+  if (!client) {
+    throw new AppError("Client not found", 404);
+  }
+
+  client.isActive = !client.isActive;
   await client.save();
 
-  return { deactivatedClientId: clientId };
+  return {
+    clientId: client._id,
+    isActive: client.isActive,
+  };
+};
+
+/* ================= DELETE CLIENT ================= */
+export const deleteClientService = async (clientId) => {
+  if (!mongoose.Types.ObjectId.isValid(clientId)) {
+    throw new AppError("Invalid client id", 400);
+  }
+
+  const client = await Client.findById(clientId);
+
+  if (!client) {
+    throw new AppError("Client not found", 404);
+  }
+
+  // delete cloudinary image if exists
+  if (client.profilePhoto?.public_id) {
+    await cloudinary.uploader.destroy(client.profilePhoto.public_id);
+  }
+
+  await Client.findByIdAndDelete(clientId);
+
+  return {
+    deletedClientId: clientId,
+  };
 };
 
 /* ================= ADD CREDENTIAL ================= */

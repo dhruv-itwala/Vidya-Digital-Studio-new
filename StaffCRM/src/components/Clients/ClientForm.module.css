@@ -103,7 +103,7 @@
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
   margin-bottom: 10px;
 }
 
@@ -260,12 +260,6 @@ textarea {
   align-items: center;
 }
 
-.previewImage {
-  width: 80px;
-  height: 80px;
-  border-radius: 10px;
-  object-fit: cover;
-}
 .pillsContainer {
   padding: 5px;
   display: flex;

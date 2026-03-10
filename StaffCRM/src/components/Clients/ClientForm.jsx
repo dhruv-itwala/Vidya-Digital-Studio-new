@@ -114,8 +114,10 @@ export default function ClientForm({ mode = "view", initialData = null }) {
 
       const { credentials, documents, transactions, ...rest } = form;
 
-      const finalData = rest;
-
+      const finalData = { ...rest };
+      if (!(form.profilePhoto instanceof File)) {
+        delete finalData.profilePhoto;
+      }
       let res;
       if (isCreate) res = await createClient(finalData);
       if (isEdit) res = await updateClient(form._id, finalData);

@@ -20,7 +20,8 @@ export default function ViewClients() {
     search,
     setSearch,
     setPage,
-    deactivateClient,
+    toggleClientStatus,
+    deleteClient,
   } = useClients();
 
   const navigate = useNavigate();
@@ -37,15 +38,31 @@ export default function ViewClients() {
     return () => clearTimeout(timer);
   }, [localSearch]);
 
-  /* ================= DEACTIVATE ================= */
-  const handleDeactivate = async (id) => {
-    const confirm = window.confirm("Deactivate this client?");
-    if (!confirm) return;
+  /* ================= DELETE ================= */
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to permanently delete this client?",
+    );
 
-    const res = await deactivateClient(id);
+    if (!confirmDelete) return;
 
-    if (res.success) toast.success("Client deactivated");
-    else toast.error(res.message);
+    const res = await deleteClient(id);
+
+    if (res.success) {
+      toast.success("Client deleted successfully");
+    } else {
+      toast.error(res.message);
+    }
+  };
+
+  const handleToggle = async (id, currentStatus) => {
+    const res = await toggleClientStatus(id);
+
+    if (res.success) {
+      toast.success(currentStatus ? "Client deactivated" : "Client activated");
+    } else {
+      toast.error(res.message);
+    }
   };
 
   if (loading) return <div className={styles.loader}>Loading...</div>;
@@ -167,7 +184,7 @@ export default function ViewClients() {
 
                         <button
                           className={styles.delete}
-                          onClick={() => handleDeactivate(client._id)}
+                          onClick={() => handleDelete(client._id)}
                         >
                           <MdDeleteForever />
                         </button>
@@ -177,7 +194,10 @@ export default function ViewClients() {
                           <input
                             type="checkbox"
                             checked={client.isActive}
-                            readOnly
+                            onChange={() =>
+                              handleToggle(client._id, client.isActive)
+                            }
+                            disabled={rowLoading === client._id}
                           />
                           <span className={styles.slider}></span>
                         </label>

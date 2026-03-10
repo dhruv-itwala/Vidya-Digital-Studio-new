@@ -75,6 +75,10 @@ export default function DailyTimer({ attendance }) {
 
   const shiftComplete = remainingWork === 0;
 
+  const REPORT_WARNING_TIME = 30 * 60; // 30 minutes
+  const showReportWarning =
+    remainingWork <= REPORT_WARNING_TIME && !reportSubmitted && !punchedOut;
+
   /* ================= UI ================= */
   return (
     <div className={styles.card}>
@@ -108,12 +112,13 @@ export default function DailyTimer({ attendance }) {
           {onBreak && !punchedOut && (
             <div className={styles.breakInfo}>
               Break Remaining: {formatTime(remainingBreak)}
-              {!reportSubmitted && isRunning && !punchedOut && (
-                <p className={styles.warning}>
-                  ⚠ Please submit your daily report before punching out.
-                </p>
-              )}
             </div>
+          )}
+          {/* REPORT WARNING */}
+          {showReportWarning && (
+            <p className={styles.warning}>
+              ⚠ Please submit your daily report before punching out.
+            </p>
           )}
         </div>
       </div>

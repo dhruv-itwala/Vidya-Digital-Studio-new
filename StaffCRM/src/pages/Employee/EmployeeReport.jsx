@@ -12,7 +12,7 @@ export default function EmployeeReport({ onSubmitted }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const MAX_POINTS = 3;
+  const MAX_POINTS = 5;
 
   const updatePoint = (index, value) => {
     const copy = [...points];

@@ -3,7 +3,6 @@ import {
   getClientsAPI,
   createClientAPI,
   updateClientAPI,
-  deactivateClientAPI,
   addCredentialAPI,
   uploadDocumentAPI,
   deleteDocumentAPI,
@@ -12,6 +11,8 @@ import {
   addTransactionAPI,
   deleteTransactionAPI,
   updateTransactionAPI,
+  toggleClientStatusAPI,
+  deleteClientAPI,
 } from "../api/clients.api";
 
 export const useClients = () => {
@@ -23,6 +24,7 @@ export const useClients = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const limit = 10;
 
@@ -35,7 +37,7 @@ export const useClients = () => {
       const res = await getClientsAPI({
         page,
         limit,
-        search,
+        search: debouncedSearch,
       });
 
       setClients(res.data.data);
@@ -45,8 +47,18 @@ export const useClients = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, debouncedSearch]);
 
+  /* ================= DEBOUNCE SEARCH ================= */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  /* ================= FETCH ON MOUNT & PARAM CHANGE ================= */
   useEffect(() => {
     fetchClients();
   }, [fetchClients]);
@@ -75,25 +87,32 @@ export const useClients = () => {
     }
   };
 
-  /* ================= DEACTIVATE ================= */
-  const deactivateClient = async (id) => {
-    let previous;
+  /* ================= TOGGLE CLIENT STATUS ================= */
+  const toggleClientStatus = async (id) => {
+    const previous = clients;
+    setClients((prev) => prev.filter((c) => c._id !== id));
 
     setRowLoading(id);
 
-    setClients((prev) => {
-      previous = prev;
-      return prev.filter((c) => c._id !== id);
-    });
-
     try {
-      await deactivateClientAPI(id);
+      await toggleClientStatusAPI(id);
       return { success: true };
     } catch (err) {
       setClients(previous);
       return { success: false, message: err.message };
     } finally {
       setRowLoading(null);
+    }
+  };
+
+  /* ================= DELETE CLIENT ================= */
+  const deleteClient = async (id) => {
+    try {
+      await deleteClientAPI(id);
+      await fetchClients();
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
   };
 
@@ -215,7 +234,8 @@ export const useClients = () => {
     refetch: fetchClients,
     createClient,
     updateClient,
-    deactivateClient,
+    toggleClientStatus,
+    deleteClient,
     addCredential,
     updateCredential,
     deleteCredential,

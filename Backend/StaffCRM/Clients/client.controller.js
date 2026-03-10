@@ -55,14 +55,23 @@ export const updateClient = asyncHandler(async (req, res) => {
   });
 });
 
-/* ================= DEACTIVATE CLIENT ================= */
-export const deactivateClient = asyncHandler(async (req, res) => {
-  const result = await ClientService.deactivateClientService(req.params.id);
+/* ================= TOGGLE CLIENT STATUS ================= */
+export const toggleClientStatus = asyncHandler(async (req, res) => {
+  const result = await ClientService.toggleClientStatusService(req.params.id);
 
   res.status(200).json({
     success: true,
-    message: "Client deactivated",
+    message: "Client status toggled successfully",
     data: result,
+  });
+});
+
+/* ================= DELETE CLIENT ================= */
+export const deleteClient = asyncHandler(async (req, res) => {
+  await ClientService.deleteClientService(req.params.id);
+  res.status(200).json({
+    success: true,
+    message: "Client deleted successfully",
   });
 });
 
