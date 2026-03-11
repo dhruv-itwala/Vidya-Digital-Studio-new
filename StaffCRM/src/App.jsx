@@ -93,6 +93,11 @@ export default function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="todo" element={<TodoList />} />
 
+          <Route path="leads" element={<ViewLeads />} />
+          <Route path="leads/:id" element={<DetailLead />} />
+          <Route path="leads/create" element={<CreateLead />} />
+          <Route path="leads/:id/edit" element={<EditLead />} />
+
           <Route path="clients" element={<ViewClients />} />
           <Route path="clients/:id" element={<DetailClient />} />
           <Route path="clients/create" element={<CreateClient />} />
