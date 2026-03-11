@@ -21,6 +21,7 @@ const notificationSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
+        "SYSTEM",
         "BREAK_REMINDER",
         "BREAK_END",
         "BREAK_OVERTIME",
