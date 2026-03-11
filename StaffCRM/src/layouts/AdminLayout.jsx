@@ -5,7 +5,7 @@ export default function AdminLayout() {
   return (
     <>
       <Navbar />
-      <main style={{ padding: "24px" }}>
+      <main>
         <Outlet />
       </main>
     </>

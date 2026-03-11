@@ -2,21 +2,23 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import useBackendStatus from "./hooks/useBackendStatus";
 
 import Login from "./pages/Auth/Login";
+import NavigateBasedOnRole from "./routes/NavigateBasedOnRole";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 import EmployeeLayout from "./layouts/EmployeeLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import HRLayout from "./layouts/HRLayout";
 
-import NavigateBasedOnRole from "./routes/NavigateBasedOnRole";
-import ProtectedRoute from "./routes/ProtectedRoute";
+import AllQuotations from "./pages/Admin/AllQuotations";
+import Dashboard from "./components/Dashboard/Dashboard";
+import SeniorDashboard from "./components/Dashboard/SeniorDashboard";
 
 import AdminEmployees from "./pages/Admin/AdminEmployees";
 import AdminTasks from "./pages/Admin/AdminTasks";
-import AllQuotations from "./pages/Admin/AllQuotations";
 
 import HRHoliday from "./pages/HR/HRHoliday";
 import EmployeeTasks from "./pages/Employee/EmployeeTasks";
-import Dashboard from "./components/Dashboard/Dashboard";
+
 import EmployeeAttendance from "./pages/Employee/EmployeeAttendance";
 import EmployeeLeaves from "./pages/Employee/EmployeeLeaves";
 
@@ -41,7 +43,6 @@ import Maintenance from "./components/Maintenance/Maintenance";
 
 import { Toaster } from "react-hot-toast";
 import "./App.css";
-import SeniorDashboard from "./components/Dashboard/SeniorDashboard";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
