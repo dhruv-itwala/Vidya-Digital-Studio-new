@@ -7,8 +7,8 @@ import "./config/cron.config.js";
 
 // Configs
 import { connectDB } from "./config/db.config.js";
-import corsOptions from "./config/cors.config.js";
 import { getLocalIP } from "./config/ip.config.js";
+import corsOptions from "./config/cors.config.js";
 
 // Import Routes
 import servicePricesRoute from "./Quotation/ServicePrices/ServicePrice.routes.js";
@@ -24,9 +24,10 @@ import todoRoutes from "./StaffCRM/Todo/todo.routes.js";
 import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
 import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
 
-import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
-import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 import notificationRoutes from "./Notifications/notification.routes.js";
+import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
+
+import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;

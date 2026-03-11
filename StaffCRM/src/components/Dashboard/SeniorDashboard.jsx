@@ -1,15 +1,6 @@
 import styles from "./SeniorDashboard.module.css";
 import useDashboard from "../../hooks/useDashboard";
 import Loader from "../Loader/Loader";
-import {
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 const SeniorDashboard = () => {
   const { data, loading } = useDashboard();
