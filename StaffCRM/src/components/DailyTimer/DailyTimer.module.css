@@ -124,6 +124,10 @@
 
 /* MOBILE */
 @media (max-width: 640px) {
+  .progressWrapper {
+    flex-direction: column;
+  }
+
   .actions {
     grid-template-columns: repeat(2, 1fr);
   }
