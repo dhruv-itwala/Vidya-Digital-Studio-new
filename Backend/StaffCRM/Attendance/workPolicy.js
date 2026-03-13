@@ -26,7 +26,7 @@ export const WORK_POLICIES = {
     },
 
     attendance: {
-      presentMinutes: 360,
+      presentMinutes: 300,
       halfDayMinutes: 180,
     },
 
