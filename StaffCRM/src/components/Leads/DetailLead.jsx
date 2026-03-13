@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { holidayFormatDate } from "../../utils/date.util";
 import styles from "./DetailLead.module.css";
+import Loader from "../Loader/Loader";
 
 export default function DetailLead() {
   const { role } = useAuth();
@@ -27,7 +28,7 @@ export default function DetailLead() {
     fetchLead();
   }, [id]);
 
-  if (loading) return <div className={styles.loader}>Loading...</div>;
+  if (loading) return <Loader />;
   if (!lead) return <div>No lead found</div>;
 
   return (

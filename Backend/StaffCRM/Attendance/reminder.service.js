@@ -1,107 +1,157 @@
 import WorkRecord from "./workRecord.model.js";
-import { getWorkPolicy } from "./utils/attendance.utils.js";
+import User from "../Users/user.model.js";
+import Leave from "../Leave/leave.model.js";
+import Holiday from "../Holidays/holiday.model.js";
+
+import { WORK_POLICIES, ROLE_WORK_POLICY } from "./work.policy.js";
 import { sendWhatsAppText } from "../../Whatsapp/whatsapp.sender.js";
+import { todayISTUTC } from "./utils/attendance.utils.js";
 
 export const checkWorkReminders = async () => {
-  const records = await WorkRecord.find({
-    punchIn: { $exists: true },
-    punchOut: { $exists: false },
-  }).populate("user");
-
   const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
 
-  for (const record of records) {
-    const user = record.user;
-    if (!user || !user.phone) continue;
+  const today = todayISTUTC();
 
-    const policy = getWorkPolicy(user.role);
+  /* ===============================
+     HOLIDAY CHECK
+  =============================== */
 
-    const requiredMinutes = policy.dailyHours * 60;
-    const workedMinutes = record.netWorkMinutes || 0;
+  const isHoliday = await Holiday.exists({ date: today });
+  if (isHoliday) return;
 
-    const remaining = requiredMinutes - workedMinutes;
+  /* ===============================
+     USERS
+  =============================== */
 
-    const lastBreak = record.breaks.at(-1);
-    const onBreak = lastBreak && !lastBreak.out;
+  const users = await User.find({
+    isActive: true,
+    role: { $ne: "admin" },
+  }).select("_id name phone role");
 
-    let updated = false;
+  for (const user of users) {
+    /* ===============================
+       LEAVE CHECK
+    =============================== */
 
-    console.log("Checking record:", record.user?.name);
-    console.log("workedMinutes:", workedMinutes);
-    console.log("requiredMinutes:", requiredMinutes);
-    console.log("remaining:", remaining);
-    /* ================= BREAK REMINDER ================= */
+    const leave = await Leave.exists({
+      user: user._id,
+      status: "APPROVED",
+      fromDate: { $lte: today },
+      toDate: { $gte: today },
+    });
 
-    if (workedMinutes >= requiredMinutes * 0.5 && !record.breakReminderSent) {
-      await sendWhatsAppText(user.phone, "🍵 Don't forget to take your break.");
+    if (leave) continue;
 
-      record.breakReminderSent = true;
-      updated = true;
-    }
+    const policyKey = ROLE_WORK_POLICY[user.role];
+    const policy = WORK_POLICIES[policyKey];
 
-    /* ================= BREAK END REMINDER ================= */
+    if (!policy) continue;
 
-    if (onBreak) {
-      const breakMinutes = (now - new Date(lastBreak.in)) / 60000;
+    const start = policy.officeHours.start;
+    const end = policy.officeHours.end;
 
-      if (breakMinutes >= 50 && !record.breakEndReminderSent) {
+    const record = await WorkRecord.findOne({
+      user: user._id,
+      date: today,
+    });
+
+    /* ===============================
+       1️⃣ PUNCH IN REMINDER
+       Start + 1 minute
+    =============================== */
+
+    if (hour === start && minute === 1) {
+      if (!record?.punchIn && !record?.punchInReminderSent) {
         await sendWhatsAppText(
           user.phone,
-          "⏳ 10 minutes left for your break.",
+          "⏰ Your shift has started. Please punch in.",
         );
 
-        record.breakEndReminderSent = true;
-        updated = true;
+        if (record) {
+          record.punchInReminderSent = true;
+          await record.save();
+        }
       }
+    }
 
-      if (breakMinutes >= 65 && !record.breakOvertimeAlertSent) {
+    /* ===============================
+       2️⃣ REPORT REMINDER
+       30 minutes before shift end
+    =============================== */
+
+    if (hour === end - 1 && minute === 30) {
+      if (
+        record?.punchIn &&
+        !record?.reportSubmitted &&
+        !record?.reportReminderSent
+      ) {
         await sendWhatsAppText(
           user.phone,
-          "⚠️ Break time exceeded. Please break out.",
+          "📝 Please submit your daily report before shift ends.",
         );
 
-        record.breakOvertimeAlertSent = true;
-        updated = true;
+        record.reportReminderSent = true;
+        await record.save();
       }
     }
 
-    /* ================= REPORT REMINDER ================= */
+    /* ===============================
+       3️⃣ PUNCH OUT REMINDER
+       1 hour after shift end
+    =============================== */
 
-    if (remaining <= 30 && !record.reportReminderSent) {
-      await sendWhatsAppText(user.phone, "📝 Please submit today's report.");
+    if (hour === end + 1 && minute === 0) {
+      if (
+        record?.punchIn &&
+        !record?.punchOut &&
+        !record?.punchOutReminderSent
+      ) {
+        await sendWhatsAppText(
+          user.phone,
+          "😄 Your shift is over. Please punch out.",
+        );
 
-      record.reportReminderSent = true;
-      updated = true;
+        record.punchOutReminderSent = true;
+        await record.save();
+      }
     }
 
-    /* ================= WORK COMPLETE ================= */
+    /* ===============================
+       4️⃣ BREAK REMINDERS
+    =============================== */
 
-    if (remaining <= 0 && !record.workCompletedSent) {
-      await sendWhatsAppText(
-        user.phone,
-        "🎉 Your working hours are completed.",
-      );
+    if (record?.breaks?.length) {
+      const lastBreak = record.breaks.at(-1);
 
-      record.workCompletedSent = true;
-      updated = true;
-    }
+      if (lastBreak && !lastBreak.out) {
+        const breakMinutes = (now - new Date(lastBreak.in)) / 60000;
 
-    /* ================= PUNCH OUT REMINDER ================= */
+        /* 10 minutes left */
 
-    if (workedMinutes >= requiredMinutes + 60 && !record.punchOutReminderSent) {
-      await sendWhatsAppText(
-        user.phone,
-        "😄 Enough for today. Please punch out.",
-      );
+        if (breakMinutes >= 50 && !record.breakEndReminderSent) {
+          await sendWhatsAppText(
+            user.phone,
+            "⏳ Only 10 minutes left for your break.",
+          );
 
-      record.punchOutReminderSent = true;
-      updated = true;
-    }
+          record.breakEndReminderSent = true;
+          await record.save();
+        }
 
-    /* ================= SAVE ONCE ================= */
+        /* break exceeded */
 
-    if (updated) {
-      await record.save();
+        if (breakMinutes >= 60 && !record.breakOvertimeAlertSent) {
+          await sendWhatsAppText(
+            user.phone,
+            "⚠️ Break time exceeded. Please resume work.",
+          );
+
+          record.breakOvertimeAlertSent = true;
+          await record.save();
+        }
+      }
     }
   }
 };

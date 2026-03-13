@@ -7,6 +7,7 @@ import { formatISTDate } from "../../utils/date.util";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import styles from "./ViewClients.module.css";
+import Loader from "../Loader/Loader";
 
 export default function ViewClients() {
   const { role } = useAuth();
@@ -65,7 +66,7 @@ export default function ViewClients() {
     }
   };
 
-  if (loading) return <div className={styles.loader}>Loading...</div>;
+  if (loading) return <Loader />;
 
   if (error) return <div className={styles.error}>Error: {error}</div>;
 

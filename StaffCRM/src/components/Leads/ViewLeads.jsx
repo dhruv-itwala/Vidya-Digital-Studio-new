@@ -7,6 +7,7 @@ import { MdDeleteForever } from "react-icons/md";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import Loader from "../Loader/Loader";
 
 export default function ViewLeads() {
   const navigate = useNavigate();
@@ -108,7 +109,7 @@ export default function ViewLeads() {
     }
   };
 
-  if (loading) return <div className={styles.loader}>Loading...</div>;
+  if (loading) return <Loader />;
   if (error) return <div className={styles.error}>{error}</div>;
 
   return (

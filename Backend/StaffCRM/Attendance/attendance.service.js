@@ -108,15 +108,46 @@ export const punchOutService = async (userId) => {
   record.punchOut = nowUTC();
   record.breaks.forEach((b) => !b.out && (b.out = record.punchOut));
 
+  // calcWorkMinutes(record);
+  // await record.save();
+
   calcWorkMinutes(record);
-  await record.save();
 
   const user = await User.findById(userId).lean();
+  const policy = getWorkPolicy(user.role);
+
+  /* ===== LATE CALCULATION ===== */
+
+  const shiftStart = new Date(record.date);
+  shiftStart.setUTCHours(policy.officeHours.start - 5, 30, 0, 0);
+
+  if (record.punchIn > shiftStart) {
+    record.lateMinutes = Math.floor((record.punchIn - shiftStart) / 60000);
+  }
+
+  /* ===== OVERTIME ===== */
+
+  const requiredMinutes = policy.dailyHours * 60;
+
+  if (record.netWorkMinutes > requiredMinutes) {
+    record.overtimeMinutes = record.netWorkMinutes - requiredMinutes;
+  }
+
+  /* ===== ATTENDANCE STATUS ===== */
+
+  record.attendanceStatus = suggestAttendanceStatus(
+    record.netWorkMinutes,
+    user.role,
+  );
+
+  await record.save();
+
+  /* ===== SYNC ATTENDANCE TABLE ===== */
 
   await Attendance.findOneAndUpdate(
     { user: userId, date: record.date },
     {
-      status: suggestAttendanceStatus(record.netWorkMinutes, user.role),
+      status: record.attendanceStatus,
       source: "SYSTEM",
     },
     { upsert: true },
@@ -328,69 +359,6 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
 };
 
 // ================= LIVE EMPLOYEES STATUS ================= */
-// export const getLiveEmployeesStatusByDateService = async (dateStr) => {
-//   const todayKey = toISTDateKey(new Date());
-//   const selectedKey = dateStr || todayKey;
-//   const isToday = selectedKey === todayKey;
-
-//   const mongoDate = parseIST(selectedKey);
-
-//   const [users, records] = await Promise.all([
-//     User.find({ role: { $ne: "admin" }, isActive: true })
-//       .select("name role")
-//       .lean(),
-//     WorkRecord.find({ date: mongoDate }).lean(),
-//   ]);
-
-//   // ROLE PRIORITY
-//   const priority = {
-//     hr: 1,
-//     employee: 2,
-//     intern: 3,
-//   };
-
-//   // SORT USERS
-//   users.sort(
-//     (a, b) =>
-//       (priority[a.role] || 99) - (priority[b.role] || 99) ||
-//       a.name.localeCompare(b.name),
-//   );
-
-//   const recordMap = new Map();
-//   records.forEach((r) => recordMap.set(String(r.user), r));
-
-//   return users.map((u) => {
-//     const record = recordMap.get(String(u._id));
-
-//     if (!record) {
-//       return {
-//         userId: u._id,
-//         name: u.name,
-//         status: "NOT_STARTED",
-//         workedSeconds: 0,
-//         breakSeconds: 0,
-//       };
-//     }
-
-//     const lastBreak = record.breaks?.at(-1);
-//     const onBreak = lastBreak && !lastBreak.out;
-
-//     let status = "WORKING";
-//     if (record.punchOut) status = "COMPLETED";
-//     else if (onBreak) status = "ON_BREAK";
-
-//     return {
-//       userId: u._id,
-//       name: u.name,
-//       status,
-//       workedSeconds: calcLiveNetSeconds(record),
-//       breakSeconds: calcLiveBreakSeconds(record),
-//       punchIn: record.punchIn,
-//       punchOut: record.punchOut,
-//     };
-//   });
-// };
-
 export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   const todayKey = toISTDateKey(new Date());
   const selectedKey = dateStr || todayKey;

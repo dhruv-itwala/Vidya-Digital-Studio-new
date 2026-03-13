@@ -130,7 +130,6 @@ export const declineLeaveService = async (leaveId, adminId) => {
 };
 
 // ---------- CANCEL LEAVE ----------
-// ---------- CANCEL LEAVE ----------
 export const cancelLeaveService = async (leaveId, user) => {
   const leave = await leavesModel.findById(leaveId);
   if (!leave) throw new AppError("Leave not found", 404);
