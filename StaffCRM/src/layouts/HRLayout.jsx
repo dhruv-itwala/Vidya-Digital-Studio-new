@@ -5,7 +5,7 @@ export default function HRLayout() {
   return (
     <>
       <Navbar />
-      <main>
+      <main style={{ paddingBottom: "20px" }}>
         <Outlet />
       </main>
     </>
