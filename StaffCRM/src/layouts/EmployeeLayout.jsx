@@ -5,7 +5,7 @@ export default function EmployeeLayout() {
   return (
     <>
       <Navbar />
-      <main style={{ padding: "24px" }}>
+      <main>
         <Outlet />
       </main>
     </>

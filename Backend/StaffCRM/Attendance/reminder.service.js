@@ -1,9 +1,9 @@
 import WorkRecord from "./workRecord.model.js";
 import User from "../Users/user.model.js";
-import Leave from "../Leave/leave.model.js";
+import Leave from "../Leaves/leave.model.js";
 import Holiday from "../Holidays/holiday.model.js";
 
-import { WORK_POLICIES, ROLE_WORK_POLICY } from "./work.policy.js";
+import { WORK_POLICIES, ROLE_WORK_POLICY } from "./workPolicy.js";
 import { sendWhatsAppText } from "../../Whatsapp/whatsapp.sender.js";
 import { todayISTUTC } from "./utils/attendance.utils.js";
 
