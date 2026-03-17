@@ -164,13 +164,10 @@ export const getProfileService = async (userId) => {
 
 /* ================= DASHBOARD ================= */
 export const getDashboardOverviewService = async () => {
-  console.time("Dashboard Total Time");
-
   /* ================= IST DAY RANGE ================= */
 
   const now = new Date();
 
-  // Convert server time → IST
   const istNow = new Date(
     now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
   );
@@ -181,11 +178,10 @@ export const getDashboardOverviewService = async () => {
   const endOfDayIST = new Date(istNow);
   endOfDayIST.setHours(23, 59, 59, 999);
 
-  // Convert IST → UTC (MongoDB uses UTC)
   const startUTC = new Date(startOfDayIST.getTime() - 5.5 * 60 * 60 * 1000);
   const endUTC = new Date(endOfDayIST.getTime() - 5.5 * 60 * 60 * 1000);
 
-  /* ================= MONTH START (IST SAFE) ================= */
+  /* ================= MONTH START ================= */
 
   const firstDayOfMonthIST = new Date(
     istNow.getFullYear(),
@@ -197,9 +193,7 @@ export const getDashboardOverviewService = async () => {
     firstDayOfMonthIST.getTime() - 5.5 * 60 * 60 * 1000,
   );
 
-  /* ================= PARALLEL BASIC COUNTS ================= */
-
-  console.time("Parallel Counts");
+  /* ================= PARALLEL QUERIES ================= */
 
   const [
     totalLeads,
@@ -208,115 +202,152 @@ export const getDashboardOverviewService = async () => {
     totalClients,
     activeClients,
     totalEmployees,
+
+    leadPipelineAgg,
+
+    revenueAgg,
+
+    monthlyRevenueAgg,
+
+    recentPayments,
+
+    attendanceRecords,
+
+    recentLeadActivity,
+
+    upcomingMeetings,
   ] = await Promise.all([
+    /* ===== COUNTS ===== */
+
     Lead.countDocuments(),
     Lead.countDocuments({ status: "Raw Lead" }),
     Lead.countDocuments({ isConverted: true }),
+
     Client.countDocuments(),
     Client.countDocuments({ isActive: true }),
+
     User.countDocuments({ isActive: true }),
+
+    /* ===== LEAD PIPELINE ===== */
+
+    Lead.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+
+    /* ===== TOTAL REVENUE ===== */
+
+    Client.aggregate([
+      { $unwind: "$transactions" },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$transactions.amount" },
+        },
+      },
+    ]),
+
+    /* ===== MONTHLY REVENUE ===== */
+
+    Client.aggregate([
+      { $unwind: "$transactions" },
+      {
+        $match: {
+          "transactions.date": { $gte: firstDayOfMonthUTC },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: "$transactions.amount" },
+        },
+      },
+    ]),
+
+    /* ===== RECENT PAYMENTS ===== */
+
+    Client.aggregate([
+      { $unwind: "$transactions" },
+      { $sort: { "transactions.date": -1 } },
+      { $limit: 5 },
+      {
+        $project: {
+          _id: "$transactions._id",
+          clientName: 1,
+          amount: "$transactions.amount",
+          date: "$transactions.date",
+          method: "$transactions.method",
+        },
+      },
+    ]),
+
+    /* ===== ATTENDANCE ===== */
+
+    Attendance.find({
+      date: {
+        $gte: startUTC,
+        $lte: endUTC,
+      },
+    })
+      .populate("user", "name")
+      .lean(),
+
+    /* ===== RECENT LEAD ACTIVITY ===== */
+
+    Lead.find()
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .select("clientName ownerName status updatedAt createdBy")
+      .populate("createdBy", "name")
+      .lean(),
+
+    /* ===== UPCOMING MEETINGS ===== */
+
+    Lead.aggregate([
+      { $unwind: "$meetingNotes" },
+      {
+        $match: {
+          "meetingNotes.date": { $gte: startUTC },
+        },
+      },
+      {
+        $sort: {
+          "meetingNotes.date": 1,
+        },
+      },
+      { $limit: 10 },
+      {
+        $project: {
+          leadId: "$_id",
+          clientName: 1,
+          ownerName: 1,
+          status: 1,
+          proposal: 1,
+          meetingDate: "$meetingNotes.date",
+          note: "$meetingNotes.note",
+        },
+      },
+    ]),
   ]);
 
-  console.timeEnd("Parallel Counts");
+  /* ================= CALCULATIONS ================= */
 
   const conversionRate =
     totalLeads === 0 ? 0 : ((convertedLeads / totalLeads) * 100).toFixed(1);
 
-  /* ================= LEAD PIPELINE ================= */
-
-  console.time("Lead Pipeline");
-
-  const leadPipelineAgg = await Lead.aggregate([
-    {
-      $group: {
-        _id: "$status",
-        count: { $sum: 1 },
-      },
-    },
-  ]);
-
-  console.timeEnd("Lead Pipeline");
-
   const leadPipeline = {};
-
   leadPipelineAgg.forEach((item) => {
     leadPipeline[item._id] = item.count;
   });
 
-  /* ================= TOTAL REVENUE ================= */
-
-  console.time("Revenue Aggregation");
-
-  const revenueAgg = await Client.aggregate([
-    { $unwind: "$transactions" },
-    {
-      $group: {
-        _id: null,
-        totalRevenue: { $sum: "$transactions.amount" },
-      },
-    },
-  ]);
-
-  console.timeEnd("Revenue Aggregation");
-
   const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
-
-  /* ================= MONTHLY REVENUE ================= */
-
-  console.time("Monthly Revenue");
-
-  const monthlyRevenueAgg = await Client.aggregate([
-    { $unwind: "$transactions" },
-    {
-      $match: {
-        "transactions.date": { $gte: firstDayOfMonthUTC },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        revenue: { $sum: "$transactions.amount" },
-      },
-    },
-  ]);
-
-  console.timeEnd("Monthly Revenue");
-
   const monthlyRevenue = monthlyRevenueAgg[0]?.revenue || 0;
 
-  /* ================= RECENT PAYMENTS ================= */
-
-  console.time("Recent Payments");
-
-  const recentPayments = await Client.aggregate([
-    { $unwind: "$transactions" },
-    { $sort: { "transactions.date": -1 } },
-    { $limit: 5 },
-    {
-      $project: {
-        _id: "$transactions._id",
-        clientName: 1,
-        amount: "$transactions.amount",
-        date: "$transactions.date",
-        method: "$transactions.method",
-      },
-    },
-  ]);
-
-  console.timeEnd("Recent Payments");
-
-  /* ================= ATTENDANCE ================= */
-
-  console.time("Attendance With Users");
-
-  const attendanceRecords = await Attendance.find({
-    date: {
-      $gte: startUTC,
-      $lte: endUTC,
-    },
-  })
-    .populate("user", "name")
-    .lean();
+  /* ================= ATTENDANCE FORMAT ================= */
 
   const attendance = {
     PRESENT: [],
@@ -327,32 +358,15 @@ export const getDashboardOverviewService = async () => {
   };
 
   attendanceRecords.forEach((record) => {
-    const status = record.status;
-
-    if (attendance[status] && record.user) {
-      attendance[status].push({
+    if (attendance[record.status] && record.user) {
+      attendance[record.status].push({
         id: record.user._id,
         name: record.user.name,
       });
     }
   });
 
-  console.timeEnd("Attendance With Users");
-
-  /* ================= RECENT LEADS ================= */
-
-  console.time("Recent Lead Activity");
-
-  const recentLeadActivity = await Lead.find()
-    .sort({ updatedAt: -1 })
-    .limit(5)
-    .select("clientName status updatedAt createdBy")
-    .populate("createdBy", "name")
-    .lean();
-
-  console.timeEnd("Recent Lead Activity");
-
-  console.timeEnd("Dashboard Total Time");
+  /* ================= RETURN ================= */
 
   return {
     leads: {
@@ -382,188 +396,7 @@ export const getDashboardOverviewService = async () => {
     recentLeadActivity,
 
     recentPayments,
+
+    upcomingMeetings,
   };
 };
-
-/* ================= DASHBOARD ================= */
-// export const getDashboardOverviewService = async () => {
-//   console.time("Dashboard Total Time");
-
-//   const today = new Date();
-//   today.setHours(0, 0, 0, 0);
-
-//   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-//   /* ================= PARALLEL BASIC COUNTS ================= */
-//   console.time("Parallel Counts");
-
-//   const [
-//     totalLeads,
-//     rawLeads,
-//     convertedLeads,
-//     totalClients,
-//     activeClients,
-//     totalEmployees,
-//   ] = await Promise.all([
-//     Lead.countDocuments(),
-//     Lead.countDocuments({ status: "Raw Lead" }),
-//     Lead.countDocuments({ isConverted: true }),
-//     Client.countDocuments(),
-//     Client.countDocuments({ isActive: true }),
-//     User.countDocuments({ isActive: true }),
-//   ]);
-
-//   console.timeEnd("Parallel Counts");
-
-//   const conversionRate =
-//     totalLeads === 0 ? 0 : ((convertedLeads / totalLeads) * 100).toFixed(1);
-
-//   /* ================= LEAD PIPELINE ================= */
-//   console.time("Lead Pipeline");
-
-//   const leadPipelineAgg = await Lead.aggregate([
-//     {
-//       $group: {
-//         _id: "$status",
-//         count: { $sum: 1 },
-//       },
-//     },
-//   ]);
-
-//   console.timeEnd("Lead Pipeline");
-
-//   const leadPipeline = {};
-//   leadPipelineAgg.forEach((item) => {
-//     leadPipeline[item._id] = item.count;
-//   });
-
-//   /* ================= REVENUE ================= */
-//   console.time("Revenue Aggregation");
-
-//   const revenueAgg = await Client.aggregate([
-//     { $unwind: "$transactions" },
-//     {
-//       $group: {
-//         _id: null,
-//         totalRevenue: { $sum: "$transactions.amount" },
-//       },
-//     },
-//   ]);
-
-//   console.timeEnd("Revenue Aggregation");
-
-//   const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
-
-//   /* ================= MONTHLY REVENUE ================= */
-//   console.time("Monthly Revenue");
-
-//   const monthlyRevenueAgg = await Client.aggregate([
-//     { $unwind: "$transactions" },
-//     {
-//       $match: {
-//         "transactions.date": { $gte: firstDayOfMonth },
-//       },
-//     },
-//     {
-//       $group: {
-//         _id: null,
-//         revenue: { $sum: "$transactions.amount" },
-//       },
-//     },
-//   ]);
-
-//   console.timeEnd("Monthly Revenue");
-
-//   const monthlyRevenue = monthlyRevenueAgg[0]?.revenue || 0;
-
-//   /* ================= RECENT PAYMENTS ================= */
-//   console.time("Recent Payments");
-
-//   const recentPayments = await Client.aggregate([
-//     { $unwind: "$transactions" },
-//     { $sort: { "transactions.date": -1 } },
-//     { $limit: 5 },
-//     {
-//       $project: {
-//         clientName: 1,
-//         amount: "$transactions.amount",
-//         date: "$transactions.date",
-//         method: "$transactions.method",
-//       },
-//     },
-//   ]);
-
-//   console.timeEnd("Recent Payments");
-
-//   /* ================= ATTENDANCE WITH USER NAMES ================= */
-//   console.time("Attendance With Users");
-
-//   const attendanceRecords = await Attendance.find({ date: today })
-//     .populate("user", "name")
-//     .lean();
-
-//   const attendance = {
-//     PRESENT: [],
-//     WFH: [],
-//     ABSENT: [],
-//     LEAVE: [],
-//     HALF_DAY: [],
-//   };
-
-//   attendanceRecords.forEach((record) => {
-//     const status = record.status;
-
-//     if (attendance[status]) {
-//       attendance[status].push({
-//         id: record.user._id,
-//         name: record.user.name,
-//       });
-//     }
-//   });
-
-//   console.timeEnd("Attendance With Users");
-
-//   /* ================= RECENT LEADS ================= */
-//   console.time("Recent Lead Activity");
-
-//   const recentLeadActivity = await Lead.find()
-//     .sort({ updatedAt: -1 })
-//     .limit(5)
-//     .select("clientName status updatedAt createdBy")
-//     .populate("createdBy", "name")
-//     .lean();
-
-//   console.timeEnd("Recent Lead Activity");
-
-//   console.timeEnd("Dashboard Total Time");
-
-//   return {
-//     leads: {
-//       totalLeads,
-//       rawLeads,
-//       convertedLeads,
-//       conversionRate,
-//       pipeline: leadPipeline,
-//     },
-
-//     clients: {
-//       totalClients,
-//       activeClients,
-//     },
-
-//     employees: {
-//       totalEmployees,
-//     },
-
-//     revenue: {
-//       totalRevenue,
-//       monthlyRevenue,
-//     },
-
-//     attendance,
-
-//     recentLeadActivity,
-
-//     recentPayments,
-//   };
-// };

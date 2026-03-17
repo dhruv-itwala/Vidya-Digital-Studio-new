@@ -20,6 +20,8 @@ export default function ViewClients() {
     totalPages,
     search,
     setSearch,
+    status,
+    setStatus,
     setPage,
     toggleClientStatus,
     deleteClient,
@@ -29,7 +31,6 @@ export default function ViewClients() {
 
   /* ================= DEBOUNCED SEARCH ================= */
   const [localSearch, setLocalSearch] = useState(search);
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setPage(1);
@@ -86,6 +87,18 @@ export default function ViewClients() {
               onChange={(e) => setLocalSearch(e.target.value)}
               className={styles.search}
             />
+            <select
+              value={status}
+              onChange={(e) => {
+                setPage(1);
+                setStatus(e.target.value);
+              }}
+              className={styles.filter}
+            >
+              <option value="all">All Clients</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
 
             <button
               className={styles.createBtn}

@@ -75,6 +75,41 @@
   box-shadow: 0 6px 20px var(--color-shadow);
 }
 
+/* ================= FUNNEL  ================= */
+.funnelContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.funnelStep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.funnelBar {
+  height: 35px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    var(--color-primary) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: 0.3s;
+}
+
+.funnelStep p {
+  font-size: 14px;
+  width: 220px;
+}
+
 /* ================= TABLE ================= */
 
 .tableWrapper {

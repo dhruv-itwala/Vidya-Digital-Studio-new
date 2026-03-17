@@ -128,14 +128,35 @@ END:VCARD`;
           3D experiences.
         </p>
 
+        {/* PRIMARY CTA */}
+        <button
+          className={styles.primaryBtn}
+          onClick={() => open(LINKS.contact.url, LINKS.contact.newTab)}
+        >
+          🚀 Start Your Project
+        </button>
+
+        {/* SECONDARY BUTTONS */}
+        <div className={styles.buttonGroup}>
+          <button
+            className={styles.secondaryBtn}
+            onClick={() => open(LINKS.reel.url, LINKS.reel.newTab)}
+          >
+            ✨ Our Work in 60 Seconds
+          </button>
+          <button
+            className={styles.secondaryBtn}
+            onClick={() => open(LINKS.website.url, LINKS.website.newTab)}
+          >
+            🌐 Visit our Website
+          </button>
+
+          <button className={styles.secondaryBtn} onClick={downloadVCard}>
+            📇 Save Contact
+          </button>
+        </div>
         {/* SOCIALS */}
         <div className={styles.socialRow}>
-          <Icon
-            icon="la:linkedin"
-            className={styles.socialIcon}
-            aria-label="LinkedIn"
-            onClick={() => open(LINKS.linkedin.url, LINKS.linkedin.newTab)}
-          />
           <Icon
             icon="mdi:instagram"
             className={styles.socialIcon}
@@ -160,49 +181,6 @@ END:VCARD`;
             aria-label="WhatsApp"
             onClick={() => open(whatsappLink, true)}
           />
-        </div>
-
-        {/* PRIMARY CTA */}
-        <button
-          className={styles.primaryBtn}
-          onClick={() => open(LINKS.contact.url, LINKS.contact.newTab)}
-        >
-          🚀 Start Your Project
-        </button>
-
-        {/* SECONDARY BUTTONS */}
-        <div className={styles.buttonGroup}>
-          <button
-            className={styles.secondaryBtn}
-            onClick={() => open(LINKS.website.url, LINKS.website.newTab)}
-          >
-            🌐 Visit our Website
-          </button>
-
-          <button
-            className={styles.secondaryBtn}
-            onClick={() => open(LINKS.modeling.url, LINKS.modeling.newTab)}
-          >
-            🏢 Explore 3D Visualizations
-          </button>
-
-          <button
-            className={styles.secondaryBtn}
-            onClick={() => open(LINKS.projects.url, LINKS.projects.newTab)}
-          >
-            💼 Discover Our Projects
-          </button>
-
-          <button
-            className={styles.secondaryBtn}
-            onClick={() => open(LINKS.reel.url, LINKS.reel.newTab)}
-          >
-            ✨ Our Story in 60 Seconds
-          </button>
-
-          <button className={styles.secondaryBtn} onClick={downloadVCard}>
-            📇 Save Contact
-          </button>
         </div>
       </div>
     </div>

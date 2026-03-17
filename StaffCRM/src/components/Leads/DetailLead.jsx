@@ -40,12 +40,20 @@ export default function DetailLead() {
             <h1 className={styles.businessName}>{lead.clientName}</h1>
             <span className={styles.statusBadge}>{lead.status}</span>
           </div>
-          <button
-            className={styles.editBtn}
-            onClick={() => navigate(`/${role}/leads/${lead._id}/edit`)}
-          >
-            Edit
-          </button>
+          <div className={styles.headerActions}>
+            <button
+              className={styles.editBtn}
+              onClick={() => navigate(`/${role}/leads`)}
+            >
+              Back
+            </button>
+            <button
+              className={styles.editBtn}
+              onClick={() => navigate(`/${role}/leads/${lead._id}/edit`)}
+            >
+              Edit
+            </button>
+          </div>
         </div>
 
         {/* ================= BASIC INFO ================= */}

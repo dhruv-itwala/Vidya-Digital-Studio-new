@@ -19,7 +19,7 @@ export const useLeads = () => {
   const [status, setStatus] = useState("");
   const [proposal, setProposal] = useState("");
 
-  const limit = 10;
+  const limit = 25; // Leads per page
 
   /* ================= FETCH ================= */
   const fetchLeads = useCallback(async () => {

@@ -24,9 +24,10 @@ export const useClients = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const limit = 10;
+  const limit = 25;
 
   /* ================= FETCH ================= */
   const fetchClients = useCallback(async () => {
@@ -38,6 +39,7 @@ export const useClients = () => {
         page,
         limit,
         search: debouncedSearch,
+        status,
       });
 
       setClients(res.data.data);
@@ -47,7 +49,7 @@ export const useClients = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, status]);
 
   /* ================= DEBOUNCE SEARCH ================= */
   useEffect(() => {

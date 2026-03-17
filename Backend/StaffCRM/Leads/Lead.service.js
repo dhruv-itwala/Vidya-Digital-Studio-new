@@ -25,7 +25,7 @@ export const createLeadService = async (data, userId) => {
 /* ================= GET ALL (FILTER + SEARCH + PAGINATION) ================= */
 export const getAllLeadsService = async ({
   page = 1,
-  limit = 10,
+  limit = 25,
   status,
   proposal,
   search,

@@ -106,26 +106,6 @@ export default function App() {
           <Route path="quotations" element={<AllQuotations />} />
         </Route>
 
-        {/* EMPLOYEE ROUTES */}
-        <Route
-          path="/employee"
-          element={
-            <ProtectedRoute allowedRoles={["employee", "intern"]}>
-              <EmployeeLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="test" element={<Dashboard />} />
-          <Route path="holidays" element={<Holiday />} />
-          <Route path="attendance" element={<EmployeeAttendance />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="leaves" element={<EmployeeLeaves />} />
-          <Route path="todo" element={<TodoList />} />
-          <Route path="tasks" element={<EmployeeTasks />} />
-        </Route>
-
         {/* HR ROUTES */}
         <Route
           path="/hr"
@@ -145,6 +125,7 @@ export default function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="leaves" element={<EmployeeLeaves />} />
           <Route path="tasks" element={<EmployeeTasks />} />
+          <Route path="all-tasks" element={<AdminTasks />} />
           <Route path="todo" element={<TodoList />} />
 
           <Route path="hrLeaveApproval" element={<LeaveApproval />} />
@@ -160,6 +141,26 @@ export default function App() {
           <Route path="clients/:id" element={<DetailClient />} />
           <Route path="clients/create" element={<CreateClient />} />
           <Route path="clients/:id/edit" element={<EditClient />} />
+        </Route>
+
+        {/* EMPLOYEE ROUTES */}
+        <Route
+          path="/employee"
+          element={
+            <ProtectedRoute allowedRoles={["employee", "intern"]}>
+              <EmployeeLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="test" element={<Dashboard />} />
+          <Route path="holidays" element={<Holiday />} />
+          <Route path="attendance" element={<EmployeeAttendance />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="leaves" element={<EmployeeLeaves />} />
+          <Route path="todo" element={<TodoList />} />
+          <Route path="tasks" element={<EmployeeTasks />} />
         </Route>
 
         {/* FALLBACK */}

@@ -190,13 +190,12 @@ export default function LeadForm({ mode = "create", initialData = null }) {
           </div>
 
           <div className={styles.inputGroup}>
-            <label>Email Address *</label>
+            <label>Email Address</label>
             <input
               type="email"
               name="email"
               value={form.email}
               onChange={handleChange}
-              required
             />
           </div>
 

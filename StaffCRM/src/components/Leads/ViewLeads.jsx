@@ -48,7 +48,16 @@ export default function ViewLeads() {
   } = useLeads();
 
   const [searchInput, setSearchInput] = useState(search);
-  const [showFilters, setShowFilters] = useState(false);
+  const statusCount = statusOptions.reduce((acc, status) => {
+    acc[status] = 0;
+    return acc;
+  }, {});
+
+  leads.forEach((lead) => {
+    if (statusCount[lead.status] !== undefined) {
+      statusCount[lead.status]++;
+    }
+  });
 
   /* ================= DEBOUNCE SEARCH ================= */
   useEffect(() => {
@@ -127,13 +136,6 @@ export default function ViewLeads() {
               onChange={(e) => setSearchInput(e.target.value)}
               className={styles.search}
             />
-
-            {/* <button
-              className={styles.filterBtn}
-              onClick={() => setShowFilters((prev) => !prev)}
-            >
-              Filters
-            </button> */}
             <select
               value={status}
               onChange={(e) => {
@@ -159,30 +161,25 @@ export default function ViewLeads() {
           </div>
         </div>
 
-        {/* ================= FILTER MODAL ================= */}
-        {/* <div
-          className={`${styles.filterWrapper} ${
-            showFilters ? styles.showFilter : ""
-          }`}
-        >
-          <div className={styles.filterContent}>
-            <select
-              value={status}
-              onChange={(e) => {
-                setPage(1);
-                setStatus(e.target.value);
-              }}
-              className={styles.statusFilter}
-            >
-              <option value="">All Status</option>
-              {statusOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div> */}
+        <div className={styles.funnelContainer}>
+          {statusOptions.map((status, index) => {
+            const count = statusCount[status] || 0;
+
+            return (
+              <div key={status} className={styles.funnelStep}>
+                <div
+                  className={styles.funnelBar}
+                  style={{
+                    width: `${Math.max(count * 20, 40)}px`,
+                  }}
+                >
+                  <span>{count}</span>
+                </div>
+                <p>{status}</p>
+              </div>
+            );
+          })}
+        </div>
 
         {/* ================= TABLE ================= */}
         <div className={styles.tableWrapper}>

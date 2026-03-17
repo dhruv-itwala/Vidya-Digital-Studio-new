@@ -49,6 +49,12 @@
   align-items: center;
 }
 
+.headerActions {
+  display: flex;
+  gap: 12px;
+  flex-direction: row;
+}
+
 /* ================= CARDS ================= */
 
 .card {

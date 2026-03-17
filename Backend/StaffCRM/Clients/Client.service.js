@@ -36,10 +36,45 @@ export const createClientService = async (data, userId, file) => {
 };
 
 /* ================= GET ALL CLIENTS ================= */
+// export const getAllClientsService = async ({
+//   page = 1,
+//   limit = 10,
+//   search,
+// }) => {
+//   const query = {};
+
+//   if (search) {
+//     query.$or = [
+//       { clientName: { $regex: search, $options: "i" } },
+//       { ownerName: { $regex: search, $options: "i" } },
+//       { email: { $regex: search, $options: "i" } },
+//       { phone: { $regex: search, $options: "i" } },
+//     ];
+//   }
+
+//   const skip = (page - 1) * limit;
+
+//   const [clients, total] = await Promise.all([
+//     Client.find(query)
+//       .populate("createdBy", "name email")
+//       .sort({ createdAt: -1 })
+//       .skip(skip)
+//       .limit(limit),
+//     Client.countDocuments(query),
+//   ]);
+
+//   return {
+//     total,
+//     page: Number(page),
+//     pages: Math.ceil(total / limit),
+//     data: clients,
+//   };
+// };
 export const getAllClientsService = async ({
   page = 1,
-  limit = 10,
+  limit = 25,
   search,
+  status,
 }) => {
   const query = {};
 
@@ -52,14 +87,22 @@ export const getAllClientsService = async ({
     ];
   }
 
+  if (status === "active") query.isActive = true;
+  if (status === "inactive") query.isActive = false;
+
   const skip = (page - 1) * limit;
 
   const [clients, total] = await Promise.all([
     Client.find(query)
       .populate("createdBy", "name email")
-      .sort({ createdAt: -1 })
+      .sort({
+        isActive: -1,
+        onboardingDate: -1,
+      })
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
+
     Client.countDocuments(query),
   ]);
 
@@ -70,7 +113,6 @@ export const getAllClientsService = async ({
     data: clients,
   };
 };
-
 /* ================= GET CLIENT BY ID ================= */
 export const getClientByIdService = async (clientId) => {
   if (!mongoose.Types.ObjectId.isValid(clientId)) {
