@@ -98,6 +98,7 @@ export const useClients = () => {
 
     try {
       await toggleClientStatusAPI(id);
+      await fetchClients();
       return { success: true };
     } catch (err) {
       setClients(previous);
@@ -231,6 +232,8 @@ export const useClients = () => {
     page,
     totalPages,
     search,
+    status,
+    setStatus,
     setSearch,
     setPage,
     refetch: fetchClients,

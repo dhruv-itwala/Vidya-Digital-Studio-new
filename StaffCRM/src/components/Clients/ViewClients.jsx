@@ -67,6 +67,12 @@ export default function ViewClients() {
     }
   };
 
+  const filteredClients = clients.filter((client) => {
+    if (status === "active") return client.isActive === true;
+    if (status === "inactive") return client.isActive === false;
+    return true; // all
+  });
+
   if (loading) return <Loader />;
 
   if (error) return <div className={styles.error}>Error: {error}</div>;
@@ -123,7 +129,7 @@ export default function ViewClients() {
             </thead>
 
             <tbody>
-              {clients.length === 0 && (
+              {filteredClients.length === 0 && (
                 <tr>
                   <td colSpan="5" className={styles.empty}>
                     No clients found
@@ -131,7 +137,7 @@ export default function ViewClients() {
                 </tr>
               )}
 
-              {clients.map((client, index) => (
+              {filteredClients.map((client, index) => (
                 <tr key={client._id}>
                   {/* SR NO */}
                   <td>{(page - 1) * 10 + index + 1}</td>
