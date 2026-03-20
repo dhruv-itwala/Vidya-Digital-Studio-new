@@ -334,16 +334,16 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
     employee: 2,
     intern: 3,
   };
-  console.log("NULL USERS:", attendance.filter((a) => !a.user).length);
-  console.table(
-    attendance
-      .filter((a) => !a.user)
-      .map((a) => ({
-        _id: a._id,
-        date: a.date,
-        status: a.status,
-      })),
-  );
+  // console.log("NULL USERS:", attendance.filter((a) => !a.user).length);
+  // console.table(
+  //   attendance
+  //     .filter((a) => !a.user)
+  //     .map((a) => ({
+  //       _id: a._id,
+  //       date: a.date,
+  //       status: a.status,
+  //     })),
+  // );
   return attendance
     .filter((a) => a.user) // ✅ MUST BE FIRST
     .sort(
