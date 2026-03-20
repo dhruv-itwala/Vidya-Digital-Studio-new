@@ -499,12 +499,53 @@ export const getWeeklyProgressService = async (userId) => {
     }
   }
 
+  // ===== LEAVE ADJUSTMENT =====
+  const leaves = await Leave.find({
+    user: userId,
+    status: "APPROVED",
+    $or: [
+      {
+        fromDate: { $lte: weekEndUTC },
+        toDate: { $gte: weekStartUTC },
+      },
+    ],
+  });
+
+  let leaveDays = 0;
+
+  for (const leave of leaves) {
+    let current = new Date(
+      Math.max(leave.fromDate.getTime(), weekStartUTC.getTime()),
+    );
+
+    const end = new Date(
+      Math.min(leave.toDate.getTime(), weekEndUTC.getTime()),
+    );
+
+    while (current <= end) {
+      const day = current.getUTCDay();
+
+      // Skip weekends
+      if (day !== 0 && day !== 6) {
+        if (leave.isHalfDay) {
+          leaveDays += 0.5;
+        } else {
+          leaveDays += 1;
+        }
+      }
+
+      current.setUTCDate(current.getUTCDate() + 1);
+    }
+  }
+
   const user = await User.findById(userId).lean();
 
   const policy = getWorkPolicy(user?.role || "employee");
 
+  const totalAdjustedDays = holidayCount + leaveDays;
+
   const requiredSeconds = Math.max(
-    (policy.weeklyHours - holidayCount * policy.dailyHours) * 3600,
+    (policy.weeklyHours - totalAdjustedDays * policy.dailyHours) * 3600,
     0,
   );
 
