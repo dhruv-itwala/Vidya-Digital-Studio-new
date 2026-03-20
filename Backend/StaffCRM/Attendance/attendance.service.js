@@ -334,8 +334,18 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
     employee: 2,
     intern: 3,
   };
-
+  console.log("NULL USERS:", attendance.filter((a) => !a.user).length);
+  console.table(
+    attendance
+      .filter((a) => !a.user)
+      .map((a) => ({
+        _id: a._id,
+        date: a.date,
+        status: a.status,
+      })),
+  );
   return attendance
+    .filter((a) => a.user) // ✅ MUST BE FIRST
     .sort(
       (a, b) =>
         (priority[a.user.role] || 99) - (priority[b.user.role] || 99) ||
@@ -356,6 +366,28 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
         punchOut: work?.punchOut || null,
       };
     });
+
+  // return attendance
+  //   .sort(
+  //     (a, b) =>
+  //       (priority[a.user.role] || 99) - (priority[b.user.role] || 99) ||
+  //       a.user.name.localeCompare(b.user.name),
+  //   )
+  //   .map((att) => {
+  //     const key = `${att.user._id}_${att.date.getTime()}`;
+  //     const work = workMap.get(key);
+
+  //     return {
+  //       userId: att.user._id,
+  //       name: att.user.name,
+  //       email: att.user.email,
+  //       role: att.user.role,
+  //       date: att.date,
+  //       status: att.status,
+  //       punchIn: work?.punchIn || null,
+  //       punchOut: work?.punchOut || null,
+  //     };
+  //   });
 };
 
 // ================= LIVE EMPLOYEES STATUS ================= */
