@@ -144,10 +144,19 @@ export const getAllUsersForAdminService = async () => {
 
   const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
 
-  return users.sort(
-    (a, b) =>
-      priority[a.role] - priority[b.role] || a.name.localeCompare(b.name),
-  );
+  return users.sort((a, b) => {
+    // ✅ Active first, inactive last
+    if (a.isActive !== b.isActive) {
+      return b.isActive - a.isActive;
+    }
+
+    // ✅ Role priority
+    const roleDiff = (priority[a.role] || 99) - (priority[b.role] || 99);
+    if (roleDiff !== 0) return roleDiff;
+
+    // ✅ Name
+    return a.name.localeCompare(b.name);
+  });
 };
 
 /* ================= PROFILE ================= */

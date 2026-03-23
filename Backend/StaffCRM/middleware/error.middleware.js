@@ -31,6 +31,6 @@ export const globalErrorHandler = (err, req, res, next) => {
   // Fallback (programming / unknown errors)
   res.status(500).json({
     success: false,
-    message: "Something went wrong",
+    message: err.message || "Something went wrong",
   });
 };

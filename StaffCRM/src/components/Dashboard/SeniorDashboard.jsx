@@ -71,13 +71,13 @@ const SeniorDashboard = () => {
             </div>
           </div>
 
-          <div className={styles.card}>
+          {/* <div className={styles.card}>
             <span className={styles.icon}>💰</span>
             <div className={styles.cardContent}>
               <h3>Revenue</h3>
               <p>₹{revenue.totalRevenue.toLocaleString()}</p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* ATTENDANCE */}
@@ -161,7 +161,7 @@ const SeniorDashboard = () => {
         </div>
 
         {/* RECENT PAYMENTS */}
-        <div className={styles.section}>
+        {/* <div className={styles.section}>
           <h2>Recent Payments</h2>
 
           <div className={styles.tableWrapper}>
@@ -187,7 +187,7 @@ const SeniorDashboard = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

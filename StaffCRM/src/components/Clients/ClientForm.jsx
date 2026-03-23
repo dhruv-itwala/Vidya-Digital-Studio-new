@@ -213,7 +213,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
           <></>
         ) : (
           <>
-            <ClientTransactions
+            {/* <ClientTransactions
               form={form}
               setForm={setFormWithDirty}
               readOnly={readOnly}
@@ -221,7 +221,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
               addTransaction={addTransaction}
               updateTransaction={updateTransaction}
               deleteTransaction={deleteTransaction}
-            />
+            />*/}
 
             <ClientDocuments
               form={form}
