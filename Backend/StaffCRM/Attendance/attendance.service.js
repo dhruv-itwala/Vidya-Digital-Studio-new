@@ -490,6 +490,8 @@ export const getTodayWorkRecordService = async (userId) => {
 export const getWeeklyProgressService = async (userId) => {
   const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
 
+  const user = await User.findById(userId).lean();
+  const policy = getWorkPolicy(user?.role || "employee");
   const records = await WorkRecord.find({
     user: userId,
     date: { $gte: weekStartUTC, $lte: weekEndUTC },
@@ -500,9 +502,9 @@ export const getWeeklyProgressService = async (userId) => {
   for (const record of records) {
     if (!record.punchIn) continue;
 
-    const endTime = record.punchOut ?? new Date();
-    const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
-
+    // const endTime = record.punchOut ?? new Date();
+    // const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
+    const workedSeconds = (record.netWorkMinutes || 0) * 60;
     totalSeconds += workedSeconds;
   }
 
@@ -558,10 +560,6 @@ export const getWeeklyProgressService = async (userId) => {
       current.setUTCDate(current.getUTCDate() + 1);
     }
   }
-
-  const user = await User.findById(userId).lean();
-
-  const policy = getWorkPolicy(user?.role || "employee");
 
   const requiredSeconds = Math.max(
     policy.weeklyHours * 3600 -
