@@ -43,6 +43,7 @@ import Maintenance from "./components/Maintenance/Maintenance";
 
 import { Toaster } from "react-hot-toast";
 import "./App.css";
+import HROverride from "./components/HR/HROverride";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -127,6 +128,7 @@ export default function App() {
           <Route path="tasks" element={<EmployeeTasks />} />
           <Route path="all-tasks" element={<AdminTasks />} />
           <Route path="todo" element={<TodoList />} />
+          <Route path="hr" element={<HROverride />} />
 
           <Route path="hrLeaveApproval" element={<LeaveApproval />} />
           <Route path="hrReports" element={<Reports />} />

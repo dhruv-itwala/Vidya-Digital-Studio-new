@@ -51,7 +51,15 @@ const workRecordSchema = new mongoose.Schema(
 
     attendanceStatus: {
       type: String,
-      enum: ["PRESENT", "HALF_DAY", "ABSENT", "LEAVE", "HOLIDAY"],
+      enum: [
+        "PRESENT",
+        "HALF_DAY",
+        "ABSENT",
+        "WFH",
+        "HOLIDAY",
+        "LEAVE",
+        "INCOMPLETE",
+      ],
     },
 
     reportSubmitted: {

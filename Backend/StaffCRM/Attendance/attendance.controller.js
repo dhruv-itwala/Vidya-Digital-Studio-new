@@ -135,3 +135,22 @@ export const getAllUsersWeeklyProgress = asyncHandler(async (req, res) => {
     data,
   });
 });
+
+// ================ HR OVERRIDE ATTENDANCE ================= */
+export const hrOverrideAttendance = asyncHandler(async (req, res) => {
+  const data = await service.hrOverrideAttendanceService(req.body);
+
+  res.json({
+    success: true,
+    message: "HR override applied successfully",
+    data,
+  });
+});
+
+export const getWorkRecordByDate = asyncHandler(async (req, res) => {
+  const { userId, date } = req.query;
+
+  const data = await service.getWorkRecordByDateService(userId, date);
+
+  res.json({ success: true, data });
+});

@@ -49,6 +49,17 @@ attendanceRoutes.delete(
   ctrl.deleteAttendanceById,
 );
 
+attendanceRoutes.patch(
+  "/hr-override",
+  roleCheck("admin", "hr"),
+  ctrl.hrOverrideAttendance,
+);
+attendanceRoutes.get(
+  "/work-record/by-date",
+  roleCheck("admin", "hr"),
+  ctrl.getWorkRecordByDate,
+);
+
 /* ================= ADMIN ================= */
 attendanceRoutes.get("/day", roleCheck("admin"), ctrl.dayAttendance);
 

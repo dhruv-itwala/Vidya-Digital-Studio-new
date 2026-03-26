@@ -153,3 +153,21 @@ export const getAllUsersWeeklyProgressAPI = async (weekStart) => {
     handleError(error);
   }
 };
+
+export const hrOverrideAttendanceAPI = async (data) => {
+  try {
+    return await api.patch("/attendance/hr-override", data);
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+export const getWorkRecordByDateAPI = async (userId, date) => {
+  try {
+    return await api.get("/attendance/work-record/by-date", {
+      params: { userId, date },
+    });
+  } catch (error) {
+    handleError(error);
+  }
+};

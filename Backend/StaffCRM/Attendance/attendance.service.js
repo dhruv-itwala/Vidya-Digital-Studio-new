@@ -334,16 +334,6 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
     employee: 2,
     intern: 3,
   };
-  // console.log("NULL USERS:", attendance.filter((a) => !a.user).length);
-  // console.table(
-  //   attendance
-  //     .filter((a) => !a.user)
-  //     .map((a) => ({
-  //       _id: a._id,
-  //       date: a.date,
-  //       status: a.status,
-  //     })),
-  // );
   return attendance
     .filter((a) => a.user) // ✅ MUST BE FIRST
     .sort(
@@ -543,7 +533,7 @@ export const getWeeklyProgressService = async (userId) => {
     ],
   });
 
-  let leaveDays = 0;
+  let leaveHours = 0;
 
   for (const leave of leaves) {
     let current = new Date(
@@ -557,12 +547,11 @@ export const getWeeklyProgressService = async (userId) => {
     while (current <= end) {
       const day = current.getUTCDay();
 
-      // Skip weekends
       if (day !== 0 && day !== 6) {
         if (leave.isHalfDay) {
-          leaveDays += 0.5;
+          leaveHours += policy.dailyHours / 2;
         } else {
-          leaveDays += 1;
+          leaveHours += policy.dailyHours;
         }
       }
 
@@ -574,10 +563,10 @@ export const getWeeklyProgressService = async (userId) => {
 
   const policy = getWorkPolicy(user?.role || "employee");
 
-  const totalAdjustedDays = holidayCount + leaveDays;
-
   const requiredSeconds = Math.max(
-    (policy.weeklyHours - totalAdjustedDays * policy.dailyHours) * 3600,
+    policy.weeklyHours * 3600 -
+      leaveHours * 3600 -
+      holidayCount * policy.dailyHours * 3600,
     0,
   );
 
@@ -657,4 +646,108 @@ export const getAllUsersWeeklyProgressService = async (weekStart) => {
       percentage: Math.min((p.totalMinutes / p.requiredMinutes) * 100, 100),
       remainingMinutes: Math.max(p.requiredMinutes - p.totalMinutes, 0),
     }));
+};
+
+export const hrOverrideAttendanceService = async ({
+  userId,
+  date,
+  punchIn,
+  punchOut,
+  breaks = [],
+  status,
+}) => {
+  const day = parseISTDateOnly(date);
+
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  /* ======================
+     UPSERT WORK RECORD
+  ====================== */
+
+  let record = await WorkRecord.findOne({ user: userId, date: day });
+
+  if (!record) {
+    record = new WorkRecord({ user: userId, date: day });
+  }
+
+  // APPLY OVERRIDES
+  if (punchIn) record.punchIn = new Date(punchIn);
+  if (punchOut) record.punchOut = new Date(punchOut);
+
+  if (breaks.length) {
+    record.breaks = breaks.map((b) => ({
+      in: new Date(b.in),
+      out: b.out ? new Date(b.out) : null,
+    }));
+  }
+
+  /* ======================
+     AUTO CLOSE BREAKS
+  ====================== */
+
+  record.breaks.forEach((b) => {
+    if (!b.out && record.punchOut) {
+      b.out = record.punchOut;
+    }
+  });
+
+  /* ======================
+     RECALCULATE
+  ====================== */
+
+  calcWorkMinutes(record);
+
+  const policy = getWorkPolicy(user.role);
+
+  // Late
+  const shiftStart = new Date(record.date);
+  shiftStart.setUTCHours(policy.officeHours.start - 5, 30, 0, 0);
+
+  record.lateMinutes =
+    record.punchIn && record.punchIn > shiftStart
+      ? Math.floor((record.punchIn - shiftStart) / 60000)
+      : 0;
+
+  // Overtime
+  const requiredMinutes = policy.dailyHours * 60;
+  record.overtimeMinutes =
+    record.netWorkMinutes > requiredMinutes
+      ? record.netWorkMinutes - requiredMinutes
+      : 0;
+
+  // Status
+  record.attendanceStatus =
+    status || suggestAttendanceStatus(record.netWorkMinutes, user.role);
+
+  record.autoClosed = false; // HR fixed it
+
+  await record.save();
+
+  /* ======================
+     SYNC ATTENDANCE
+  ====================== */
+
+  await Attendance.findOneAndUpdate(
+    { user: userId, date: day },
+    {
+      status: record.attendanceStatus,
+      source: "HR",
+    },
+    { upsert: true },
+  );
+
+  /* ======================
+     SYNC WEEKLY
+  ====================== */
+
+  await getWeeklyProgressService(userId);
+
+  return record;
+};
+
+export const getWorkRecordByDateService = async (userId, date) => {
+  const day = parseISTDateOnly(date);
+
+  return WorkRecord.findOne({ user: userId, date: day });
 };
