@@ -502,9 +502,9 @@ export const getWeeklyProgressService = async (userId) => {
   for (const record of records) {
     if (!record.punchIn) continue;
 
-    // const endTime = record.punchOut ?? new Date();
-    // const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
-    const workedSeconds = (record.netWorkMinutes || 0) * 60;
+    const endTime = record.punchOut ?? new Date();
+    const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
+    // const workedSeconds = (record.netWorkMinutes || 0) * 60;
     totalSeconds += workedSeconds;
   }
 
