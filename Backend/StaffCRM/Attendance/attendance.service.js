@@ -486,16 +486,24 @@ export const getTodayWorkRecordService = async (userId) => {
   };
 };
 
-// ================ GET WEEKLY PROGRESS ================= */
 export const getWeeklyProgressService = async (userId) => {
+  // console.log("\n================ WEEKLY DEBUG START ================");
+  // console.log("User:", userId);
+
   const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
+  // console.log("Week Range:", weekStartUTC, "→", weekEndUTC);
 
   const user = await User.findById(userId).lean();
   const policy = getWorkPolicy(user?.role || "employee");
+
+  // console.log("Policy:", policy);
+
   const records = await WorkRecord.find({
     user: userId,
     date: { $gte: weekStartUTC, $lte: weekEndUTC },
   });
+
+  // console.log("Total WorkRecords:", records.length);
 
   let totalSeconds = 0;
 
@@ -504,63 +512,77 @@ export const getWeeklyProgressService = async (userId) => {
 
     const endTime = record.punchOut ?? new Date();
     const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
-    // const workedSeconds = (record.netWorkMinutes || 0) * 60;
+
+    // console.log("WorkRecord:", {
+    //   date: record.date,
+    //   punchIn: record.punchIn,
+    //   punchOut: record.punchOut,
+    //   workedHours: (workedSeconds / 3600).toFixed(2),
+    // });
+
     totalSeconds += workedSeconds;
   }
 
-  // ===== HOLIDAY ADJUSTMENT =====
+  // console.log("Total Worked Hours:", (totalSeconds / 3600).toFixed(2));
+
+  // ===== HOLIDAY =====
   const holidays = await Holiday.find({
     date: { $gte: weekStartUTC, $lte: weekEndUTC },
   });
 
   let holidayCount = 0;
 
+  const getISTDay = (date) => {
+    return new Date(date.getTime() + 5.5 * 60 * 60 * 1000).getDay();
+  };
+
   for (const h of holidays) {
-    const day = new Date(h.date).getUTCDay();
+    const day = getISTDay(h.date);
+
+    // console.log("Holiday Found:", h.date, "IST Day:", day);
 
     if (day !== 0 && day !== 6) {
       holidayCount++;
     }
   }
 
-  // ===== LEAVE ADJUSTMENT =====
-  const leaves = await Leave.find({
+  // console.log("Holiday Count (weekdays only):", holidayCount);
+
+  // ===== ATTENDANCE (FOR LEAVE DEBUG) =====
+  const attendance = await Attendance.find({
     user: userId,
-    status: "APPROVED",
-    $or: [
-      {
-        fromDate: { $lte: weekEndUTC },
-        toDate: { $gte: weekStartUTC },
-      },
-    ],
+    date: { $gte: weekStartUTC, $lte: weekEndUTC },
   });
+
+  // console.log("Attendance Records:", attendance.length);
 
   let leaveHours = 0;
 
-  for (const leave of leaves) {
-    let current = new Date(
-      Math.max(leave.fromDate.getTime(), weekStartUTC.getTime()),
-    );
+  for (const att of attendance) {
+    const day = getISTDay(att.date);
 
-    const end = new Date(
-      Math.min(leave.toDate.getTime(), weekEndUTC.getTime()),
-    );
+    if (day === 0 || day === 6) continue;
 
-    while (current <= end) {
-      const day = current.getUTCDay();
+    // console.log("Attendance:", {
+    //   date: att.date,
+    //   status: att.status,
+    //   istDay: day,
+    // });
 
-      if (day !== 0 && day !== 6) {
-        if (leave.isHalfDay) {
-          leaveHours += policy.dailyHours / 2;
-        } else {
-          leaveHours += policy.dailyHours;
-        }
-      }
+    if (att.status === "LEAVE") {
+      leaveHours += policy.dailyHours;
+      // console.log("➖ Leave counted:", policy.dailyHours);
+    }
 
-      current.setUTCDate(current.getUTCDate() + 1);
+    if (att.status === "HALF_DAY") {
+      leaveHours += policy.dailyHours / 2;
+      // console.log("➖ Half Day counted:", policy.dailyHours / 2);
     }
   }
 
+  // console.log("Total Leave Hours:", leaveHours);
+
+  // ===== FINAL CALC =====
   const requiredSeconds = Math.max(
     policy.weeklyHours * 3600 -
       leaveHours * 3600 -
@@ -568,7 +590,8 @@ export const getWeeklyProgressService = async (userId) => {
     0,
   );
 
-  // ===== STATUS LOGIC =====
+  // console.log("Required Hours:", (requiredSeconds / 3600).toFixed(2));
+
   const now = new Date();
   const weekFinished = now > weekEndUTC;
 
@@ -593,18 +616,25 @@ export const getWeeklyProgressService = async (userId) => {
     { upsert: true, new: true },
   );
 
+  // console.log("Final Output:", {
+  //   totalHours: (totalSeconds / 3600).toFixed(2),
+  //   requiredHours: (requiredSeconds / 3600).toFixed(2),
+  //   status,
+  // });
+
+  // console.log("================ WEEKLY DEBUG END ================\n");
+
   return {
     ...weeklyDoc.toObject(),
     totalSeconds,
-
     dailyRequiredSeconds: (policy.dailyHours - 1) * 3600,
-
     percentage: Math.min((totalSeconds / requiredSeconds) * 100, 100),
     remainingMinutes: Math.max((requiredSeconds - totalSeconds) / 60, 0),
     holidayCount,
   };
 };
 
+// =============== GET ALL USERS WEEKLY PROGRESS ================= */
 export const getAllUsersWeeklyProgressService = async (weekStart) => {
   if (!weekStart) {
     throw new Error("weekStart is required");
@@ -646,6 +676,7 @@ export const getAllUsersWeeklyProgressService = async (weekStart) => {
     }));
 };
 
+// ================ HR OVERRIDE ATTENDANCE ================= */
 export const hrOverrideAttendanceService = async ({
   userId,
   date,
@@ -744,6 +775,7 @@ export const hrOverrideAttendanceService = async ({
   return record;
 };
 
+// ================ GET WORK RECORD BY DATE ================= */
 export const getWorkRecordByDateService = async (userId, date) => {
   const day = parseISTDateOnly(date);
 
