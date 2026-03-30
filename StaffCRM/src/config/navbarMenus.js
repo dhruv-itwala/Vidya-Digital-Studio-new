@@ -8,6 +8,7 @@ export const NAVBAR_MENUS = {
     "divider",
     { label: "Employees", path: "/admin/employees" },
     { label: "Attendance", path: "/admin/attendance" },
+    { label: "Tasks", path: "/admin/tasks" },
     { label: "Holidays", path: "/admin/holidays" },
     { label: "Reports", path: "/admin/reports" },
     { label: "Leave Approvals", path: "/admin/leaves" },
