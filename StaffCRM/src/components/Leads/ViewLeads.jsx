@@ -58,6 +58,22 @@ export default function ViewLeads() {
       case "Closed Loss":
         return styles.loss;
 
+      case "Transferred":
+        return styles.transfer;
+
+      default:
+        return "";
+    }
+  };
+
+  const getProposalClass = (proposal) => {
+    switch (proposal) {
+      case "Created":
+        return styles.created;
+
+      case "Pending":
+        return styles.pending;
+
       default:
         return "";
     }
@@ -215,7 +231,7 @@ export default function ViewLeads() {
           </div>
         </div>
 
-        <div className={styles.funnelContainer}>
+        {/* <div className={styles.funnelContainer}>
           {statusOptions.map((status, index) => {
             const count = statusCount[status] || 0;
 
@@ -230,6 +246,26 @@ export default function ViewLeads() {
                   <span>{count}</span>
                 </div>
                 <p>{status}</p>
+              </div>
+            );
+          })}
+        </div> */}
+
+        <div className={styles.funnelBarContainer}>
+          {statusOptions.map((status) => {
+            const count = statusCount[status] || 0;
+
+            return (
+              <div
+                key={status}
+                className={`${styles.funnelSegment} ${getStatusClass(status)}`}
+                style={{ flex: count || 1 }}
+                title={`${status}: ${count}`}
+              >
+                <p className={styles.funnelLabel}>
+                  <span>{count}</span>
+                  <span>{status}</span>
+                </p>
               </div>
             );
           })}
@@ -301,11 +337,7 @@ export default function ViewLeads() {
                         onChange={(e) =>
                           handleProposalChange(lead._id, e.target.value)
                         }
-                        className={`${styles.statusSelect} ${
-                          lead.proposal === "Transferred"
-                            ? styles.transferred
-                            : ""
-                        }`}
+                        className={`${styles.statusSelect} ${getProposalClass(lead.proposal)}`}
                         disabled={lead.proposal === "Transferred"}
                       >
                         {proposalOptions.map((proposal) => (

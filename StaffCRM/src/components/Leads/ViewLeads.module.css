@@ -110,6 +110,31 @@
   width: 220px;
 }
 
+/* ================= FUNNEL SEGMENT ================= */
+.funnelBarContainer {
+  display: flex;
+  /* height: 40px; */
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.funnelSegment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.funnelLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
 /* ================= TABLE ================= */
 
 .tableWrapper {
@@ -230,13 +255,11 @@
 .won {
   background: #e8f5e9;
   color: #1b5e20;
-  border: 1px solid #4caf50;
 }
 
 .loss {
   background: #ffebee;
   color: #b71c1c;
-  border: 1px solid #f44336;
 }
 /* ================= ACTIONS ================= */
 
@@ -269,6 +292,18 @@
 .transfer {
   background: #e0e7ff !important;
   color: #3730a3;
+}
+
+/* PROPOSAL STATES */
+
+.created {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.pending {
+  background: #ffebee;
+  color: #b71c1c;
 }
 
 /* ================= SPINNER ================= */
@@ -327,5 +362,10 @@
 
   .search {
     width: 100%;
+  }
+
+  .funnelBarContainer {
+    flex-direction: column;
+    height: auto;
   }
 }
