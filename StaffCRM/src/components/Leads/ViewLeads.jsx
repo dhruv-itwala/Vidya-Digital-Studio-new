@@ -23,6 +23,7 @@ export default function ViewLeads() {
     "Verbal Confirmation",
     "Client Won",
     "Closed Loss",
+    "Transferred",
   ];
 
   const proposalOptions = ["Pending", "Created"];
