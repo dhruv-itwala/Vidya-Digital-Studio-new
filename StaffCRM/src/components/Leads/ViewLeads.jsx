@@ -26,6 +26,43 @@ export default function ViewLeads() {
     "Transferred",
   ];
 
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "Raw Lead":
+        return styles.raw;
+
+      case "First Contact Attempt":
+        return styles.contact;
+
+      case "Lead Qualification":
+        return styles.qualification;
+
+      case "Appointment / Meeting Schedule":
+        return styles.meeting;
+
+      case "Presentation / Demo / Consultation":
+        return styles.demo;
+
+      case "Proposal Send":
+        return styles.proposal;
+
+      case "Negotiation":
+        return styles.negotiation;
+
+      case "Verbal Confirmation":
+        return styles.verbal;
+
+      case "Client Won":
+        return styles.won;
+
+      case "Closed Loss":
+        return styles.loss;
+
+      default:
+        return "";
+    }
+  };
+
   const proposalOptions = ["Pending", "Created"];
 
   const {
@@ -242,11 +279,12 @@ export default function ViewLeads() {
                         onChange={(e) =>
                           handleStatusChange(lead._id, e.target.value)
                         }
-                        className={`${styles.statusSelect} ${
-                          lead.status === "Transferred"
-                            ? styles.transferred
-                            : ""
-                        }`}
+                        // className={`${styles.statusSelect} ${
+                        //   lead.status === "Transferred"
+                        //     ? styles.transferred
+                        //     : ""
+                        // }`}
+                        className={`${styles.statusSelect} ${getStatusClass(lead.status)}`}
                         disabled={lead.status === "Transferred"}
                       >
                         {statusOptions.map((status) => (

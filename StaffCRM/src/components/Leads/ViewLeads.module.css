@@ -177,6 +177,67 @@
   opacity: 0.6;
 }
 
+/* ================= LEAD COLORS ================= */
+/* BASE */
+.statusSelect {
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* STAGES */
+.raw {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.contact {
+  background: #e1f5fe;
+  color: #0277bd;
+}
+
+.qualification {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.meeting {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.demo {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.proposal {
+  background: #ede7f6;
+  color: #512da8;
+}
+
+.negotiation {
+  background: #fff8e1;
+  color: #f9a825;
+}
+
+.verbal {
+  background: #e0f2f1;
+  color: #00695c;
+}
+
+/* FINAL STATES */
+.won {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #4caf50;
+}
+
+.loss {
+  background: #ffebee;
+  color: #b71c1c;
+  border: 1px solid #f44336;
+}
 /* ================= ACTIONS ================= */
 
 .actions {
