@@ -118,6 +118,22 @@ export default function ViewLeads() {
     }
   };
 
+  const processedLeads = leads
+    // ❌ remove transferred
+    .filter((lead) => lead.status !== "Transferred")
+
+    // ⬇️ push Client Won & Closed Loss to bottom
+    .sort((a, b) => {
+      const bottomStatuses = ["Client Won", "Closed Loss"];
+
+      const aBottom = bottomStatuses.includes(a.status);
+      const bBottom = bottomStatuses.includes(b.status);
+
+      if (aBottom === bBottom) return 0;
+
+      return aBottom ? 1 : -1;
+    });
+
   if (loading) return <Loader />;
   if (error) return <div className={styles.error}>{error}</div>;
 
@@ -196,14 +212,14 @@ export default function ViewLeads() {
             </thead>
 
             <tbody>
-              {leads.length === 0 ? (
+              {processedLeads.length === 0 ? (
                 <tr>
                   <td colSpan="5" className={styles.noData}>
                     No leads found
                   </td>
                 </tr>
               ) : (
-                leads.map((lead, index) => (
+                processedLeads.map((lead, index) => (
                   <tr key={lead._id} className={styles.tableRow}>
                     <td>{(page - 1) * 10 + index + 1}</td>
 
