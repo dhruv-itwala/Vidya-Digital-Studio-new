@@ -389,7 +389,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
 
   const [users, records] = await Promise.all([
     User.find({ role: { $ne: "admin" }, isActive: true })
-      .select("name role")
+      .select("name role profilePicture")
       .lean(),
     WorkRecord.find({ date: mongoDate }).lean(),
   ]);
@@ -419,6 +419,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
         userId: u._id,
         name: u.name,
         role: u.role,
+        profilePicture: u.profilePicture,
         status: "NOT_STARTED",
         workedSeconds: 0,
         breakSeconds: 0,
@@ -436,6 +437,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
       userId: u._id,
       name: u.name,
       role: u.role,
+      profilePicture: u.profilePicture,
       status,
       workedSeconds: calcLiveNetSeconds(record),
       breakSeconds: calcLiveBreakSeconds(record),
@@ -444,6 +446,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
     };
   });
 };
+
 // ================= DAY ATTENDANCE ================= */
 export const getDayAttendanceService = async (id) => {
   return Attendance.find({ id });

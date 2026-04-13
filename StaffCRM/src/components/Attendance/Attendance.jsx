@@ -209,7 +209,7 @@ export default function Attendance() {
     <div className="masterContainer">
       <div className={styles.container}>
         <h2>Attendance</h2>
-
+        {console.log(live)}
         {/* ================= DAILY ================= */}
         <div className={styles.accordion}>
           <button
@@ -307,7 +307,21 @@ export default function Attendance() {
                   <tbody>
                     {live.map((e) => (
                       <tr key={e.userId}>
-                        <td>{e.name}</td>
+                        <td>
+                          <div className={styles.userCell}>
+                            {e.profilePicture?.url ? (
+                              <img
+                                src={e.profilePicture.url}
+                                alt={e.name}
+                                className={styles.avatar}
+                              />
+                            ) : (
+                              ""
+                            )}
+
+                            <span>{e.name}</span>
+                          </div>
+                        </td>
                         <td
                           className={
                             styles[e.status?.toLowerCase().replace("_", "")]
