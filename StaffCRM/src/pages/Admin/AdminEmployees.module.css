@@ -34,6 +34,37 @@ h2 {
   transform: translateY(-1px);
 }
 
+/* ================= UPLOAD BUTTON ================= */
+.userCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.uploadBtn {
+  cursor: pointer;
+  font-size: 14px;
+}
+
 /* ================= TABLE ================= */
 .tableWrapper {
   width: 100%;

@@ -12,6 +12,14 @@ export const getAllUsersForAdminAPI = () => api.get("/users/admin/all");
 // CREATE USER
 export const createUserAPI = (data) => api.post("/users", data);
 
+// PROFILE PHOTO UPLOAD
+export const uploadProfilePhotoAPI = (userId, data) =>
+  api.post(`/users/${userId}/upload-profile-photo`, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
 // UPDATE USER
 export const updateUserAPI = (id, data) => api.put(`/users/${id}`, data);
 

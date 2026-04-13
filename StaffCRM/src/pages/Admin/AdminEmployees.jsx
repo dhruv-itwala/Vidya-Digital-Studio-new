@@ -84,7 +84,27 @@ export default function AdminEmployees() {
             <tbody>
               {currentUsers.map((u) => (
                 <tr key={u._id}>
-                  <td>{u.name}</td>
+                  <td>
+                    <div className={styles.userCell}>
+                      {u.profilePicture?.url ? (
+                        <img
+                          src={u.profilePicture.url}
+                          alt={u.name}
+                          className={styles.avatar}
+                        />
+                      ) : (
+                        <div className={styles.initials}>
+                          {u.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
+                        </div>
+                      )}
+
+                      <span>{u.name}</span>
+                    </div>
+                  </td>
                   <td>{u.email}</td>
                   <td>{u.role.toUpperCase()}</td>
                   <td className={u.isActive ? styles.active : styles.inactive}>

@@ -17,6 +17,24 @@
   object-fit: contain;
 }
 
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.avatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .links {
   display: flex;
   gap: 40px;

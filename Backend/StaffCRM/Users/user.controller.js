@@ -9,6 +9,7 @@ import {
   inactiveUserService,
   getAllUsersForAdminService,
   getDashboardOverviewService,
+  uploadProfilePhotoService,
 } from "./user.service.js";
 
 import { signToken } from "../utils/jwt.util.js";
@@ -136,5 +137,16 @@ export const getDashboardOverview = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data,
+  });
+});
+
+/* ================= PROFILE PHOTO ================= */
+export const uploadProfilePhoto = asyncHandler(async (req, res) => {
+  const user = await uploadProfilePhotoService(req.params.id, req.file);
+
+  res.json({
+    success: true,
+    message: "Profile photo updated successfully",
+    profilePicture: user.profilePicture,
   });
 });

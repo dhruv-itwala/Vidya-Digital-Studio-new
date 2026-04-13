@@ -6,6 +6,10 @@ import AppError from "../utils/AppError.js";
 import Lead from "../Leads/Lead.model.js";
 import Client from "../Clients/Client.model.js";
 import Attendance from "../Attendance/attendance.model.js";
+import {
+  deleteFromCloudinary,
+  uploadImageToCloudinary,
+} from "../utils/cloudinaryUpload.js";
 
 /* ================= LOGIN ================= */
 export const loginService = async (email, password) => {
@@ -408,4 +412,41 @@ export const getDashboardOverviewService = async () => {
 
     upcomingMeetings,
   };
+};
+
+/* ================= PROFILE PHOTO ================= */
+export const uploadProfilePhotoService = async (userId, file) => {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new AppError("Invalid user id", 400);
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  if (!file) {
+    throw new AppError("Profile photo is required", 400);
+  }
+
+  // ✅ Upload to Cloudinary
+  const uploaded = await uploadImageToCloudinary(
+    file,
+    "Vidya Digital Studio/employees/profilePhotos",
+  );
+
+  const shortId = uploaded.public_id.split("/").pop();
+
+  // ✅ Delete old image if exists
+  if (user.profilePicture?.public_id) {
+    await deleteFromCloudinary(user.profilePicture.public_id);
+  }
+
+  // ✅ Save new image
+  user.profilePicture = {
+    url: uploaded.secure_url,
+    public_id: shortId,
+  };
+
+  await user.save();
+
+  return user;
 };

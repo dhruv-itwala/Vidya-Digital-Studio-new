@@ -14,8 +14,9 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async () => {
     const res = await getMyProfileAPI();
-    setUser(res.data.user || res.data);
-    return res.data.user || res.data;
+    const userData = res.data.user || res.data;
+    setUser(userData);
+    return userData;
   };
 
   const fetchAllUsers = async () => {
@@ -34,6 +35,20 @@ export const AuthProvider = ({ children }) => {
       console.error("Failed to fetch birthdays", err);
       setBirthdays([]);
     }
+  };
+
+  const updateUserPhoto = (photo) => {
+    setUser((prev) => ({
+      ...prev,
+      profilePicture: photo,
+    }));
+
+    // also update employee list if present
+    setAllEmployees((prev) =>
+      prev.map((emp) =>
+        emp._id === user?._id ? { ...emp, profilePicture: photo } : emp,
+      ),
+    );
   };
 
   useEffect(() => {
@@ -72,6 +87,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
+  const refetchProfile = async () => {
+    return await fetchProfile();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -86,6 +105,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         refetchUsers: fetchAllUsers,
+        refetchProfile,
+        updateUserPhoto,
       }}
     >
       {children}

@@ -49,7 +49,15 @@ export default function Navbar() {
           {/* Profile */}
           <div className={styles.rightButtons} ref={dropdownRef}>
             <div className={styles.profileBtn} onClick={() => setOpen(!open)}>
-              <div className={styles.avatar}>{getInitials(user?.name)}</div>
+              {user?.profilePicture?.url ? (
+                <img
+                  src={user.profilePicture.url}
+                  alt={user.name}
+                  className={styles.avatarImg}
+                />
+              ) : (
+                <div className={styles.avatar}>{getInitials(user?.name)}</div>
+              )}
               <span className={styles.userName}>{user?.name}</span>
             </div>
 

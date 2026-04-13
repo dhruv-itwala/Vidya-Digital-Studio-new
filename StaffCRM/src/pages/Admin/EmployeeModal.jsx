@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { createUserAPI, updateUserAPI } from "../../api/admin.api";
+import {
+  createUserAPI,
+  updateUserAPI,
+  uploadProfilePhotoAPI,
+} from "../../api/admin.api";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeModal.module.css";
 import toast from "react-hot-toast";
 
 export default function EmployeeModal({ user, onClose, onSaved }) {
   const { user: loggedInUser } = useAuth();
+  const [photo, setPhoto] = useState(user?.profilePicture || null);
   const isEdit = Boolean(user._id);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -47,6 +52,25 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     }
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("profile", file);
+
+      const res = await uploadProfilePhotoAPI(user._id, formData);
+
+      setPhoto(res.data.profilePicture);
+
+      toast.success("Photo uploaded");
+    } catch (err) {
+      console.error(err);
+      toast.error("Upload failed");
+    }
+  };
+
   const roleOptions =
     loggedInUser.role === "admin"
       ? ["employee", "hr", "intern", "admin"]
@@ -66,6 +90,30 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
             submit();
           }}
         >
+          <div className={styles.photoSection}>
+            {photo?.url ? (
+              <img src={photo.url} className={styles.avatarLarge} />
+            ) : (
+              <div className={styles.initialsLarge}>
+                {form.name
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()}
+              </div>
+            )}
+
+            <label className={styles.uploadBtn}>
+              Upload Photo
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handlePhotoUpload}
+              />
+            </label>
+          </div>
+
           {/* Name + Email */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>

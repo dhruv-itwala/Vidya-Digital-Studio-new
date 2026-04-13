@@ -11,9 +11,11 @@ import {
   inactiveUser,
   getAllUsersForAdmin,
   getDashboardOverview,
+  uploadProfilePhoto,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
+import upload from "../../config/multer.config.js";
 
 const userRoutes = express.Router();
 
@@ -27,6 +29,13 @@ userRoutes.get("/", getAllUsers);
 userRoutes.get("/birthdays", getEmployeeBirthdays);
 
 userRoutes.get("/dashboard", getDashboardOverview);
+
+userRoutes.post(
+  "/:id/upload-profile-photo",
+  roleCheck("admin", "hr"),
+  upload.single("profile"),
+  uploadProfilePhoto,
+);
 
 userRoutes.get("/admin/all", roleCheck("admin", "hr"), getAllUsersForAdmin);
 userRoutes.post("/", roleCheck("admin", "hr"), createUser);
