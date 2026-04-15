@@ -63,9 +63,6 @@ app.use(`/api/${VERSION}/quotation`, quotationRoutes);
 // Whatsapp Routes
 app.use(`/api/${VERSION}/whatsapp`, whatsappRoutes);
 
-// Notification Routes
-app.use(`/api/${VERSION}/notifications`, notificationRoutes);
-
 // User Routes
 app.use(`/api/${VERSION}/users`, userRoutes);
 
