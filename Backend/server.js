@@ -22,8 +22,6 @@ import leaveRoutes from "./StaffCRM/Leaves/leave.routes.js";
 import todoRoutes from "./StaffCRM/Todo/todo.routes.js";
 import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
 import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
-
-import notificationRoutes from "./Notifications/notification.routes.js";
 import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
