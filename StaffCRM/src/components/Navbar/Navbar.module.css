@@ -66,6 +66,7 @@
   color: var(--deep-forest);
   cursor: pointer;
 }
+
 .profileBtn {
   display: flex;
   align-items: center;
@@ -90,19 +91,6 @@
   font-weight: 500;
 }
 
-.dropdown {
-  position: absolute;
-  top: 60px;
-  right: 0;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  min-width: 180px;
-  z-index: 100;
-}
-
 .dropdown hr {
   margin: 8px 0;
   border: none;
@@ -124,4 +112,85 @@
 
 .logout {
   color: #d32f2f;
+}
+
+/* Dropdown improvements */
+.dropdown {
+  position: absolute;
+  top: 90px;
+  right: 50px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  max-height: 450px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+/* Scrollbar */
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+/* Accordion */
+.group {
+  border-bottom: 1px solid #eee;
+}
+
+.groupHeader {
+  padding: 12px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.groupHeader:hover {
+  background: #f5f5f5;
+}
+
+.groupHeader span {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.groupItems {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupItems button {
+  padding: 10px 20px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px !important;
+  color: var(--color-text) !important;
+}
+
+.groupItems button:hover {
+  background: #f3f3f3;
+}
+
+/* Sticky logout */
+.logoutWrapper {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+
+.logout {
+  color: #d32f2f;
+  padding: 12px 16px;
+  width: 100%;
+  text-align: left;
 }

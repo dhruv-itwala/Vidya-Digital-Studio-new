@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getInitials } from "../../utils/name.util";
 import { Images } from "../../assets/Data/images";
-import { NAVBAR_MENUS } from "../../config/navbarMenus";
+import { NAVBAR_MENUS, SECTION_TITLES } from "../../config/navbarMenus";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
@@ -11,15 +11,35 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
+
   const dropdownRef = useRef(null);
 
   const role = user?.role?.toLowerCase();
   const menu = NAVBAR_MENUS[role] || [];
 
+  // 👉 Convert menu into grouped sections using "divider"
+  const groupedMenu = [];
+  let currentGroup = [];
+
+  menu.forEach((item) => {
+    if (item === "divider") {
+      if (currentGroup.length) {
+        groupedMenu.push(currentGroup);
+        currentGroup = [];
+      }
+    } else {
+      currentGroup.push(item);
+    }
+  });
+
+  if (currentGroup.length) groupedMenu.push(currentGroup);
+
   useEffect(() => {
     const handler = (e) => {
       if (!dropdownRef.current?.contains(e.target)) {
         setOpen(false);
+        setOpenIndex(null);
       }
     };
 
@@ -35,6 +55,11 @@ export default function Navbar() {
   const goTo = (path) => {
     navigate(path);
     setOpen(false);
+    setOpenIndex(null);
+  };
+
+  const toggleGroup = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
@@ -63,21 +88,39 @@ export default function Navbar() {
 
             {open && (
               <div className={styles.dropdown}>
-                {menu.map((item, i) =>
-                  item === "divider" ? (
-                    <hr key={i} />
-                  ) : (
-                    <button key={i} onClick={() => goTo(item.path)}>
-                      {item.label}
-                    </button>
-                  ),
-                )}
+                {groupedMenu.map((group, index) => (
+                  <div key={index} className={styles.group}>
+                    {/* Header */}
+                    <div
+                      className={styles.groupHeader}
+                      onClick={() => toggleGroup(index)}
+                    >
+                      <span>
+                        {SECTION_TITLES[role]?.[index] ||
+                          `Section ${index + 1}`}
+                      </span>
+                      <span>{openIndex === index ? "−" : "+"}</span>
+                    </div>
 
-                <hr />
+                    {/* Items */}
+                    {openIndex === index && (
+                      <div className={styles.groupItems}>
+                        {group.map((item, i) => (
+                          <button key={i} onClick={() => goTo(item.path)}>
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
 
-                <button className={styles.logout} onClick={handleLogout}>
-                  Logout
-                </button>
+                {/* Sticky Logout */}
+                <div className={styles.logoutWrapper}>
+                  <button className={styles.logout} onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
               </div>
             )}
           </div>
