@@ -9,7 +9,6 @@ import { useAuth } from "../../context/AuthContext";
 
 const HROverride = () => {
   const { allEmployees } = useAuth();
-  console.log(allEmployees);
   const [selectedUser, setSelectedUser] = useState("");
   const [date, setDate] = useState("");
 
@@ -55,6 +54,24 @@ const HROverride = () => {
     }
   };
 
+  const updateBreak = (index, key, value) => {
+    const updated = [...form.breaks];
+    updated[index][key] = value;
+    setForm((prev) => ({ ...prev, breaks: updated }));
+  };
+
+  const addBreak = () => {
+    setForm((prev) => ({
+      ...prev,
+      breaks: [...prev.breaks, { in: "", out: "" }],
+    }));
+  };
+
+  const removeBreak = (index) => {
+    const updated = form.breaks.filter((_, i) => i !== index);
+    setForm((prev) => ({ ...prev, breaks: updated }));
+  };
+
   useEffect(() => {
     fetchData();
   }, [selectedUser, date]);
@@ -74,7 +91,10 @@ const HROverride = () => {
         date,
         punchIn: form.punchIn ? new Date(form.punchIn).toISOString() : null,
         punchOut: form.punchOut ? new Date(form.punchOut).toISOString() : null,
-        breaks: form.breaks,
+        breaks: form.breaks.map((b) => ({
+          in: b.in ? new Date(b.in).toISOString() : null,
+          out: b.out ? new Date(b.out).toISOString() : null,
+        })),
         status: form.status,
       });
 
@@ -151,6 +171,38 @@ const HROverride = () => {
             <option value="ABSENT">Absent</option>
             <option value="LEAVE">Leave</option>
           </select>
+
+          <div className={styles.breakSection}>
+            <h4>Breaks</h4>
+
+            {form.breaks.map((b, index) => (
+              <div key={index} className={styles.breakRow}>
+                <input
+                  type="datetime-local"
+                  value={b.in}
+                  onChange={(e) => updateBreak(index, "in", e.target.value)}
+                />
+
+                <input
+                  type="datetime-local"
+                  value={b.out}
+                  onChange={(e) => updateBreak(index, "out", e.target.value)}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => removeBreak(index)}
+                  className={styles.removeBtn}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+            <button onClick={addBreak} className={styles.addBtn}>
+              + Add Break
+            </button>
+          </div>
 
           <button onClick={handleSubmit} disabled={loading}>
             {loading ? "Saving..." : "Save Changes"}

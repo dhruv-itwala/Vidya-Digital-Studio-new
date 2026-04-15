@@ -26,6 +26,7 @@ import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
+import ugcCreatorRoutes from "./StaffCRM/UGCCreators/UGCCreators.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;

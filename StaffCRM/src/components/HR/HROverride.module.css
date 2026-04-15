@@ -39,25 +39,37 @@ select:focus {
   gap: 10px;
 }
 
-/* button {
-  padding: 14px;
+.breakSection {
+  margin-top: 16px;
+}
+
+.breakRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.breakRow input {
+  flex: 1;
+}
+
+.addBtn {
+  margin-top: 8px;
+  background: #e3f2fd;
   border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #38bdf8, #6366f1);
-  color: white;
-  font-weight: 600;
+  padding: 8px 12px;
   cursor: pointer;
-  transition: 0.3s;
+  border-radius: 6px;
 }
 
-button:hover {
-  opacity: 0.85;
+.removeBtn {
+  background: #ffebee;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  color: #d32f2f;
 }
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-} */
 
 .message {
   text-align: center;
