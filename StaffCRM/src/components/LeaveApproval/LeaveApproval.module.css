@@ -2,7 +2,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 10px;
   padding: 20px auto;
 }
 
@@ -11,6 +11,34 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-primary);
+}
+
+/* ================= ACCORDION ================= */
+
+.accordion {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
+}
+
+.accordionHeader {
+  width: 100%;
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 1rem;
+  background: #fff;
+  color: var(--color-primary);
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.accordionBody {
+  padding: 16px;
 }
 
 /* ================= TABLE ================= */

@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: true,
+      match: /^[0-9]{10}$/,
     },
     email: {
       type: String,
@@ -58,8 +58,8 @@ const userSchema = new mongoose.Schema(
     },
 
     contactNo: {
+      //emergency contact number
       type: String,
-      required: true,
       match: /^[0-9]{10}$/, // adjust regex if needed
     },
 

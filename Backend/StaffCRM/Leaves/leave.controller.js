@@ -43,3 +43,12 @@ export const leaveSummary = asyncHandler(async (req, res) => {
   const summary = await service.leaveSummaryService(req.user.id);
   res.json(summary);
 });
+
+// ---------- LEAVE ANALYTICS ----------
+export const allUsersLeaveAnalytics = asyncHandler(async (req, res) => {
+  const year = req.query.year || new Date().getFullYear();
+
+  const data = await service.allUsersLeaveAnalyticsService(year);
+
+  res.json(data);
+});

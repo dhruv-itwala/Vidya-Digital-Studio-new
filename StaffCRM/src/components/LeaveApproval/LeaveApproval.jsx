@@ -5,9 +5,11 @@ import {
   declineLeaveAPI,
   cancelLeaveAPI,
 } from "../../api/leave.api";
+
 import styles from "./LeaveApproval.module.css";
 import Loader from "../../components/Loader/Loader";
 import LeaveCalendar from "../../components/LeaveCalendar/LeaveCalendar";
+// import LeaveSummary from "./LeaveSummary";
 
 const PAGE_SIZE = 25;
 
@@ -16,6 +18,18 @@ export default function LeaveApproval() {
   const [pendingPage, setPendingPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  /* ================= ACCORDION ================= */
+  const [open, setOpen] = useState({
+    pending: false,
+    history: false,
+    calendar: false,
+    summary: false,
+  });
+
+  const toggle = (key) => {
+    setOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   /* =========== HELPER ============= */
   const formatDateIST = (d) =>
@@ -36,7 +50,6 @@ export default function LeaveApproval() {
 
   useEffect(() => {
     fetchLeaves();
-
     const interval = setInterval(fetchLeaves, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -75,150 +88,204 @@ export default function LeaveApproval() {
 
   const cancel = async (id) => {
     if (!window.confirm("Cancel this leave?")) return;
-
     updateOptimistic(id, "CANCELLED");
     await cancelLeaveAPI(id);
   };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <div className="masterContainer">
       <div className={styles.container}>
+        <h2 className={styles.title}>Leaves </h2>
         {/* ================= PENDING ================= */}
-        <h2 className={styles.title}>Pending Leave Requests</h2>
+        <div className={styles.accordion}>
+          <button
+            className={styles.accordionHeader}
+            onClick={() => toggle("pending")}
+          >
+            Pending Leave Requests
+          </button>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Duration</th>
-                <th>Type</th>
-                <th>Half Day</th>
-                <th>Reason</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+          {open.pending && (
+            <div className={styles.accordionBody}>
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Duration</th>
+                      <th>Type</th>
+                      <th>Half Day</th>
+                      <th>Reason</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
 
-            <tbody>
-              {paginate(pendingLeaves, pendingPage).length === 0 && (
-                <tr>
-                  <td colSpan="6" className={styles.empty}>
-                    No pending leaves
-                  </td>
-                </tr>
+                  <tbody>
+                    {paginate(pendingLeaves, pendingPage).length === 0 && (
+                      <tr>
+                        <td colSpan="6" className={styles.empty}>
+                          No pending leaves
+                        </td>
+                      </tr>
+                    )}
+
+                    {paginate(pendingLeaves, pendingPage).map((l) => (
+                      <tr key={l._id}>
+                        <td>{l.user?.name}</td>
+                        <td>
+                          {formatDateIST(l.fromDate)} →{" "}
+                          {formatDateIST(l.toDate)}
+                        </td>
+                        <td>{l.type}</td>
+                        <td>{l.isHalfDay ? "Yes" : "No"}</td>
+                        <td>{l.reason}</td>
+                        <td>
+                          <button
+                            className={styles.approveBtn}
+                            onClick={() => approve(l._id)}
+                          >
+                            Approve
+                          </button>
+
+                          <button
+                            className={styles.declineBtn}
+                            onClick={() => decline(l._id)}
+                          >
+                            Decline
+                          </button>
+
+                          <button
+                            className={styles.cancelBtn}
+                            onClick={() => cancel(l._id)}
+                          >
+                            Cancel
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {pendingLeaves.length > PAGE_SIZE && (
+                <Pagination
+                  page={pendingPage}
+                  total={pendingLeaves.length}
+                  onChange={setPendingPage}
+                />
               )}
-
-              {paginate(pendingLeaves, pendingPage).map((l) => (
-                <tr key={l._id}>
-                  <td>{l.user?.name}</td>
-                  <td>
-                    {formatDateIST(l.fromDate)} → {formatDateIST(l.toDate)}
-                  </td>
-
-                  <td>{l.type}</td>
-                  <td>{l.isHalfDay ? "Yes" : "No"}</td>
-                  <td>{l.reason}</td>
-                  <td>
-                    <button
-                      className={styles.approveBtn}
-                      onClick={() => approve(l._id)}
-                    >
-                      Approve
-                    </button>
-
-                    <button
-                      className={styles.declineBtn}
-                      onClick={() => decline(l._id)}
-                    >
-                      Decline
-                    </button>
-
-                    <button
-                      className={styles.cancelBtn}
-                      onClick={() => cancel(l._id)}
-                    >
-                      Cancel
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
-
-        {pendingLeaves.length > PAGE_SIZE && (
-          <Pagination
-            page={pendingPage}
-            total={pendingLeaves.length}
-            onChange={setPendingPage}
-          />
-        )}
 
         {/* ================= HISTORY ================= */}
-        <h2 className={styles.title}>Leave History</h2>
+        <div className={styles.accordion}>
+          <button
+            className={styles.accordionHeader}
+            onClick={() => toggle("history")}
+          >
+            Leave History
+          </button>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Duration</th>
-                <th>Type</th>
-                <th>Half Day</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+          {open.history && (
+            <div className={styles.accordionBody}>
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Duration</th>
+                      <th>Type</th>
+                      <th>Half Day</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
 
-            <tbody>
-              {paginate(historyLeaves, historyPage).length === 0 && (
-                <tr>
-                  <td colSpan="5" className={styles.empty}>
-                    No leave history
-                  </td>
-                </tr>
-              )}
-
-              {paginate(historyLeaves, historyPage).map((l) => (
-                <tr key={l._id}>
-                  <td>{l.user?.name}</td>
-                  <td>
-                    {formatDateIST(l.fromDate)} → {formatDateIST(l.toDate)}
-                  </td>
-
-                  <td>{l.type}</td>
-                  <td>{l.isHalfDay ? "Yes" : "No"}</td>
-                  <td>
-                    <span className={styles[`status${l.status}`]}>
-                      {l.status}
-                    </span>
-
-                    {l.status === "APPROVED" && (
-                      <button
-                        className={styles.cancelBtn}
-                        onClick={() => cancel(l._id)}
-                        style={{ marginLeft: 8 }}
-                      >
-                        Cancel
-                      </button>
+                  <tbody>
+                    {paginate(historyLeaves, historyPage).length === 0 && (
+                      <tr>
+                        <td colSpan="5" className={styles.empty}>
+                          No leave history
+                        </td>
+                      </tr>
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+                    {paginate(historyLeaves, historyPage).map((l) => (
+                      <tr key={l._id}>
+                        <td>{l.user?.name}</td>
+                        <td>
+                          {formatDateIST(l.fromDate)} →{" "}
+                          {formatDateIST(l.toDate)}
+                        </td>
+                        <td>{l.type}</td>
+                        <td>{l.isHalfDay ? "Yes" : "No"}</td>
+                        <td>
+                          <span className={styles[`status${l.status}`]}>
+                            {l.status}
+                          </span>
+
+                          {l.status === "APPROVED" &&
+                            new Date(l.toDate) >= today && (
+                              <button
+                                className={styles.cancelBtn}
+                                onClick={() => cancel(l._id)}
+                                style={{ marginLeft: 8 }}
+                              >
+                                Cancel
+                              </button>
+                            )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {historyLeaves.length > PAGE_SIZE && (
+                <Pagination
+                  page={historyPage}
+                  total={historyLeaves.length}
+                  onChange={setHistoryPage}
+                />
+              )}
+            </div>
+          )}
         </div>
 
-        {historyLeaves.length > PAGE_SIZE && (
-          <Pagination
-            page={historyPage}
-            total={historyLeaves.length}
-            onChange={setHistoryPage}
-          />
-        )}
-
         {/* ================= CALENDAR ================= */}
-        <h2 className={styles.title}>Leave Calendar</h2>
-        <LeaveCalendar />
+        <div className={styles.accordion}>
+          <button
+            className={styles.accordionHeader}
+            onClick={() => toggle("calendar")}
+          >
+            Leave Calendar
+          </button>
+
+          {open.calendar && (
+            <div className={styles.accordionBody}>
+              <LeaveCalendar />
+            </div>
+          )}
+        </div>
+
+        {/* ================= SUMMARY ================= */}
+        {/* <div className={styles.accordion}>
+          <button
+            className={styles.accordionHeader}
+            onClick={() => toggle("summary")}
+          >
+            Leave Summary
+          </button>
+
+          {open.summary && (
+            <div className={styles.accordionBody}>
+              <LeaveSummary />
+            </div>
+          )}
+        </div> */}
 
         {loading && <Loader />}
       </div>

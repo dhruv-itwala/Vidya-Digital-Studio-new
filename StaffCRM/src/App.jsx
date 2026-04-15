@@ -44,6 +44,8 @@ import Maintenance from "./components/Maintenance/Maintenance";
 import { Toaster } from "react-hot-toast";
 import "./App.css";
 import HROverride from "./components/HR/HROverride";
+import InfluencerList from "./components/InfluencerList/InfluencerList";
+import UgcCreatorList from "./components/UgcCreatorList/UgcCreatorList";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -100,6 +102,9 @@ export default function App() {
           <Route path="leads/create" element={<CreateLead />} />
           <Route path="leads/:id/edit" element={<EditLead />} />
 
+          <Route path="influencers" element={<InfluencerList />} />
+          <Route path="ugc-creators" element={<UgcCreatorList />} />
+
           <Route path="clients" element={<ViewClients />} />
           <Route path="clients/:id" element={<DetailClient />} />
           <Route path="clients/create" element={<CreateClient />} />
@@ -133,6 +138,9 @@ export default function App() {
           <Route path="hrLeaveApproval" element={<LeaveApproval />} />
           <Route path="hrReports" element={<Reports />} />
           <Route path="hrHoliday" element={<HRHoliday />} />
+
+          <Route path="influencers" element={<InfluencerList />} />
+          <Route path="ugc-creators" element={<UgcCreatorList />} />
 
           <Route path="leads" element={<ViewLeads />} />
           <Route path="leads/:id" element={<DetailLead />} />

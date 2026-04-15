@@ -4,10 +4,6 @@ import holidayModel from "../Holidays/holiday.model.js";
 import attendanceModel from "../Attendance/attendance.model.js";
 import AppError from "../utils/AppError.js";
 import { getISTDayRange, normalizeDate } from "../utils/date.utils.js";
-import {
-  deductForApprovedLeave,
-  refundForCancelledLeave,
-} from "../leaveBalance/leaveBalance.service.js";
 
 // ---------- HELPERS ----------
 const getDateRange = (from, to) => {
@@ -91,7 +87,6 @@ export const approveLeaveService = async (leaveId, adminId) => {
   leave.status = "APPROVED";
   leave.actionBy = adminId;
   await leave.save();
-  await deductForApprovedLeave(leave);
   const dates = getDateRange(leave.fromDate, leave.toDate);
 
   for (const date of dates) {
@@ -178,8 +173,6 @@ export const cancelLeaveService = async (leaveId, user) => {
   /* ================= LOGIC ================= */
 
   if (leave.status === "APPROVED") {
-    await refundForCancelledLeave(leave);
-
     const dates = getDateRange(leave.fromDate, leave.toDate);
 
     for (const date of dates) {
@@ -209,4 +202,77 @@ export const leaveSummaryService = async (userId) => {
     acc[cur._id] = cur.count;
     return acc;
   }, {});
+};
+
+// ---------- LEAVE ANALYTICS  ----------
+export const allUsersLeaveAnalyticsService = async (year) => {
+  const start = new Date(`${year}-01-01`);
+  const end = new Date(`${year}-12-31`);
+
+  const leaves = await leavesModel
+    .find({
+      status: "APPROVED",
+      fromDate: { $lte: end },
+      toDate: { $gte: start },
+    })
+    .populate("user", "name email");
+
+  const userMap = {};
+
+  for (const leave of leaves) {
+    const userId = leave.user._id.toString();
+
+    if (!userMap[userId]) {
+      userMap[userId] = {
+        user: leave.user,
+        sick: 0,
+        casual: 0,
+        halfDays: 0,
+      };
+    }
+
+    const dates = getDateRange(leave.fromDate, leave.toDate);
+
+    for (const date of dates) {
+      const month = date.getUTCMonth();
+
+      // ❌ Skip November
+      if (month === 10) continue;
+
+      if (leave.isHalfDay) {
+        userMap[userId].halfDays += 1;
+        continue;
+      }
+
+      if (leave.type === "SICK") userMap[userId].sick += 1;
+      if (leave.type === "CASUAL") userMap[userId].casual += 1;
+    }
+  }
+
+  // ---------- FINAL FORMAT ----------
+  const result = [];
+
+  for (const userId in userMap) {
+    const data = userMap[userId];
+
+    const totalAllowed = 22;
+    const used = data.sick + data.casual + data.halfDays * 0.5;
+    const remaining = totalAllowed - used;
+
+    result.push({
+      user: data.user,
+      taken: {
+        sick: data.sick,
+        casual: data.casual,
+        halfDays: data.halfDays,
+      },
+      summary: {
+        totalAllowed,
+        used,
+        remaining,
+      },
+    });
+  }
+
+  return result;
 };

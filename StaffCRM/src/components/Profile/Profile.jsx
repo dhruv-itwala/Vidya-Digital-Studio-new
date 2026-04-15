@@ -18,7 +18,17 @@ export default function Profile() {
     <div className={styles.container}>
       {/* HEADER */}
       <div className={styles.header}>
-        <div className={styles.avatar}>{getInitials(user.name)}</div>
+        <div className={styles.avatar}>
+          {user.profilePicture ? (
+            <img
+              src={user.profilePicture.url}
+              alt={user.name}
+              className={styles.avatarImg}
+            />
+          ) : (
+            getInitials(user.name)
+          )}
+        </div>
 
         <div className={styles.headerInfo}>
           <h2>{user.name}</h2>

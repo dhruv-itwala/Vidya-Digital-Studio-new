@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Cropper from "react-easy-crop";
 import {
   createUserAPI,
   updateUserAPI,
@@ -10,24 +11,32 @@ import toast from "react-hot-toast";
 
 export default function EmployeeModal({ user, onClose, onSaved }) {
   const { user: loggedInUser } = useAuth();
+
   const [photo, setPhoto] = useState(user?.profilePicture || null);
-  const isEdit = Boolean(user._id);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const isEdit = Boolean(user?._id);
   const [loading, setLoading] = useState(false);
+
   const [form, setForm] = useState({
-    name: user.name || "",
-    email: user.email || "",
-    phone: user.phone || "",
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
     password: "",
-    designation: user.designation || "",
-    joiningDate: user.joiningDate?.slice(0, 10) || "",
-    dateOfBirth: user.dateOfBirth?.slice(0, 10) || "",
-    contactNo: user.contactNo || "",
-    gender: user.gender || "",
-    address: user.address || "",
-    personalEmail: user.personalEmail || "",
-    role: user.role || "employee",
-    salary: user.salary || "",
-    isActive: user.isActive ?? true,
+    designation: user?.designation || "",
+    joiningDate: user?.joiningDate?.slice(0, 10) || "",
+    dateOfBirth: user?.dateOfBirth?.slice(0, 10) || "",
+    contactNo: user?.contactNo || "",
+    gender: user?.gender || "",
+    address: user?.address || "",
+    personalEmail: user?.personalEmail || "",
+    role: user?.role || "employee",
+    salary: user?.salary || "",
+    isActive: user?.isActive ?? true,
   });
 
   const handleChange = (key, value) =>
@@ -39,9 +48,11 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
       const payload = { ...form };
       if (!payload.password) delete payload.password;
 
-      isEdit
-        ? await updateUserAPI(user._id, payload)
-        : await createUserAPI(payload);
+      if (isEdit) {
+        await updateUserAPI(user._id, payload);
+      } else {
+        await createUserAPI(payload);
+      }
 
       onSaved();
       toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
@@ -52,22 +63,68 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     }
   };
 
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
+  // 📸 Select Image
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = () => setImageSrc(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  // ✂️ Crop Image
+  const getCroppedImg = async (imageSrc, crop) => {
+    const image = new Image();
+    image.src = imageSrc;
+
+    await new Promise((resolve) => (image.onload = resolve));
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+
+    ctx.drawImage(
+      image,
+      crop.x,
+      crop.y,
+      crop.width,
+      crop.height,
+      0,
+      0,
+      crop.width,
+      crop.height,
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg");
+    });
+  };
+
+  // ⬆️ Upload Cropped Image
+  const handleUploadCropped = async () => {
+    if (!croppedAreaPixels) return;
+
     try {
+      setUploading(true);
+
+      const blob = await getCroppedImg(imageSrc, croppedAreaPixels);
+
       const formData = new FormData();
-      formData.append("profile", file);
+      formData.append("profile", blob, "profile.jpg");
 
       const res = await uploadProfilePhotoAPI(user._id, formData);
 
       setPhoto(res.data.profilePicture);
+      setImageSrc(null);
 
       toast.success("Photo uploaded");
     } catch (err) {
-      console.error(err);
       toast.error("Upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -90,18 +147,23 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
             submit();
           }}
         >
+          {/* PHOTO SECTION */}
           <div className={styles.photoSection}>
-            {photo?.url ? (
-              <img src={photo.url} className={styles.avatarLarge} />
-            ) : (
-              <div className={styles.initialsLarge}>
-                {form.name
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()}
-              </div>
-            )}
+            <div className={styles.photoWrapper}>
+              {uploading && <div className={styles.loader}>Uploading...</div>}
+
+              {photo?.url ? (
+                <img src={photo.url} className={styles.avatarLarge} />
+              ) : (
+                <div className={styles.initialsLarge}>
+                  {form.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
+                </div>
+              )}
+            </div>
 
             <label className={styles.uploadBtn}>
               Upload Photo
@@ -109,11 +171,39 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 type="file"
                 hidden
                 accept="image/*"
-                onChange={handlePhotoUpload}
+                onChange={handlePhotoSelect}
               />
             </label>
           </div>
 
+          {/* CROP UI */}
+          {imageSrc && (
+            <>
+              <div className={styles.cropContainer}>
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={(area, pixels) =>
+                    setCroppedAreaPixels(pixels)
+                  }
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleUploadCropped}
+                className={styles.saveBtn}
+              >
+                {uploading ? "Uploading..." : "Crop & Upload"}
+              </button>
+            </>
+          )}
+
+          {/* REST SAME FORM (unchanged) */}
           {/* Name + Email */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>
@@ -213,13 +303,13 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
           {/* Contact + Personal Email */}
           <div className={styles.formRow}>
             <div className={styles.inputGroup}>
-              <label>Contact Number</label>
+              <label>Emergency Number</label>
               <input
                 type="tel"
                 placeholder="9876543210"
                 value={form.contactNo}
                 onChange={(e) => handleChange("contactNo", e.target.value)}
-                required
+                maxLength={10}
               />
             </div>
             <div className={styles.inputGroup}>
@@ -288,7 +378,6 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
             </label>
           </div>
 
-          {/* Actions */}
           <div className={styles.actions}>
             <div className={styles.buttonGroup}>
               <button

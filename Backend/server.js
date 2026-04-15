@@ -19,7 +19,6 @@ import reportRoutes from "./StaffCRM/Report/report.routes.js";
 import holidayRoutes from "./StaffCRM/Holidays/holiday.routes.js";
 import taskRoutes from "./StaffCRM/Tasks/task.routes.js";
 import leaveRoutes from "./StaffCRM/Leaves/leave.routes.js";
-import LeaveBalanceRoutes from "./StaffCRM/leaveBalance/leaveBalance.routes.js";
 import todoRoutes from "./StaffCRM/Todo/todo.routes.js";
 import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
 import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
@@ -28,6 +27,7 @@ import notificationRoutes from "./Notifications/notification.routes.js";
 import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
+import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -78,9 +78,6 @@ app.use(`/api/${VERSION}/holiday`, holidayRoutes);
 //Leave Routes
 app.use(`/api/${VERSION}/leave`, leaveRoutes);
 
-// Leave Balance Routes
-app.use(`/api/${VERSION}/leave-balance`, LeaveBalanceRoutes);
-
 // Report Routes
 app.use(`/api/${VERSION}/reports`, reportRoutes);
 
@@ -95,6 +92,12 @@ app.use(`/api/${VERSION}/clients`, ClientRoutes);
 
 // Lead Routes
 app.use(`/api/${VERSION}/leads`, LeadsRoutes);
+
+// Influencer Routes
+app.use(`/api/${VERSION}/influencers`, influencerRoutes);
+
+// UGCCreator Routes
+app.use(`/api/${VERSION}/ugccreators`, ugcCreatorRoutes);
 
 app.use(globalErrorHandler);
 

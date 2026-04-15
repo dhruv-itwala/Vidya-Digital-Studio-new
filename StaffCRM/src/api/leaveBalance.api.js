@@ -1,6 +1,12 @@
-// src/api/leaveBalance.api.js
 import api from "./axios";
 
-export const getMyLeaveBalanceAPI = () => api.get("/leave-balance/me");
+// ---------- EMPLOYEE ----------
+export const getMyLeaveBalanceAPI = (year) =>
+  api.get(`/leave-balance/my?year=${year}`);
 
-export const getAllLeaveBalancesAPI = () => api.get("/leave-balance/alldata");
+// ---------- ADMIN / HR ----------
+export const getAllUsersLeaveBalanceAPI = (year) =>
+  api.get(`/leave-balance/all?year=${year}`);
+
+export const setOpeningBalanceAPI = (data) =>
+  api.post(`/leave-balance/set-opening`, data);

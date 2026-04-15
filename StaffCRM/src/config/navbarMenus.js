@@ -1,6 +1,9 @@
 export const NAVBAR_MENUS = {
   admin: [
     { label: "Dashboard", path: "/admin/dashboard" },
+    { label: "Influencers", path: "/admin/influencers" },
+    { label: "UGCCreators", path: "/admin/ugc-creators" },
+
     "divider",
     { label: "Quotations", path: "/admin/quotations" },
     { label: "Leads", path: "/admin/leads" },
@@ -29,6 +32,9 @@ export const NAVBAR_MENUS = {
     { label: "Attendance", path: "/hr/attendance" },
     { label: "Leaves", path: "/hr/leaves" },
     { label: "To Do List", path: "/hr/todo" },
+    "divider",
+    { label: "Influencers", path: "/hr/influencers" },
+    { label: "UGCCreators", path: "/hr/ugc-creators" },
     "divider",
     { label: "Work Dashboard", path: "/hr/work-dashboard" },
     { label: "Leads", path: "/hr/leads" },

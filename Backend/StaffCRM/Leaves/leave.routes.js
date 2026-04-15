@@ -17,4 +17,10 @@ LeaveRoutes.get("/all", ctrl.allLeaves);
 LeaveRoutes.post("/:id/approve", roleCheck("admin", "hr"), ctrl.approveLeave);
 LeaveRoutes.post("/:id/decline", roleCheck("admin", "hr"), ctrl.declineLeave);
 
+LeaveRoutes.get(
+  "/analytics/all",
+  roleCheck("admin", "hr"),
+  ctrl.allUsersLeaveAnalytics,
+);
+
 export default LeaveRoutes;

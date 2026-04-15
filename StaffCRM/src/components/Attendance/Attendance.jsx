@@ -209,7 +209,6 @@ export default function Attendance() {
     <div className="masterContainer">
       <div className={styles.container}>
         <h2>Attendance</h2>
-        {console.log(live)}
         {/* ================= DAILY ================= */}
         <div className={styles.accordion}>
           <button

@@ -13,8 +13,6 @@ import "../StaffCRM/Attendance/cron/weeklyProgress.cron.js";
    LEAVE SYSTEM
 ================================ */
 
-import "../StaffCRM/leaveBalance/leaveCredit.cron.js";
-
 /* ================================
    SYSTEM HEALTH
 ================================ */

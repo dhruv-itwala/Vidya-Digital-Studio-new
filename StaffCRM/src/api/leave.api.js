@@ -15,3 +15,6 @@ export const getAllLeavesAPI = () => api.get("/leave/all");
 export const approveLeaveAPI = (id) => api.post(`/leave/${id}/approve`);
 
 export const declineLeaveAPI = (id) => api.post(`/leave/${id}/decline`);
+
+export const getAllUsersLeaveAnalyticsAPI = (year) =>
+  api.get(`/leave/analytics/all?year=${year}`);
