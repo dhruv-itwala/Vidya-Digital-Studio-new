@@ -14,10 +14,12 @@ import { CONTENT_TYPES } from "./constants";
 import UGCCreatorForm from "./UgcCreatorForm";
 import UgcCreatorCard from "./UgcCreatorCard"; // Assuming you move the card to its own file or keep it here
 import styles from "./UgcCreatorList.module.css";
+import Loader from "../Loader/Loader";
 
 export default function UgcCreatorList() {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -26,11 +28,14 @@ export default function UgcCreatorList() {
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const res = await getugcCreatorsAPI({ page, limit: 9 });
       setData(res.data.data);
       setTotalPages(res.data.pages);
     } catch (err) {
       toast.error("Failed to load creators");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,6 +68,8 @@ export default function UgcCreatorList() {
     const matchSearch = !q || d.name?.toLowerCase().includes(q);
     return matchType && matchSearch;
   });
+
+  if (loading) return <Loader />;
 
   return (
     <div className="masterContainer">
