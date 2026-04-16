@@ -13,7 +13,8 @@ const CONTENT_TYPES = [
   "artist",
   "beauty",
   "model",
-  "makeup_artist",
+  "mom",
+  "parenting",
   "dancer",
 ];
 

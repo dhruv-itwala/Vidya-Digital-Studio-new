@@ -8,8 +8,9 @@ export const CONTENT_TYPES = [
   "artist",
   "beauty",
   "model",
-  "makeup_artist",
   "dancer",
+  "mom",
+  "parenting",
 ];
 
 export const TYPE_COLORS = {
@@ -22,8 +23,9 @@ export const TYPE_COLORS = {
   artist: { bg: "#F2EEFF", color: "#4C2FAF", border: "#BBA8F0" },
   beauty: { bg: "#FFF0F0", color: "#8A2020", border: "#F0AAAA" },
   model: { bg: "#F5F5F0", color: "#3A3A30", border: "#BFBFB0" },
-  makeup_artist: { bg: "#FFF3EC", color: "#7A3210", border: "#F5B48A" },
   dancer: { bg: "#F0FFFE", color: "#0C5754", border: "#6AD6D0" },
+  mom: { bg: "#ade4ef", color: "#5992ad", border: "#CCCCCC" },
+  parenting: { bg: "#E8F5FF", color: "#0B4E8A", border: "#72B9F2" },
 };
 
 export const AVATAR_PALETTES = [

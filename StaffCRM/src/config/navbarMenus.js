@@ -6,7 +6,7 @@ export const NAVBAR_MENUS = {
     "divider",
     // Influencers and creators
     { label: "Influencers", path: "/admin/influencers" },
-    { label: "UGCCreators", path: "/admin/ugc-creators" },
+    { label: "UGC Creators", path: "/admin/ugc-creators" },
 
     "divider",
     // Clients and sales
@@ -44,7 +44,7 @@ export const NAVBAR_MENUS = {
     "divider",
     // Influencers and creators
     { label: "Influencers", path: "/hr/influencers" },
-    { label: "UGCCreators", path: "/hr/ugc-creators" },
+    { label: "UGC Creators", path: "/hr/ugc-creators" },
     "divider",
     // Clients and sales
     { label: "Work Dashboard", path: "/hr/work-dashboard" },
