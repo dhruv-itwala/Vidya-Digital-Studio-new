@@ -38,14 +38,15 @@ import ViewClients from "./components/Clients/ViewClients";
 import CreateClient from "./components/Clients/CreateClient";
 import EditClient from "./components/Clients/EditClient";
 import DetailClient from "./components/Clients/DetailClient";
-
-import Maintenance from "./components/Maintenance/Maintenance";
-
-import { Toaster } from "react-hot-toast";
-import "./App.css";
 import HROverride from "./components/HR/HROverride";
 import Influencer from "./components/InfluencerList/Influencer";
 import UGCCreator from "./components/UgcCreatorList/UGCCreator";
+
+import Maintenance from "./components/Maintenance/Maintenance";
+import { Toaster } from "react-hot-toast";
+
+import "./App.css";
+import UGCView from "./components/UgcCreatorList/UGCView";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -65,6 +66,7 @@ export default function App() {
       <Routes>
         {/* LOGIN */}
         <Route path="/login" element={<Login />} />
+        <Route path="client-view-ugc-list" element={<UGCView />} />
 
         {/* ROOT */}
         <Route

@@ -481,3 +481,38 @@
   color: white;
   border-color: #0056b3;
 }
+/* Table */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #fff;
+  min-width: 700px;
+  border-collapse: collapse;
+}
+
+.headerRow {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.email {
+  color: #6b7280;
+}
