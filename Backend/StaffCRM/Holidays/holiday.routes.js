@@ -2,9 +2,11 @@ import express from "express";
 import * as ctrl from "./holiday.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
+import { apiLogger } from "../../logger/logger.middleware.js";
 
 const holidayRoutes = express.Router();
 holidayRoutes.use(protect);
+holidayRoutes.use(apiLogger);
 
 holidayRoutes.get("/", ctrl.getHolidays);
 holidayRoutes.get("/employee", ctrl.getUpcomingHolidays);

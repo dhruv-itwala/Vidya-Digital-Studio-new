@@ -3,11 +3,13 @@ import express from "express";
 import * as ctrl from "./attendance.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
+import { apiLogger } from "../../logger/logger.middleware.js";
 
 const attendanceRoutes = express.Router();
 
 /* ================= PROTECTED ================= */
 attendanceRoutes.use(protect);
+attendanceRoutes.use(apiLogger);
 
 /* ================= EMPLOYEE ================= */
 attendanceRoutes.get("/work-record/today", ctrl.getTodayWorkRecord);

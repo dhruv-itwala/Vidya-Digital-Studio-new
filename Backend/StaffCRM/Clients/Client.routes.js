@@ -3,10 +3,13 @@ import * as ctrl from "./client.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
 import upload from "../../config/multer.config.js";
+import { apiLogger } from "../../logger/logger.middleware.js";
 
 const ClientRoutes = express.Router();
 
 ClientRoutes.use(protect);
+ClientRoutes.use(apiLogger);
+
 ClientRoutes.use(roleCheck("admin", "hr"));
 /* ================= BASIC CRUD ================= */
 

@@ -2,9 +2,11 @@ import express from "express";
 import * as ctrl from "./leave.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
+import { apiLogger } from "../../logger/logger.middleware.js";
 
 const LeaveRoutes = express.Router();
 LeaveRoutes.use(protect);
+LeaveRoutes.use(apiLogger);
 
 // Employee
 LeaveRoutes.post("/apply", ctrl.applyLeave);

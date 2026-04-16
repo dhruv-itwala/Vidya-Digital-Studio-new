@@ -2,10 +2,12 @@ import express from "express";
 import * as ctrl from "./lead.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
+import { apiLogger } from "../../logger/logger.middleware.js";
 
 const LeadsRoutes = express.Router();
 
 LeadsRoutes.use(protect);
+LeadsRoutes.use(apiLogger);
 LeadsRoutes.use(roleCheck("admin", "hr"));
 
 /* ================= BASIC CRUD ================= */

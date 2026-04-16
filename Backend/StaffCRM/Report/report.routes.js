@@ -10,10 +10,12 @@ import {
 } from "./report.controller.js";
 import { roleCheck } from "../middleware/role.middleware.js";
 import { protect } from "../middleware/auth.middleware.js";
+import { apiLogger } from "../../logger/logger.middleware.js";
 
 const reportRoutes = express.Router();
 
 reportRoutes.use(protect);
+reportRoutes.use(apiLogger);
 
 reportRoutes.post("/submit", submitReport);
 reportRoutes.put("/update/:id", updateReport);
@@ -24,13 +26,13 @@ reportRoutes.get("/my/date", getMyReportsByDate);
 reportRoutes.get(
   "/download/all",
   roleCheck("admin", "hr"),
-  downloadReportsByDate
+  downloadReportsByDate,
 );
 // Admin only: download customized report
 reportRoutes.post(
   "/download/custom",
   roleCheck("admin", "hr"),
-  downloadCustomReports
+  downloadCustomReports,
 );
 
 reportRoutes.get("/all", roleCheck("admin", "hr"), allReports);

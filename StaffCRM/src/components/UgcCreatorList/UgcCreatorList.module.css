@@ -85,13 +85,14 @@
 /* Filters */
 .filterRow {
   display: flex;
+  justify-content: space-between;
   gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
 }
 
 .filterPill {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   padding: 5px 14px;
   border-radius: 100px;
@@ -99,14 +100,14 @@
   font-family: inherit;
   transition: all 0.15s;
   background: transparent;
-  border: 1px solid #e8e8e8;
-  color: #888;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
 }
 
 .filterPillActive {
   border-color: var(--color-primary);
-  background: lab(89.39% -6.35 4.95);
-  color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
 }
 
 /* Card Grid */
@@ -172,7 +173,7 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #e1306c;
+  color: var(--color-accent);
   text-decoration: none;
 }
 
@@ -282,6 +283,7 @@
   background: rgba(0, 0, 0, 0.4);
   z-index: 400;
   transition: opacity 0.25s;
+  pointer-events: auto;
 }
 
 .drawer {
@@ -298,6 +300,7 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   max-width: 640px;
   margin: 0 auto;
+  pointer-events: auto;
 }
 
 .drawerHeader {
@@ -320,27 +323,25 @@
 .drawerTitleRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .drawerTitle {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
-  color: #111;
+  padding: 20px 0;
+  color: var(--color-primary);
 }
 
 .closeBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid #e8e8e8;
-  background: #f5f5f5;
+  border: 1px solid #de2e2e;
+  background: #dfc5c5;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  color: #666;
+  color: #de2e2e;
 }
 
 .formGrid {
@@ -375,9 +376,10 @@
 }
 
 .drawerFooter {
+  grid-column: 1 / -1;
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-top: 22px;
   padding-top: 16px;
   border-top: 1px solid #f0f0f0;
@@ -388,9 +390,9 @@
   font-size: 14px;
   font-weight: 500;
   border-radius: 10px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid var(--color-primary);
   background: transparent;
-  color: #777;
+  color: var(--color-primary);
   cursor: pointer;
   font-family: inherit;
 }
@@ -465,4 +467,17 @@
   pointer-events: none;
   white-space: nowrap;
   letter-spacing: 0.01em;
+}
+
+/* Example CSS */
+.pill {
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  transition: all 0.2s;
+}
+
+.pillActive {
+  background: #007bff; /* Or your primary brand color */
+  color: white;
+  border-color: #0056b3;
 }
