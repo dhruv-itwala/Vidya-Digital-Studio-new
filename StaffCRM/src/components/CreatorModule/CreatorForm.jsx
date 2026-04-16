@@ -1,15 +1,10 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { BiX } from "react-icons/bi";
-import { CONTENT_TYPES, TYPE_COLORS } from "./constants"; // Import TYPE_COLORS
-import {
-  createInfluencerAPI,
-  updateInfluencerAPI,
-} from "../../api/influencers.api";
-import styles from "./Influencer.module.css";
+import styles from "./Creator.module.css";
+import { CONTENT_TYPES, TYPE_COLORS } from "./constants";
+// ─── Content Pill ───────────────────────────────────────────────────────────
 
 const ContentPill = ({ type, active, onClick }) => {
-  // Grab the specific colors for this type from your constants
   const palette = TYPE_COLORS[type] || {
     bg: "#F0F0F0",
     color: "#444",
@@ -21,16 +16,11 @@ const ContentPill = ({ type, active, onClick }) => {
       type="button"
       onClick={onClick}
       style={{
-        cursor: "pointer",
-        userSelect: "none",
-        outline: "none",
         border: "none",
         background: "transparent",
         padding: 0,
-        transition: "transform 0.1s active",
+        cursor: "pointer",
       }}
-      onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
-      onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
     >
       <span
         style={{
@@ -39,9 +29,6 @@ const ContentPill = ({ type, active, onClick }) => {
           borderRadius: "100px",
           fontSize: "12px",
           fontWeight: 500,
-          letterSpacing: "0.02em",
-          textTransform: "capitalize",
-          // Toggle styles based on 'active' state
           border: `1px solid ${active ? palette.border : "#E0E0E0"}`,
           background: active ? palette.bg : "#F9F9F9",
           color: active ? palette.color : "#999",
@@ -54,7 +41,17 @@ const ContentPill = ({ type, active, onClick }) => {
   );
 };
 
-export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
+// ─── Main Form ──────────────────────────────────────────────────────────────
+
+export default function CreatorForm({
+  open,
+  editItem,
+  onClose,
+  onSaved,
+  createAPI,
+  updateAPI,
+  title = "Creator",
+}) {
   const {
     register,
     handleSubmit,
@@ -74,7 +71,6 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
     },
   });
 
-  // Watch contentTypes so the UI re-renders when setValue is called
   const selectedTypes = watch("contentTypes") || [];
 
   useEffect(() => {
@@ -94,31 +90,35 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
   }, [open, editItem, reset]);
 
   const toggleType = (type) => {
-    const nextValue = selectedTypes.includes(type)
+    const next = selectedTypes.includes(type)
       ? selectedTypes.filter((t) => t !== type)
       : [...selectedTypes, type];
 
-    setValue("contentTypes", nextValue, { shouldDirty: true });
+    setValue("contentTypes", next, { shouldDirty: true });
   };
 
   const onSubmit = async (data) => {
     try {
-      if (editItem) await updateInfluencerAPI(editItem._id, data);
-      else await createInfluencerAPI(data);
+      if (editItem) await updateAPI(editItem._id, data);
+      else await createAPI(data);
+
       onSaved();
       onClose();
-    } catch (error) {
-      console.error("Save failed", error);
+    } catch (err) {
+      console.error("Save failed", err);
     }
   };
 
   return (
     <>
+      {/* Backdrop */}
       <div
         className={styles.backdrop}
         onClick={onClose}
         style={{ display: open ? "block" : "none", opacity: open ? 1 : 0 }}
       />
+
+      {/* Drawer */}
       <div
         className={styles.drawer}
         style={{ transform: open ? "translateY(0)" : "translateY(100%)" }}
@@ -126,11 +126,8 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
         <div className={styles.drawerHeader}>
           <div className={styles.drawerTitleRow}>
             <span className={styles.drawerTitle}>
-              {editItem ? "Edit Influencer" : "Add Influencer"}
+              {editItem ? `Edit ${title}` : `Add ${title}`}
             </span>
-            {/* <button onClick={onClose} className={styles.closeBtn}>
-              <BiX />
-            </button> */}
           </div>
         </div>
 
@@ -143,6 +140,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
               placeholder="Full name"
             />
           </div>
+
           <div className={styles.formField}>
             <label>Instagram handle</label>
             <input
@@ -151,6 +149,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
               placeholder="@handle"
             />
           </div>
+
           <div className={styles.formField}>
             <label>Contact number</label>
             <input
@@ -159,6 +158,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
               placeholder="+91..."
             />
           </div>
+
           <div className={styles.formField}>
             <label>Email</label>
             <input
@@ -167,6 +167,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
               placeholder="name@email.com"
             />
           </div>
+
           <div className={styles.formField}>
             <label>Followers</label>
             <input
@@ -175,6 +176,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
               className={styles.formInput}
             />
           </div>
+
           <div className={styles.formField}>
             <label>Price details</label>
             <input
@@ -184,6 +186,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
             />
           </div>
 
+          {/* Content Types */}
           <div style={{ gridColumn: "1 / -1" }}>
             <label className={styles.formLabel}>Content types</label>
             <div
@@ -205,6 +208,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
             </div>
           </div>
 
+          {/* Footer */}
           <div className={styles.drawerFooter}>
             <button
               type="button"
@@ -213,6 +217,7 @@ export default function InfluencerForm({ open, editItem, onClose, onSaved }) {
             >
               Cancel
             </button>
+
             <button
               type="submit"
               disabled={isSubmitting}

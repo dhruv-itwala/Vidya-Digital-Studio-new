@@ -1,8 +1,8 @@
 import React from "react";
-import { BiSolidEdit, BiTrash, BiCopy, BiLogoInstagram } from "react-icons/bi";
+import { BiSolidEdit, BiTrash, BiCopy } from "react-icons/bi";
 import toast from "react-hot-toast";
 import { TYPE_COLORS, AVATAR_PALETTES } from "./constants";
-import styles from "./Influencer.module.css";
+import styles from "./Creator.module.css";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -27,22 +27,27 @@ const avatarPalette = (id = "") =>
       AVATAR_PALETTES.length
   ];
 
-const igHandle = (raw = "") => {
-  if (!raw) return "";
+// ✅ unified IG logic (better than both versions)
+const getInstagramData = (raw = "") => {
+  if (!raw) return { handle: "", url: "#" };
+
   try {
-    return new URL(raw).pathname.replace(/\//g, "");
+    const url = new URL(raw);
+    const handle = url.pathname.split("/").filter(Boolean)[0] || "";
+    return {
+      handle,
+      url: `${url.origin}/${handle}`,
+    };
   } catch {
-    return raw.replace(/^@/, "");
+    const handle = raw.replace(/^@/, "");
+    return {
+      handle,
+      url: `https://instagram.com/${handle}`,
+    };
   }
 };
 
-const igUrl = (raw = "") => {
-  if (!raw) return "#";
-  if (raw.startsWith("http")) return raw;
-  return `https://instagram.com/${raw.replace(/^@/, "")}`;
-};
-
-// ─── Sub-Components ──────────────────────────────────────────────────────────
+// ─── Sub Components ──────────────────────────────────────────────────────────
 
 function Avatar({ name, id, size = 44 }) {
   const { bg, color } = avatarPalette(id);
@@ -68,6 +73,7 @@ function ContentPill({ type }) {
     color: "#444",
     border: "#DDD",
   };
+
   return (
     <span
       className={styles.filterPill}
@@ -82,16 +88,17 @@ function ContentPill({ type }) {
   );
 }
 
-// ─── Main Card Component ─────────────────────────────────────────────────────
+// ─── Main Component ──────────────────────────────────────────────────────────
 
-export default function InfluencerCard({ item, onEdit, onDelete }) {
+export default function CreatorCard({ item, onEdit, onDelete }) {
+  const { handle, url } = getInstagramData(item.instagramId);
+
   const handleCopy = async (text) => {
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
       toast.success("Copied to clipboard");
     } catch {
-      // Fallback for non-secure contexts
       const el = document.createElement("textarea");
       el.value = text;
       document.body.appendChild(el);
@@ -104,40 +111,40 @@ export default function InfluencerCard({ item, onEdit, onDelete }) {
 
   return (
     <div className={styles.card}>
+      {/* Top */}
       <div className={styles.cardTop}>
         <div className={styles.cardProfile}>
           <Avatar name={item.name} id={item._id} />
+
           <div style={{ minWidth: 0 }}>
             <div className={styles.cardName}>{item.name}</div>
+
             <a
-              href={igUrl(item.instagramId)}
+              href={url}
               target="_blank"
               rel="noreferrer"
               className={styles.cardHandle}
             >
-              @{igHandle(item.instagramId) || "—"}
+              @{handle || "—"}
             </a>
           </div>
         </div>
 
         <div className={styles.cardActions}>
-          <button
-            onClick={() => onEdit(item)}
-            className={styles.btnEdit}
-            title="Edit"
-          >
+          <button onClick={() => onEdit(item)} className={styles.btnEdit}>
             <BiSolidEdit />
           </button>
+
           <button
             onClick={() => onDelete(item._id)}
             className={styles.btnDelete}
-            title="Delete"
           >
             <BiTrash />
           </button>
         </div>
       </div>
 
+      {/* Stats */}
       <div className={styles.statsRow}>
         <div className={styles.statBox}>
           <div className={styles.statLabel}>Followers</div>
@@ -145,33 +152,31 @@ export default function InfluencerCard({ item, onEdit, onDelete }) {
             {formatFollowers(item.followers)}
           </div>
         </div>
+
         <div className={styles.statBox}>
           <div className={styles.statLabel}>Rate</div>
           <div className={styles.rateValue}>{item.priceDetails || "—"}</div>
         </div>
       </div>
 
+      {/* Contact */}
       <div className={styles.contactRow}>
-        {[
-          { val: item.contactNo, label: item.contactNo, icon: "📞" },
-          { val: item.email, label: item.email, icon: "✉" },
-        ].map(({ val, label, icon }) => (
+        {[{ val: item.contactNo }, { val: item.email }].map(({ val }, i) => (
           <button
-            key={icon}
+            key={i}
             onClick={() => val && handleCopy(val)}
             className={styles.contactBtn}
             style={{ cursor: val ? "pointer" : "default" }}
           >
-            <BiCopy style={{ fontSize: 12, flexShrink: 0, color: "#AAA" }} />
-            <span>{label || "—"}</span>
+            <BiCopy style={{ fontSize: 12, color: "#AAA" }} />
+            <span>{val || "—"}</span>
           </button>
         ))}
       </div>
 
+      {/* Content Types */}
       {item.contentTypes?.length > 0 && (
-        <div
-          style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 12 }}
-        >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
           {item.contentTypes.map((t) => (
             <ContentPill key={t} type={t} />
           ))}
