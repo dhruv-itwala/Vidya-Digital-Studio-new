@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { BiSearch, BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import styles from "./Creator.module.css";
 import Loader from "../Loader/Loader";
 import { CONTENT_TYPES } from "./constants";
-
 export default function ViewList({ title = "Creators", getAPI }) {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
@@ -72,6 +73,80 @@ export default function ViewList({ title = "Creators", getAPI }) {
       return sortOrder === "high" ? fb - fa : fa - fb;
     });
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    const handles = [];
+
+    const rows = filteredData.map((item) => {
+      const handle = getInstagramHandle(item.instagramId);
+      const url = item.instagramId?.startsWith("http")
+        ? item.instagramId
+        : `https://instagram.com/${handle}`;
+
+      handles.push({ handle, url });
+
+      return [
+        item.name,
+        `@${handle}`,
+        formatFollowers(item.followers),
+        item.contentTypes?.join(", ") || "—",
+        item.priceDetails || "—",
+      ];
+    });
+
+    autoTable(doc, {
+      head: [["Name", "Instagram", "Followers", "Content", "Rate"]],
+      body: rows,
+
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        overflow: "linebreak",
+      },
+
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 55 },
+        4: { cellWidth: 40 },
+      },
+
+      didDrawCell: (data) => {
+        // 🔥 Attach real clickable link
+        if (data.column.index === 1 && data.cell.section === "body") {
+          const rowIndex = data.row.index;
+          const link = handles[rowIndex];
+
+          if (link) {
+            doc.link(
+              data.cell.x,
+              data.cell.y,
+              data.cell.width,
+              data.cell.height,
+              { url: link.url },
+            );
+          }
+        }
+      },
+
+      headStyles: {
+        fillColor: [40, 116, 166],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+
+      margin: { top: 20 },
+    });
+
+    doc.save(`${title}.pdf`);
+  };
+
   const formatFollowers = (n) => {
     if (!n) return "—";
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -105,7 +180,9 @@ export default function ViewList({ title = "Creators", getAPI }) {
             {title}{" "}
             <span className={styles.totalCount}>{data.length} Showing</span>
           </h2>
-
+          <button onClick={downloadPDF} className={styles.addButton}>
+            Download PDF
+          </button>
           {/* Filters */}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div className={styles.searchWrapper}>

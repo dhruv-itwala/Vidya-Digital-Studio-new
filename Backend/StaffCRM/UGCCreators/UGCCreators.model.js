@@ -2,21 +2,7 @@
 // UGCCreators.model.js
 // ============================
 import mongoose from "mongoose";
-
-const CONTENT_TYPES = [
-  "lifestyle",
-  "entertainment",
-  "food",
-  "cooking",
-  "travel",
-  "fashion",
-  "artist",
-  "beauty",
-  "model",
-  "mom",
-  "parenting",
-  "dancer",
-];
+import { CONTENT_TYPES } from "../utils/creatorTypes.js";
 
 const ugcCreatorSchema = new mongoose.Schema(
   {

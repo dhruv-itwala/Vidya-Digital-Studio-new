@@ -16,6 +16,7 @@ export default function UGCCreator() {
       deleteAPI={deleteUGCCreatorAPI}
       createAPI={createUGCCreatorAPI}
       updateAPI={updateUGCCreatorAPI}
+      pagelimit={50}
     />
   );
 }

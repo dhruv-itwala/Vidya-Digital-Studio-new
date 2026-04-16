@@ -47,6 +47,7 @@ import { Toaster } from "react-hot-toast";
 
 import "./App.css";
 import UGCView from "./components/UgcCreatorList/UGCView";
+import InfluencerView from "./components/InfluencerList/InfluencerView";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -66,7 +67,6 @@ export default function App() {
       <Routes>
         {/* LOGIN */}
         <Route path="/login" element={<Login />} />
-        <Route path="/client-view-ugc-list" element={<UGCView />} />
 
         {/* ROOT */}
         <Route
@@ -105,7 +105,9 @@ export default function App() {
           <Route path="leads/:id/edit" element={<EditLead />} />
 
           <Route path="influencers" element={<Influencer />} />
+          <Route path="influencers/view" element={<InfluencerView />} />
           <Route path="ugc-creators" element={<UGCCreator />} />
+          <Route path="ugc-creators/view" element={<UGCView />} />
 
           <Route path="clients" element={<ViewClients />} />
           <Route path="clients/:id" element={<DetailClient />} />
@@ -142,7 +144,9 @@ export default function App() {
           <Route path="hrHoliday" element={<HRHoliday />} />
 
           <Route path="influencers" element={<Influencer />} />
+          <Route path="influencers/view" element={<InfluencerView />} />
           <Route path="ugc-creators" element={<UGCCreator />} />
+          <Route path="ugc-creators/view" element={<UGCView />} />
 
           <Route path="leads" element={<ViewLeads />} />
           <Route path="leads/:id" element={<DetailLead />} />

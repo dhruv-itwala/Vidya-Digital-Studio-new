@@ -2,20 +2,7 @@
 // Influencers.model.js
 // ============================
 import mongoose from "mongoose";
-
-const CONTENT_TYPES = [
-  "lifestyle",
-  "entertainment",
-  "food",
-  "cooking",
-  "travel",
-  "fashion",
-  "artist",
-  "beauty",
-  "model",
-  "makeup_artist",
-  "dancer",
-];
+import { CONTENT_TYPES } from "../utils/creatorTypes.js";
 
 const influencerSchema = new mongoose.Schema(
   {

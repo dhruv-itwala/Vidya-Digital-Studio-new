@@ -18,6 +18,7 @@ export default function CreatorList({
   deleteAPI,
   createAPI,
   updateAPI,
+  pagelimit = 50,
 }) {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
@@ -36,7 +37,7 @@ export default function CreatorList({
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await getAPI({ page, limit: 20 });
+      const res = await getAPI({ page, limit: pagelimit });
       setData(res.data.data);
       setTotalPages(res.data.pages);
     } catch (err) {

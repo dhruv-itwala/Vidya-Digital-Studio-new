@@ -11,6 +11,9 @@ export const CONTENT_TYPES = [
   "dancer",
   "mom",
   "parenting",
+  "kids",
+  "fitness",
+  "review",
 ];
 
 export const TYPE_COLORS = {
@@ -26,6 +29,9 @@ export const TYPE_COLORS = {
   dancer: { bg: "#F0FFFE", color: "#0C5754", border: "#6AD6D0" },
   mom: { bg: "#ade4ef", color: "#5992ad", border: "#CCCCCC" },
   parenting: { bg: "#E8F5FF", color: "#0B4E8A", border: "#72B9F2" },
+  kids: { bg: "#FFF8E7", color: "#7A4F00", border: "#F0CC6A" },
+  fitness: { bg: "#E8FAF0", color: "#155C3C", border: "#68D49A" },
+  review: { bg: "#F5F5F0", color: "#3A3A30", border: "#BFBFB0" },
 };
 
 export const AVATAR_PALETTES = [

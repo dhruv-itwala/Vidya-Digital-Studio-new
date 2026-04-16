@@ -16,6 +16,7 @@ export default function Influencer() {
       deleteAPI={deleteInfluencerAPI}
       createAPI={createInfluencerAPI}
       updateAPI={updateInfluencerAPI}
+      pagelimit={50}
     />
   );
 }

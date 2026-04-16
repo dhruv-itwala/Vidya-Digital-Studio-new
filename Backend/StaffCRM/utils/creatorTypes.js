@@ -1,0 +1,17 @@
+export const CONTENT_TYPES = [
+  "lifestyle",
+  "entertainment",
+  "food",
+  "cooking",
+  "travel",
+  "fashion",
+  "artist",
+  "beauty",
+  "model",
+  "mom",
+  "parenting",
+  "dancer",
+  "kids",
+  "fitness",
+  "review",
+];
