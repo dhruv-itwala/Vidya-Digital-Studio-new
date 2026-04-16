@@ -66,7 +66,7 @@ export default function App() {
       <Routes>
         {/* LOGIN */}
         <Route path="/login" element={<Login />} />
-        <Route path="client-view-ugc-list" element={<UGCView />} />
+        <Route path="/client-view-ugc-list" element={<UGCView />} />
 
         {/* ROOT */}
         <Route
