@@ -1,0 +1,65 @@
+.container {
+  width: 100%;
+  padding: 20px;
+  background: #f9fafb;
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table thead {
+  background: #111827;
+  color: white;
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: #f3f4f6;
+}
+
+/* Method styling */
+.method {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+/* Status */
+.success {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.error {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* Endpoint wrap */
+.endpoint {
+  max-width: 300px;
+  word-break: break-all;
+  color: #374151;
+}
