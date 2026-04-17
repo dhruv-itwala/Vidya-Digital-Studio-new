@@ -27,6 +27,7 @@ import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
 import ugcCreatorRoutes from "./StaffCRM/UGCCreators/UGCCreators.routes.js";
+import loggerRoutes from "./logger/Logger.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -94,6 +95,9 @@ app.use(`/api/${VERSION}/influencers`, influencerRoutes);
 
 // UGCCreator Routes
 app.use(`/api/${VERSION}/ugccreators`, ugcCreatorRoutes);
+
+// Logger Routes
+app.use(`/api/${VERSION}/logs`, loggerRoutes);
 
 app.use(globalErrorHandler);
 

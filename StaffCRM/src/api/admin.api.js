@@ -39,6 +39,9 @@ export const downloadAllReportsPDF = (date) =>
     responseType: "blob",
   });
 
+// LOGS
+export const getAllLogsAPI = () => api.get("/logs");
+
 // Quotes
 export const getAllQuotesAPI = () => api.get("/quotation");
 

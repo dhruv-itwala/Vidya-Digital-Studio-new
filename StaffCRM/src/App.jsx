@@ -48,6 +48,7 @@ import { Toaster } from "react-hot-toast";
 import "./App.css";
 import UGCView from "./components/UgcCreatorList/UGCView";
 import InfluencerView from "./components/InfluencerList/InfluencerView";
+import Log from "./components/Logs/Log";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -142,6 +143,8 @@ export default function App() {
           <Route path="hrLeaveApproval" element={<LeaveApproval />} />
           <Route path="hrReports" element={<Reports />} />
           <Route path="hrHoliday" element={<HRHoliday />} />
+
+          <Route path="logs" element={<Log />} />
 
           <Route path="influencers" element={<Influencer />} />
           <Route path="influencers/view" element={<InfluencerView />} />
