@@ -40,15 +40,15 @@ import EditClient from "./components/Clients/EditClient";
 import DetailClient from "./components/Clients/DetailClient";
 import HROverride from "./components/HR/HROverride";
 import Influencer from "./components/InfluencerList/Influencer";
+import InfluencerView from "./components/InfluencerList/InfluencerView";
 import UGCCreator from "./components/UgcCreatorList/UGCCreator";
+import UGCView from "./components/UgcCreatorList/UGCView";
+import Log from "./components/LogsPage/Log";
 
 import Maintenance from "./components/Maintenance/Maintenance";
 import { Toaster } from "react-hot-toast";
 
 import "./App.css";
-import UGCView from "./components/UgcCreatorList/UGCView";
-import InfluencerView from "./components/InfluencerList/InfluencerView";
-import Log from "./components/LogsPage/Log";
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();

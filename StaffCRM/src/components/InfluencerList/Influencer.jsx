@@ -11,14 +11,13 @@ import Maintenance from "../Maintenance/Maintenance";
 
 export default function Influencer() {
   return (
-    // <CreatorList
-    //   title="Influencers"
-    //   getAPI={getInfluencersAPI}
-    //   deleteAPI={deleteInfluencerAPI}
-    //   createAPI={createInfluencerAPI}
-    //   updateAPI={updateInfluencerAPI}
-    //   pagelimit={50}
-    // />
-    <Maintenance />
+    <CreatorList
+      title="Influencers"
+      getAPI={getInfluencersAPI}
+      deleteAPI={deleteInfluencerAPI}
+      createAPI={createInfluencerAPI}
+      updateAPI={updateInfluencerAPI}
+      pagelimit={50}
+    />
   );
 }
