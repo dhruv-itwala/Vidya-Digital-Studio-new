@@ -5,6 +5,7 @@ import { BiSearch, BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import styles from "./Creator.module.css";
 import Loader from "../Loader/Loader";
 import { CONTENT_TYPES } from "./constants";
+
 export default function ViewList({ title = "Creators", getAPI }) {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);

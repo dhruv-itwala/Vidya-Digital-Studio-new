@@ -1,7 +1,7 @@
 export const WORK_POLICIES = {
   full_time: {
     weeklyHours: 48,
-    dailyHours: 9,
+    dailyHours: 8,
 
     officeHours: {
       start: 8,
@@ -9,11 +9,11 @@ export const WORK_POLICIES = {
     },
 
     attendance: {
-      presentMinutes: 480,
+      presentMinutes: 420,
       halfDayMinutes: 240,
     },
 
-    maxDailyMinutes: 540,
+    maxDailyMinutes: 480,
   },
 
   intern: {

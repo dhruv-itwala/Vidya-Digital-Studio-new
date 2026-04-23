@@ -155,7 +155,7 @@ export default function CreatorForm({
             <input
               {...register("contactNo")}
               className={styles.formInput}
-              placeholder="+91..."
+              placeholder="987..."
             />
           </div>
 

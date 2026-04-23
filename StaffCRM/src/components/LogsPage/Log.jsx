@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./Log.module.css";
 import { getAllLogsAPI } from "../../api/admin.api";
+import Loader from "../Loader/Loader";
 
 export default function Log() {
   const [logs, setLogs] = useState([]);
@@ -34,7 +35,7 @@ export default function Log() {
     });
   };
 
-  if (loading) return <p>Loading logs...</p>;
+  if (loading) return <Loader />;
 
   return (
     <div className="masterContainer">
