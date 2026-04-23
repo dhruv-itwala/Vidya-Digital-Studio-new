@@ -24,10 +24,11 @@ import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
 import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
 import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 
-import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
 import ugcCreatorRoutes from "./StaffCRM/UGCCreators/UGCCreators.routes.js";
 import loggerRoutes from "./logger/Logger.routes.js";
+
+import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
