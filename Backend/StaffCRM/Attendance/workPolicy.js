@@ -9,8 +9,8 @@ export const WORK_POLICIES = {
     },
 
     attendance: {
-      presentMinutes: 420,
-      halfDayMinutes: 240,
+      presentMinutes: 420, // 7 hrs (8 hrs - 1 hr break)
+      halfDayMinutes: 210, // 3.5 hrs
     },
 
     maxDailyMinutes: 480,
