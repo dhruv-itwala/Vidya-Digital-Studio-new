@@ -32,6 +32,10 @@ export const NAVBAR_MENUS = {
     { label: "To Do List", path: "/employee/todo" },
     { label: "Profile", path: "/employee/profile" },
     { label: "Leaves", path: "/employee/leaves" },
+    "divider",
+    // Influencers and creators
+    { label: "Influencers", path: "/admin/influencers" },
+    { label: "UGC Creators", path: "/admin/ugc-creators" },
   ],
 
   hr: [
@@ -68,6 +72,10 @@ export const NAVBAR_MENUS = {
     { label: "To Do List", path: "/employee/todo" },
     { label: "Profile", path: "/employee/profile" },
     { label: "Leaves", path: "/employee/leaves" },
+    "divider",
+    // Influencers and creators
+    { label: "Influencers", path: "/admin/influencers" },
+    { label: "UGC Creators", path: "/admin/ugc-creators" },
   ],
 };
 
