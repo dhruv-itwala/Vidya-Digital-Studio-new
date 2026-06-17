@@ -180,6 +180,11 @@ export default function App() {
           <Route path="leaves" element={<EmployeeLeaves />} />
           <Route path="todo" element={<TodoList />} />
           <Route path="tasks" element={<EmployeeTasks />} />
+
+          <Route path="influencers" element={<Influencer />} />
+          <Route path="influencers/view" element={<InfluencerView />} />
+          <Route path="ugc-creators" element={<UGCCreator />} />
+          <Route path="ugc-creators/view" element={<UGCView />} />
         </Route>
 
         {/* FALLBACK */}

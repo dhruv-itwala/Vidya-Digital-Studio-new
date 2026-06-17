@@ -32,10 +32,11 @@ export const NAVBAR_MENUS = {
     { label: "To Do List", path: "/employee/todo" },
     { label: "Profile", path: "/employee/profile" },
     { label: "Leaves", path: "/employee/leaves" },
+
     "divider",
     // Influencers and creators
-    { label: "Influencers", path: "/admin/influencers" },
-    { label: "UGC Creators", path: "/admin/ugc-creators" },
+    { label: "Influencers", path: "/employee/influencers" },
+    { label: "UGC Creators", path: "/employee/ugc-creators" },
   ],
 
   hr: [
@@ -72,16 +73,17 @@ export const NAVBAR_MENUS = {
     { label: "To Do List", path: "/employee/todo" },
     { label: "Profile", path: "/employee/profile" },
     { label: "Leaves", path: "/employee/leaves" },
+
     "divider",
     // Influencers and creators
-    { label: "Influencers", path: "/admin/influencers" },
-    { label: "UGC Creators", path: "/admin/ugc-creators" },
+    { label: "Influencers", path: "/employee/influencers" },
+    { label: "UGC Creators", path: "/employee/ugc-creators" },
   ],
 };
 
 export const SECTION_TITLES = {
   admin: ["General", "Creators", "Business", "HR Tools"],
   hr: ["General", "Creators", "Business", "HR Tools"],
-  employee: ["General"],
-  intern: ["General"],
+  employee: ["General", "Creators"],
+  intern: ["General", "Creators"],
 };
