@@ -140,7 +140,7 @@ export const sendEmployeeTemplate = async (
           name: "employee_work_action_reminder",
 
           language: {
-            code: "en",
+            code: "en_US",
           },
 
           components: [
