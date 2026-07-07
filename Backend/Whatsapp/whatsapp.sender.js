@@ -140,7 +140,8 @@ export const sendEmployeeTemplate = async (
           name: "employee_work_action_reminder",
 
           language: {
-            code: "en_US",
+            policy: "deterministic",
+            code: "en",
           },
 
           components: [
@@ -244,10 +245,15 @@ This is a test message from the VDS CRM automation system.`,
 /* =====================================
    4. TEST TEMPLATE MESSAGE
 ===================================== */
-
 export const testEmployeeTemplate = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select("name phone");
+    const { userId } = req.params;
+
+    const {
+      actionMessage = "This is a test notification from the VDS CRM automation system.",
+    } = req.body;
+
+    const user = await User.findById(userId).select("_id name phone isActive");
 
     if (!user) {
       return res.status(404).json({
@@ -259,33 +265,198 @@ export const testEmployeeTemplate = async (req, res) => {
     if (!user.phone) {
       return res.status(400).json({
         success: false,
-
         message: "User does not have a phone number",
       });
     }
 
+    console.log("🧪 Testing WhatsApp template:", {
+      user: user.name,
+      phone: user.phone,
+      actionMessage,
+    });
+
     const result = await sendEmployeeTemplate(
       user.phone,
-
       user.name,
-
-      "Punch in for today's shift.",
+      actionMessage,
     );
+
+    const messageId = result?.messages?.[0]?.id;
 
     return res.status(200).json({
       success: true,
 
-      message: "Employee template accepted by WhatsApp",
+      message:
+        "Template request accepted by WhatsApp. Check webhook logs for sent, delivered, read, or failed status.",
 
-      data: result,
+      data: {
+        userId: user._id,
+        name: user.name,
+        phone: user.phone,
+        messageId,
+      },
     });
   } catch (error) {
+    console.error(
+      "❌ Individual template test failed:",
+      error.response?.data || error.message,
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Template sending failed",
+      error: error.response?.data || error.message,
+    });
+  }
+};
+
+// export const testEmployeeTemplate = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.params.userId).select("name phone");
+
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     if (!user.phone) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "User does not have a phone number",
+//       });
+//     }
+
+//     const result = await sendEmployeeTemplate(
+//       user.phone,
+//       user.name,
+//       "This is a test notification from the VDS CRM automation system.",
+//     );
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Template accepted by WhatsApp",
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         phone: user.phone,
+//       },
+//       messageId: result?.messages?.[0]?.id,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "Template sending failed",
+//       error: error.response?.data || error.message,
+//     });
+//   }
+// };
+/* =====================================
+   5. TEST TEMPLATE FOR ALL ACTIVE USERS
+===================================== */
+
+export const testAllActiveUsersTemplate = async (req, res) => {
+  try {
+    const users = await User.find({
+      isActive: true,
+      role: { $ne: "admin" },
+    }).select("_id name phone role");
+
+    if (!users.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No active users found",
+      });
+    }
+
+    const results = {
+      total: users.length,
+      sent: [],
+      failed: [],
+      skipped: [],
+    };
+
+    for (const user of users) {
+      /* ============================
+         SKIP USERS WITHOUT PHONE
+      ============================ */
+
+      if (!user.phone) {
+        results.skipped.push({
+          userId: user._id,
+          name: user.name,
+          reason: "Phone number missing",
+        });
+
+        continue;
+      }
+
+      try {
+        /* ============================
+           SEND TEMPLATE
+        ============================ */
+
+        const result = await sendEmployeeTemplate(
+          user.phone,
+          user.name,
+          "This is a test notification from the VDS CRM automation system.",
+        );
+
+        results.sent.push({
+          userId: user._id,
+          name: user.name,
+          phone: user.phone,
+          messageId: result?.messages?.[0]?.id || null,
+        });
+
+        console.log(`✅ TEST SENT → ${user.name}`);
+      } catch (error) {
+        results.failed.push({
+          userId: user._id,
+          name: user.name,
+          phone: user.phone,
+
+          error:
+            error.response?.data?.error?.message ||
+            error.response?.data ||
+            error.message,
+        });
+
+        console.error(`❌ TEST FAILED → ${user.name}`);
+      }
+
+      /*
+        Small delay between messages.
+        Useful for controlled testing.
+      */
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
+    return res.status(200).json({
+      success: true,
+
+      message: "Bulk WhatsApp template test completed",
+
+      summary: {
+        total: results.total,
+        sent: results.sent.length,
+        failed: results.failed.length,
+        skipped: results.skipped.length,
+      },
+
+      results,
+    });
+  } catch (error) {
+    console.error("❌ Bulk WhatsApp test error:", error);
+
     return res.status(500).json({
       success: false,
 
-      message: "Failed to send employee template",
+      message: "Bulk WhatsApp test failed",
 
-      error: error.response?.data || error.message,
+      error: error.message,
     });
   }
 };
