@@ -122,6 +122,25 @@ export const checkWorkReminders = async () => {
        4️⃣ BREAK REMINDERS
     =============================== */
 
+    if (hour === 12 && minute === 30) {
+      const hasStartedBreak = record?.breaks?.length > 0;
+
+      if (
+        record?.punchIn &&
+        !record?.punchOut &&
+        !hasStartedBreak &&
+        !record?.breakTakeReminderSent
+      ) {
+        await sendWhatsAppText(
+          user.phone,
+          "🍽️ It's 12:30 PM. Please remember to take your break and mark it in the CRM.",
+        );
+
+        record.breakTakeReminderSent = true;
+        await record.save();
+      }
+    }
+
     if (record?.breaks?.length) {
       const lastBreak = record.breaks.at(-1);
 

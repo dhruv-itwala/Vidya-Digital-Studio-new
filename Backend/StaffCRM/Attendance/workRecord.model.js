@@ -84,7 +84,10 @@ const workRecordSchema = new mongoose.Schema(
 
     reportReminderSent: { type: Boolean, default: false },
     workCompletedSent: { type: Boolean, default: false },
-
+    breakTakeReminderSent: {
+      type: Boolean,
+      default: false,
+    },
     punchOutReminderSent: { type: Boolean, default: false },
   },
   { timestamps: true },
