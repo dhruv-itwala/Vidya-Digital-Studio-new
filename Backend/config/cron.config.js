@@ -21,7 +21,7 @@ console.log("🕒 All cron jobs initialized");
 
 /* Heartbeat Monitor */
 cron.schedule(
-  "*/10 * * * *",
+  "* * * * *",
   () => {
     console.log("💓 Cron heartbeat", new Date().toISOString());
   },
