@@ -1,6 +1,0 @@
-{
-  "watch": ["server.js", "config", "StaffCRM", "utils"],
-  "ext": "js,json",
-  "ignore": ["node_modules", ".git", "Frontend", "*.log"],
-  "delay": "500"
-}
