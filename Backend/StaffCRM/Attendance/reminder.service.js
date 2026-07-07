@@ -4,173 +4,354 @@ import Leave from "../Leaves/leave.model.js";
 import Holiday from "../Holidays/holiday.model.js";
 
 import { WORK_POLICIES, ROLE_WORK_POLICY } from "./workPolicy.js";
-import { sendWhatsAppText } from "../../Whatsapp/whatsapp.sender.js";
+
+import { sendEmployeeTemplate } from "../../Whatsapp/whatsapp.sender.js";
+
 import { todayISTUTC } from "./utils/attendance.utils.js";
+
+/* =====================================
+   CURRENT IST TIME
+===================================== */
+
+const getCurrentISTTime = () => {
+  const parts = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  return {
+    hour: Number(parts.find((part) => part.type === "hour")?.value),
+
+    minute: Number(parts.find((part) => part.type === "minute")?.value),
+  };
+};
+
+/* =====================================
+   SAFE REMINDER SENDER
+===================================== */
+
+const sendReminder = async (user, message, reminderType) => {
+  try {
+    const result = await sendEmployeeTemplate(user.phone, user.name, message);
+
+    console.log(`✅ ${reminderType} accepted`, {
+      user: user.name,
+      phone: user.phone,
+      messageId: result?.messages?.[0]?.id,
+    });
+
+    return true;
+  } catch (error) {
+    console.error(`❌ ${reminderType} failed`, {
+      user: user.name,
+      phone: user.phone,
+      error: error.response?.data || error.message,
+    });
+
+    return false;
+  }
+};
+
+/* =====================================
+   WORK REMINDER ENGINE
+===================================== */
 
 export const checkWorkReminders = async () => {
   const now = new Date();
-  const hour = now.getHours();
-  const minute = now.getMinutes();
+
+  const { hour, minute } = getCurrentISTTime();
 
   const today = todayISTUTC();
 
-  /* ===============================
+  /* =====================================
      HOLIDAY CHECK
-  =============================== */
+  ===================================== */
 
-  const isHoliday = await Holiday.exists({ date: today });
-  if (isHoliday) return;
+  const isHoliday = await Holiday.exists({
+    date: today,
+  });
 
-  /* ===============================
-     USERS
-  =============================== */
+  if (isHoliday) {
+    return;
+  }
+
+  /* =====================================
+     ACTIVE USERS
+  ===================================== */
 
   const users = await User.find({
     isActive: true,
-    role: { $ne: "admin" },
+
+    role: {
+      $ne: "admin",
+    },
   }).select("_id name phone role");
 
+  /* =====================================
+     PROCESS USERS
+  ===================================== */
+
   for (const user of users) {
-    /* ===============================
-       LEAVE CHECK
-    =============================== */
+    try {
+      if (!user.phone) {
+        console.log(`⚠️ Phone missing: ${user.name}`);
 
-    const leave = await Leave.exists({
-      user: user._id,
-      status: "APPROVED",
-      fromDate: { $lte: today },
-      toDate: { $gte: today },
-    });
-
-    if (leave) continue;
-
-    const policyKey = ROLE_WORK_POLICY[user.role];
-    const policy = WORK_POLICIES[policyKey];
-
-    if (!policy) continue;
-
-    const start = policy.officeHours.start;
-    const end = policy.officeHours.end;
-
-    const record = await WorkRecord.findOne({
-      user: user._id,
-      date: today,
-    });
-
-    /* ===============================
-       1️⃣ PUNCH IN REMINDER
-       Start + 1 minute
-    =============================== */
-
-    if (hour === start && minute === 1) {
-      if (!record?.punchIn && !record?.punchInReminderSent) {
-        await sendWhatsAppText(
-          user.phone,
-          "⏰ Your shift has started. Please punch in.",
-        );
-
-        if (record) {
-          record.punchInReminderSent = true;
-          await record.save();
-        }
+        continue;
       }
-    }
 
-    /* ===============================
-       2️⃣ REPORT REMINDER
-       30 minutes before shift end
-    =============================== */
+      /* =====================================
+         LEAVE CHECK
+      ===================================== */
 
-    if (hour === end - 1 && minute === 30) {
-      if (
-        record?.punchIn &&
-        !record?.reportSubmitted &&
-        !record?.reportReminderSent
-      ) {
-        await sendWhatsAppText(
-          user.phone,
-          "📝 Please submit your daily report before shift ends.",
-        );
+      const leave = await Leave.exists({
+        user: user._id,
 
-        record.reportReminderSent = true;
-        await record.save();
+        status: "APPROVED",
+
+        fromDate: {
+          $lte: today,
+        },
+
+        toDate: {
+          $gte: today,
+        },
+      });
+
+      if (leave) {
+        continue;
       }
-    }
 
-    /* ===============================
-       3️⃣ PUNCH OUT REMINDER
-       1 hour after shift end
-    =============================== */
+      /* =====================================
+         WORK POLICY
+      ===================================== */
 
-    if (hour === end + 1 && minute === 0) {
-      if (
-        record?.punchIn &&
-        !record?.punchOut &&
-        !record?.punchOutReminderSent
-      ) {
-        await sendWhatsAppText(
-          user.phone,
-          "😄 Your shift is over. Please punch out.",
-        );
+      const policyKey = ROLE_WORK_POLICY[user.role];
 
-        record.punchOutReminderSent = true;
-        await record.save();
+      const policy = WORK_POLICIES[policyKey];
+
+      if (!policy) {
+        continue;
       }
-    }
 
-    /* ===============================
-       4️⃣ BREAK REMINDERS
-    =============================== */
+      const start = policy.officeHours.start;
 
-    if (hour === 12 && minute === 30) {
-      const hasStartedBreak = record?.breaks?.length > 0;
+      const end = policy.officeHours.end;
 
-      if (
-        record?.punchIn &&
-        !record?.punchOut &&
-        !hasStartedBreak &&
-        !record?.breakTakeReminderSent
-      ) {
-        await sendWhatsAppText(
-          user.phone,
-          "🍽️ It's 12:30 PM. Please remember to take your break and mark it in the CRM.",
-        );
+      /* =====================================
+         TODAY RECORD
+      ===================================== */
 
-        record.breakTakeReminderSent = true;
-        await record.save();
-      }
-    }
+      let record = await WorkRecord.findOne({
+        user: user._id,
+        date: today,
+      });
 
-    if (record?.breaks?.length) {
-      const lastBreak = record.breaks.at(-1);
+      /* =====================================
+         1. PUNCH IN REMINDER
+      ===================================== */
 
-      if (lastBreak && !lastBreak.out) {
-        const breakMinutes = (now - new Date(lastBreak.in)) / 60000;
+      if (hour === start && minute === 1) {
+        if (!record?.punchIn && !record?.punchInReminderSent) {
+          const sent = await sendReminder(
+            user,
 
-        /* 10 minutes left */
+            "⏰ Your shift has started. Please punch in for today's shift.",
 
-        if (breakMinutes >= 50 && !record.breakEndReminderSent) {
-          await sendWhatsAppText(
-            user.phone,
-            "⏳ Only 10 minutes left for your break.",
+            "PUNCH_IN",
           );
 
-          record.breakEndReminderSent = true;
-          await record.save();
-        }
+          if (sent) {
+            /*
+              Important:
 
-        /* break exceeded */
+              Previously, if no WorkRecord existed,
+              reminder flag was never saved.
 
-        if (breakMinutes >= 60 && !record.breakOvertimeAlertSent) {
-          await sendWhatsAppText(
-            user.phone,
-            "⚠️ Break time exceeded. Please resume work.",
-          );
+              Now create the record if necessary.
+            */
 
-          record.breakOvertimeAlertSent = true;
-          await record.save();
+            if (!record) {
+              record = await WorkRecord.findOneAndUpdate(
+                {
+                  user: user._id,
+                  date: today,
+                },
+
+                {
+                  $setOnInsert: {
+                    user: user._id,
+                    date: today,
+                  },
+
+                  $set: {
+                    punchInReminderSent: true,
+                  },
+                },
+
+                {
+                  new: true,
+                  upsert: true,
+                },
+              );
+            } else {
+              record.punchInReminderSent = true;
+
+              await record.save();
+            }
+          }
         }
       }
+
+      /* =====================================
+         2. BREAK TAKE REMINDER
+         12:30 PM IST
+      ===================================== */
+
+      if (hour === 12 && minute === 30) {
+        const hasStartedBreak = record?.breaks?.length > 0;
+
+        if (
+          record?.punchIn &&
+          !record?.punchOut &&
+          !hasStartedBreak &&
+          !record?.breakTakeReminderSent
+        ) {
+          const sent = await sendReminder(
+            user,
+
+            "🍽️ It is time for your scheduled break. Please start your break and update it in the VDS CRM.",
+
+            "BREAK_TAKE",
+          );
+
+          if (sent) {
+            record.breakTakeReminderSent = true;
+
+            await record.save();
+          }
+        }
+      }
+
+      /* =====================================
+         3. REPORT REMINDER
+      ===================================== */
+
+      if (hour === end - 1 && minute === 30) {
+        if (
+          record?.punchIn &&
+          !record?.reportSubmitted &&
+          !record?.reportReminderSent
+        ) {
+          const sent = await sendReminder(
+            user,
+
+            "📝 Your daily work report is pending. Please submit it before completing your workday.",
+
+            "REPORT",
+          );
+
+          if (sent) {
+            record.reportReminderSent = true;
+
+            await record.save();
+          }
+        }
+      }
+
+      /* =====================================
+         4. PUNCH OUT REMINDER
+      ===================================== */
+
+      if (hour === end + 1 && minute === 0) {
+        if (
+          record?.punchIn &&
+          !record?.punchOut &&
+          !record?.punchOutReminderSent
+        ) {
+          const sent = await sendReminder(
+            user,
+
+            "😄 Your workday has ended. Please punch out in the VDS CRM.",
+
+            "PUNCH_OUT",
+          );
+
+          if (sent) {
+            record.punchOutReminderSent = true;
+
+            await record.save();
+          }
+        }
+      }
+
+      /* =====================================
+         5. ACTIVE BREAK REMINDERS
+      ===================================== */
+
+      if (record?.breaks?.length) {
+        const lastBreak = record.breaks.at(-1);
+
+        if (lastBreak && !lastBreak.out) {
+          const breakMinutes =
+            (now.getTime() - new Date(lastBreak.in).getTime()) / 60000;
+
+          /* =================================
+             10 MINUTES LEFT
+          ================================= */
+
+          if (
+            breakMinutes >= 50 &&
+            breakMinutes < 60 &&
+            !record.breakEndReminderSent
+          ) {
+            const sent = await sendReminder(
+              user,
+
+              "⏳ Your break will end in 10 minutes. Please prepare to resume work.",
+
+              "BREAK_ENDING",
+            );
+
+            if (sent) {
+              record.breakEndReminderSent = true;
+
+              await record.save();
+            }
+          }
+
+          /* =================================
+             BREAK EXCEEDED
+          ================================= */
+
+          if (breakMinutes >= 60 && !record.breakOvertimeAlertSent) {
+            const sent = await sendReminder(
+              user,
+
+              "⚠️ Your scheduled break time has ended. Please resume work and update your break status.",
+
+              "BREAK_EXCEEDED",
+            );
+
+            if (sent) {
+              record.breakOvertimeAlertSent = true;
+
+              await record.save();
+            }
+          }
+        }
+      }
+    } catch (error) {
+      /*
+        One employee failure must not stop
+        notifications for remaining employees.
+      */
+
+      console.error(
+        `❌ Reminder processing error for ${user.name}:`,
+        error.response?.data || error.message,
+      );
     }
   }
 };
