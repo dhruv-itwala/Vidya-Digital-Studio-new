@@ -14,12 +14,25 @@ export const verifyWebhook = (req, res) => {
   res.sendStatus(403);
 };
 
+// export const receiveMessage = async (req, res) => {
+//   try {
+//     await processMessage(req.body);
+//     res.sendStatus(200);
+//   } catch (err) {
+//     console.error(err);
+//     res.sendStatus(500);
+//   }
+// };
+
 export const receiveMessage = async (req, res) => {
+  console.log("🔥 REAL WHATSAPP WEBHOOK HIT");
+  console.log(JSON.stringify(req.body, null, 2));
+
+  res.sendStatus(200);
+
   try {
     await processMessage(req.body);
-    res.sendStatus(200);
   } catch (err) {
-    console.error(err);
-    res.sendStatus(500);
+    console.error("PROCESS ERROR:", err.response?.data || err.message);
   }
 };
