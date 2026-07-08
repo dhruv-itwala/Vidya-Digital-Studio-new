@@ -10,6 +10,8 @@ import { connectDB } from "./config/db.config.js";
 import { getLocalIP } from "./config/ip.config.js";
 import corsOptions from "./config/cors.config.js";
 
+import { instagramRoutes } from "@it_dhruv/delta-instagram-feed";
+
 // Import Routes
 import servicePricesRoute from "./Quotation/ServicePrices/ServicePrice.routes.js";
 import quotationRoutes from "./Quotation/Quote/routes/Quote.routes.js";
@@ -63,6 +65,9 @@ app.use(`/api/${VERSION}/quotation`, quotationRoutes);
 
 // Whatsapp Routes
 app.use(`/api/${VERSION}/whatsapp`, whatsappRoutes);
+
+// Instagram Routes
+app.use(`/api/${VERSION}/instagram`, instagramRoutes);
 
 // User Routes
 app.use(`/api/${VERSION}/users`, userRoutes);

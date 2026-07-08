@@ -12,6 +12,7 @@
   "author": "DHRUV-ITWALA",
   "license": "ISC",
   "dependencies": {
+    "@it_dhruv/delta-instagram-feed": "^1.0.3",
     "@sparticuz/chromium": "^141.0.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
