@@ -5,7 +5,6 @@ import cron from "node-cron";
 ================================ */
 
 import "../StaffCRM/Attendance/cron/attendance.cron.js";
-import "../StaffCRM/Attendance/cron/reminder.cron.js";
 import "../StaffCRM/Attendance/cron/attendanceHoliday.cron.js";
 import "../StaffCRM/Attendance/cron/weeklyProgress.cron.js";
 
