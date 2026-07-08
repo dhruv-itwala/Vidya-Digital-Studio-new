@@ -60,13 +60,17 @@ export const punchInService = async (userId) => {
 
   const existing = await WorkRecord.findOne({ user: userId, date });
 
-  if (existing && existing.punchIn && !existing.punchOut) {
-    throw new AppError("Already punched in", 400);
+  if (existing && existing.punchIn) {
+    if (!existing.punchOut) {
+      throw new AppError("Already punched in", 400);
+    } else {
+      throw new AppError("Shift already completed for today", 400);
+    }
   }
 
   const record = await WorkRecord.findOneAndUpdate(
     { user: userId, date },
-    { $setOnInsert: { punchIn: now } },
+    { $set: { punchIn: now } },
     { upsert: true, new: true },
   );
 
