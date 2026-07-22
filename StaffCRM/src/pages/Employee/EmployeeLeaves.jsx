@@ -6,12 +6,10 @@ import {
 } from "../../api/leave.api";
 import styles from "./EmployeeLeaves.module.css";
 import toast from "react-hot-toast";
-import { getMyLeaveBalanceAPI } from "../../api/leaveBalance.api";
 import { formatToIST } from "../../utils/date.util";
 
 export default function EmployeeLeaves() {
   const [fromDate, setFromDate] = useState("");
-  const [availableLeaves, setAvailableLeaves] = useState(null);
   const [toDate, setToDate] = useState("");
   const [type, setType] = useState("CASUAL");
   const [isHalfDay, setIsHalfDay] = useState(false);
@@ -25,18 +23,8 @@ export default function EmployeeLeaves() {
     setLeaves(res.data || []);
   };
 
-  const fetchLeaveBalance = async () => {
-    try {
-      const res = await getMyLeaveBalanceAPI();
-      setAvailableLeaves(res.data.availableLeaves);
-    } catch {
-      toast.error("Failed to load leave balance");
-    }
-  };
-
   useEffect(() => {
     fetchLeaves();
-    fetchLeaveBalance();
   }, []);
 
   const applyLeave = async () => {
@@ -73,7 +61,6 @@ export default function EmployeeLeaves() {
     if (!window.confirm("Cancel this leave?")) return;
     await cancelLeaveAPI(id);
     fetchLeaves();
-    fetchLeaveBalance();
   };
 
   return (

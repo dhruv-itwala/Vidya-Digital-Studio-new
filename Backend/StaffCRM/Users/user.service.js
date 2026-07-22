@@ -128,7 +128,8 @@ export const deleteUserService = async (loggedInUser, targetUserId) => {
 export const getEmployeeBirthdaysService = async () => {
   return User.find({ isActive: true, dateOfBirth: { $exists: true } })
     .select("name dateOfBirth -_id")
-    .sort({ dateOfBirth: 1 });
+    .sort({ dateOfBirth: 1 })
+    .lean();
 };
 
 /* ================= USERS ================= */
@@ -169,7 +170,7 @@ export const getProfileService = async (userId) => {
     throw new AppError("Invalid user id", 400);
   }
 
-  const user = await User.findById(userId).select("-password");
+  const user = await User.findById(userId).select("-password").lean();
   if (!user) throw new AppError("User not found", 404);
 
   return user;
@@ -209,37 +210,24 @@ export const getDashboardOverviewService = async () => {
   /* ================= PARALLEL QUERIES ================= */
 
   const [
-    totalLeads,
-    rawLeads,
-    convertedLeads,
     totalClients,
     activeClients,
     totalEmployees,
-
+    convertedLeads,
     leadPipelineAgg,
-
     revenueAgg,
-
-    monthlyRevenueAgg,
-
     recentPayments,
-
     attendanceRecords,
-
     recentLeadActivity,
-
     upcomingMeetings,
   ] = await Promise.all([
     /* ===== COUNTS ===== */
-
-    Lead.countDocuments(),
-    Lead.countDocuments({ status: "Raw Lead" }),
-    Lead.countDocuments({ isConverted: true }),
-
     Client.countDocuments(),
     Client.countDocuments({ isActive: true }),
-
     User.countDocuments({ isActive: true }),
+
+    /* ===== LEAD COUNTS ===== */
+    Lead.countDocuments({ isConverted: true }),
 
     /* ===== LEAD PIPELINE ===== */
 
@@ -252,7 +240,7 @@ export const getDashboardOverviewService = async () => {
       },
     ]),
 
-    /* ===== TOTAL REVENUE ===== */
+    /* ===== TOTAL & MONTHLY REVENUE ===== */
 
     Client.aggregate([
       { $unwind: "$transactions" },
@@ -260,23 +248,15 @@ export const getDashboardOverviewService = async () => {
         $group: {
           _id: null,
           totalRevenue: { $sum: "$transactions.amount" },
-        },
-      },
-    ]),
-
-    /* ===== MONTHLY REVENUE ===== */
-
-    Client.aggregate([
-      { $unwind: "$transactions" },
-      {
-        $match: {
-          "transactions.date": { $gte: firstDayOfMonthUTC },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          revenue: { $sum: "$transactions.amount" },
+          monthlyRevenue: {
+            $sum: {
+              $cond: [
+                { $gte: ["$transactions.date", firstDayOfMonthUTC] },
+                "$transactions.amount",
+                0,
+              ],
+            },
+          },
         },
       },
     ]),
@@ -349,16 +329,21 @@ export const getDashboardOverviewService = async () => {
 
   /* ================= CALCULATIONS ================= */
 
+  const leadPipeline = {};
+  let totalLeads = 0;
+  let rawLeads = 0;
+
+  leadPipelineAgg.forEach((item) => {
+    leadPipeline[item._id] = item.count;
+    totalLeads += item.count;
+    if (item._id === "Raw Lead") rawLeads = item.count;
+  });
+
   const conversionRate =
     totalLeads === 0 ? 0 : ((convertedLeads / totalLeads) * 100).toFixed(1);
 
-  const leadPipeline = {};
-  leadPipelineAgg.forEach((item) => {
-    leadPipeline[item._id] = item.count;
-  });
-
   const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
-  const monthlyRevenue = monthlyRevenueAgg[0]?.revenue || 0;
+  const monthlyRevenue = revenueAgg[0]?.monthlyRevenue || 0;
 
   /* ================= ATTENDANCE FORMAT ================= */
 

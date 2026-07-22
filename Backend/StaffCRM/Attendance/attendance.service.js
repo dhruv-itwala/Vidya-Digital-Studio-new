@@ -39,26 +39,19 @@ export const getMyAttendanceService = async (userId, from, to) => {
   return Attendance.find({
     user: userId,
     date: { $gte: fromDate, $lte: toDate },
-  }).sort({ date: 1 });
+  })
+    .sort({ date: 1 })
+    .lean();
 };
 
 // ================= PUNCH IN ================= */
 export const punchInService = async (userId) => {
   const now = nowUTC();
-  const user = await User.findById(userId).select("role").lean();
-
-  // if (!isWithinOfficeHoursIST(now, user.role)) {
-  //   throw new AppError("Punch in allowed between 08AM–07PM IST", 400);
-  // }
-
-  const date = todayISTUTC();
-
-  const isHoliday = await Holiday.exists({ date });
-  if (isHoliday) {
-    throw new AppError("Punch-in not allowed on holidays", 400);
-  }
-
-  const existing = await WorkRecord.findOne({ user: userId, date });
+  const [user, isHoliday, existing] = await Promise.all([
+    User.findById(userId).select("role").lean(),
+    Holiday.exists({ date }),
+    WorkRecord.findOne({ user: userId, date }),
+  ]);
 
   if (existing && existing.punchIn) {
     if (!existing.punchOut) {
@@ -97,10 +90,13 @@ export const punchOutService = async (userId) => {
     throw new AppError("Punch in first", 400);
   }
 
-  const attendance = await Attendance.findOne({
-    user: userId,
-    date: record.date,
-  });
+  const [attendance, user] = await Promise.all([
+    Attendance.findOne({
+      user: userId,
+      date: record.date,
+    }),
+    User.findById(userId).lean(),
+  ]);
 
   if (attendance?.status === "INCOMPLETE") {
     throw new AppError(
@@ -116,8 +112,6 @@ export const punchOutService = async (userId) => {
   // await record.save();
 
   calcWorkMinutes(record);
-
-  const user = await User.findById(userId).lean();
   const policy = getWorkPolicy(user.role);
 
   /* ===== LATE CALCULATION ===== */
@@ -209,7 +203,7 @@ export const getAllEmployeesAttendanceService = async (date) => {
 
     Attendance.find({ date: day }).lean(),
 
-    Holiday.findOne({ date: day }),
+    Holiday.findOne({ date: day }).lean(),
   ]);
 
   const recordMap = new Map();
@@ -299,7 +293,7 @@ export const markAttendanceStatusService = async (userId, date, status) => {
 export const getUserAttendanceByDateService = async (userId, date) => {
   const day = parseISTDateOnly(date);
 
-  const attendance = await Attendance.findOne({ user: userId, date: day });
+  const attendance = await Attendance.findOne({ user: userId, date: day }).lean();
   if (attendance) return attendance;
 
   const isHoliday = await Holiday.exists({ date: day });
@@ -453,7 +447,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
 
 // ================= DAY ATTENDANCE ================= */
 export const getDayAttendanceService = async (id) => {
-  return Attendance.find({ id });
+  return Attendance.find({ id }).lean();
 };
 
 // ================ DELETE ATTENDANCE BY ID ================= */
@@ -469,14 +463,14 @@ export const getTodayWorkRecordService = async (userId) => {
   let record = await WorkRecord.findOne({
     user: userId,
     date: today,
-  });
+  }).lean();
 
   if (!record) {
     record = await WorkRecord.findOne({
       user: userId,
       date: yesterday,
       punchOut: { $exists: false },
-    });
+    }).lean();
   }
 
   if (!record) return null;
@@ -485,7 +479,7 @@ export const getTodayWorkRecordService = async (userId) => {
   const onBreak = lastBreak && !lastBreak.out;
 
   return {
-    ...record.toObject(),
+    ...record,
     liveNetSeconds: calcLiveNetSeconds(record),
     serverNow: new Date(),
     isRunning: !!record.punchIn && !record.punchOut && !onBreak,
@@ -535,7 +529,7 @@ export const getWeeklyProgressService = async (userId) => {
   // ===== HOLIDAY =====
   const holidays = await Holiday.find({
     date: { $gte: weekStartUTC, $lte: weekEndUTC },
-  });
+  }).lean();
 
   let holidayCount = 0;
 
@@ -559,7 +553,7 @@ export const getWeeklyProgressService = async (userId) => {
   const attendance = await Attendance.find({
     user: userId,
     date: { $gte: weekStartUTC, $lte: weekEndUTC },
-  });
+  }).lean();
 
   // console.log("Attendance Records:", attendance.length);
 
@@ -694,25 +688,25 @@ export const hrOverrideAttendanceService = async ({
 }) => {
   const day = parseISTDateOnly(date);
 
-  const user = await User.findById(userId);
+  const [user, record] = await Promise.all([
+    User.findById(userId),
+    WorkRecord.findOne({ user: userId, date: day }),
+  ]);
+  
   if (!user) throw new AppError("User not found", 404);
 
-  /* ======================
-     UPSERT WORK RECORD
-  ====================== */
+  let targetRecord = record;
 
-  let record = await WorkRecord.findOne({ user: userId, date: day });
-
-  if (!record) {
-    record = new WorkRecord({ user: userId, date: day });
+  if (!targetRecord) {
+    targetRecord = new WorkRecord({ user: userId, date: day });
   }
 
   // APPLY OVERRIDES
-  if (punchIn) record.punchIn = new Date(punchIn);
-  if (punchOut) record.punchOut = new Date(punchOut);
+  if (punchIn) targetRecord.punchIn = new Date(punchIn);
+  if (punchOut) targetRecord.punchOut = new Date(punchOut);
 
   if (breaks.length) {
-    record.breaks = breaks.map((b) => ({
+    targetRecord.breaks = breaks.map((b) => ({
       in: new Date(b.in),
       out: b.out ? new Date(b.out) : null,
     }));
@@ -722,9 +716,9 @@ export const hrOverrideAttendanceService = async ({
      AUTO CLOSE BREAKS
   ====================== */
 
-  record.breaks.forEach((b) => {
-    if (!b.out && record.punchOut) {
-      b.out = record.punchOut;
+  targetRecord.breaks.forEach((b) => {
+    if (!b.out && targetRecord.punchOut) {
+      b.out = targetRecord.punchOut;
     }
   });
 
@@ -732,33 +726,33 @@ export const hrOverrideAttendanceService = async ({
      RECALCULATE
   ====================== */
 
-  calcWorkMinutes(record);
+  calcWorkMinutes(targetRecord);
 
   const policy = getWorkPolicy(user.role);
 
   // Late
-  const shiftStart = new Date(record.date);
+  const shiftStart = new Date(targetRecord.date);
   shiftStart.setUTCHours(policy.officeHours.start - 5, 30, 0, 0);
 
-  record.lateMinutes =
-    record.punchIn && record.punchIn > shiftStart
-      ? Math.floor((record.punchIn - shiftStart) / 60000)
+  targetRecord.lateMinutes =
+    targetRecord.punchIn && targetRecord.punchIn > shiftStart
+      ? Math.floor((targetRecord.punchIn - shiftStart) / 60000)
       : 0;
 
   // Overtime
   const requiredMinutes = policy.dailyHours * 60;
-  record.overtimeMinutes =
-    record.netWorkMinutes > requiredMinutes
-      ? record.netWorkMinutes - requiredMinutes
+  targetRecord.overtimeMinutes =
+    targetRecord.netWorkMinutes > requiredMinutes
+      ? targetRecord.netWorkMinutes - requiredMinutes
       : 0;
 
   // Status
-  record.attendanceStatus =
-    status || suggestAttendanceStatus(record.netWorkMinutes, user.role);
+  targetRecord.attendanceStatus =
+    status || suggestAttendanceStatus(targetRecord.netWorkMinutes, user.role);
 
-  record.autoClosed = false; // HR fixed it
+  targetRecord.autoClosed = false; // HR fixed it
 
-  await record.save();
+  await targetRecord.save();
 
   /* ======================
      SYNC ATTENDANCE
@@ -767,7 +761,7 @@ export const hrOverrideAttendanceService = async ({
   await Attendance.findOneAndUpdate(
     { user: userId, date: day },
     {
-      status: record.attendanceStatus,
+      status: targetRecord.attendanceStatus,
       source: "HR",
     },
     { upsert: true },
@@ -779,12 +773,12 @@ export const hrOverrideAttendanceService = async ({
 
   await getWeeklyProgressService(userId);
 
-  return record;
+  return targetRecord;
 };
 
 // ================ GET WORK RECORD BY DATE ================= */
 export const getWorkRecordByDateService = async (userId, date) => {
   const day = parseISTDateOnly(date);
 
-  return WorkRecord.findOne({ user: userId, date: day });
+  return WorkRecord.findOne({ user: userId, date: day }).lean();
 };

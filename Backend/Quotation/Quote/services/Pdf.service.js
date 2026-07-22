@@ -13,6 +13,52 @@ const __dirname = path.dirname(__filename);
 chromium.setHeadlessMode = true;
 chromium.setGraphicsMode = false; // skip GPU rasterization
 
+let cachedBrowser = null;
+
+const getBrowserInstance = async () => {
+  if (cachedBrowser) {
+    try {
+      if (cachedBrowser.isConnected()) return cachedBrowser;
+    } catch (e) {
+      console.log("Cached browser disconnected. Launching a new one...");
+    }
+  }
+
+  if (process.platform === "win32") {
+    const localPuppeteer = await import("puppeteer");
+    cachedBrowser = await localPuppeteer.default.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+  } else {
+    cachedBrowser = await puppeteer.launch({
+      args: [
+        ...chromium.args,
+        "--disable-webgl",
+        "--disable-extensions",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--no-zygote",
+        "--single-process",
+        "--ignore-gpu-blacklist",
+        "--disable-software-rasterizer",
+      ],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  }
+
+  cachedBrowser.on("disconnected", () => {
+    console.log("Puppeteer browser disconnected. Clearing cache.");
+    cachedBrowser = null;
+  });
+
+  return cachedBrowser;
+};
+
 /**
  * Paginate rows by measuring heights
  */
@@ -149,42 +195,12 @@ export const generateQuotePdfBuffer = async ({
     console.timeEnd("PDF | readFiles");
 
     console.time("PDF | launchBrowser");
-
-    let browser;
-    if (process.platform === "win32") {
-      // Running locally on Windows → use normal Puppeteer
-      const localPuppeteer = await import("puppeteer");
-      browser = await localPuppeteer.default.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-    } else {
-      // Running on Render (Linux) → use puppeteer-core + sparticuz chromium
-      browser = await puppeteer.launch({
-        args: [
-          ...chromium.args,
-          "--disable-webgl",
-          "--disable-extensions",
-          "--disable-dev-shm-usage",
-          "--disable-setuid-sandbox",
-          "--disable-gpu",
-          "--no-sandbox",
-          "--no-zygote",
-          "--single-process",
-          "--ignore-gpu-blacklist",
-          "--disable-software-rasterizer",
-        ],
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-      });
-    }
+    const browser = await getBrowserInstance();
     console.timeEnd("PDF | launchBrowser");
 
     console.time("PDF | pagination");
-    const measurementPage = await browser.newPage();
-    const pages = await paginateRowsByHeight(measurementPage, items, css);
-    await measurementPage.close();
+    const page = await browser.newPage();
+    const pages = await paginateRowsByHeight(page, items, css);
     console.timeEnd("PDF | pagination");
 
     const subtotal = items.reduce((t, i) => t + (Number(i.total) || 0), 0);
@@ -223,7 +239,6 @@ export const generateQuotePdfBuffer = async ({
     console.timeEnd("PDF | EJS render");
 
     console.time("PDF | setContent+render");
-    const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
     console.timeEnd("PDF | setContent+render");
 
@@ -237,7 +252,6 @@ export const generateQuotePdfBuffer = async ({
     console.timeEnd("PDF | page.pdf");
 
     await page.close();
-    await browser.close();
 
     console.timeEnd("PDF | TOTAL");
     return Buffer.from(pdfBuffer);

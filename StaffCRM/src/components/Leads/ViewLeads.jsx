@@ -90,9 +90,7 @@ export default function ViewLeads() {
     totalPages,
     search,
     status,
-    proposal,
     setStatus,
-    setProposal,
     setSearch,
     setPage,
     updateStatus,
@@ -121,7 +119,7 @@ export default function ViewLeads() {
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [searchInput]);
+  }, [searchInput, setPage, setSearch]);
 
   /* ================= DELETE ================= */
   const handleDelete = async (id) => {

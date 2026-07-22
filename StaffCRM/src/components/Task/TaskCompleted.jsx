@@ -82,6 +82,7 @@ export default function TaskCompleted() {
         <div className={styles.filterSection}>
           {/* Priority */}
           <select
+            className={styles.filterSelect}
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
           >
@@ -93,11 +94,13 @@ export default function TaskCompleted() {
 
           {/* Date Range */}
           <input
+            className={styles.filterInput}
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
           />
           <input
+            className={styles.filterInput}
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
@@ -160,6 +163,7 @@ export default function TaskCompleted() {
 
                 <td>
                   <select
+                    className={styles.tableSelect}
                     value={task.status}
                     onChange={(e) => changeStatus(task._id, e.target.value)}
                   >

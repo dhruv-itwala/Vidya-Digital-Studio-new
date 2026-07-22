@@ -56,7 +56,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
 
       onSaved();
       toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to save employee");
     } finally {
       setLoading(false);
@@ -121,7 +121,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
       setImageSrc(null);
 
       toast.success("Photo uploaded");
-    } catch (err) {
+    } catch {
       toast.error("Upload failed");
     } finally {
       setUploading(false);

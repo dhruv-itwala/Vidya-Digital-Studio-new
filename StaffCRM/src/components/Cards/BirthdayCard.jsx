@@ -6,8 +6,6 @@ import { useAuth } from "../../context/AuthContext";
 const BirthdayCard = ({ people = [] }) => {
   const { user } = useAuth();
 
-  if (!Array.isArray(people) || people.length === 0) return null;
-
   const today = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
   );
@@ -15,16 +13,15 @@ const BirthdayCard = ({ people = [] }) => {
   const todayDay = today.getDate();
   const todayMonth = today.getMonth();
 
-  const todaysBirthdays = people.filter((person) => {
-    if (!person.dateOfBirth) return false;
-    const dob = new Date(person.dateOfBirth);
-    return dob.getDate() === todayDay && dob.getMonth() === todayMonth;
-  });
-
-  if (todaysBirthdays.length === 0) return null;
+  const todaysBirthdays = (Array.isArray(people) ? people : []).filter(
+    (person) => {
+      if (!person.dateOfBirth) return false;
+      const dob = new Date(person.dateOfBirth);
+      return dob.getDate() === todayDay && dob.getMonth() === todayMonth;
+    },
+  );
 
   const isMyBirthday = todaysBirthdays.some((p) => p.name === user?.name);
-
   const otherBirthdays = todaysBirthdays.filter((p) => p.name !== user?.name);
 
   // 🎉 Confetti only for me
@@ -37,6 +34,9 @@ const BirthdayCard = ({ people = [] }) => {
       });
     }
   }, [isMyBirthday]);
+
+  if (!Array.isArray(people) || people.length === 0) return null;
+  if (todaysBirthdays.length === 0) return null;
 
   return (
     <div className={styles.card}>

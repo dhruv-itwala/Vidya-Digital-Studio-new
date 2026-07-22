@@ -19,7 +19,7 @@ export default function HRHoliday() {
       setLoading(true);
       const res = await getHolidaysAPI();
       setHolidays(res?.data?.data || []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch holidays");
     } finally {
       setLoading(false);
@@ -48,7 +48,7 @@ export default function HRHoliday() {
       toast.success("Holiday added successfully");
       setNewHoliday({ date: "", name: "" });
       fetchHolidays();
-    } catch (error) {
+    } catch {
       toast.error("Failed to add holiday");
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ export default function HRHoliday() {
       setHolidays((prev) => prev.filter((h) => h._id !== id));
       await deleteHolidayAPI(id);
       toast.success("Holiday deleted");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete holiday");
       fetchHolidays(); // rollback
     }

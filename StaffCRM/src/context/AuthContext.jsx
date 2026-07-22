@@ -59,12 +59,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const profile = await fetchProfile();
+        await fetchProfile();
         await fetchAllUsers();
         await fetchBirthdays();
-        if (["admin", "hr"].includes(profile.role)) {
-          await fetchAllUsers();
-        }
       } catch {
         logout();
       } finally {
@@ -114,4 +111,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

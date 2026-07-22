@@ -38,7 +38,7 @@ export default function ViewClients() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [localSearch]);
+  }, [localSearch, setPage, setSearch]);
 
   /* ================= DELETE ================= */
   const handleDelete = async (id) => {

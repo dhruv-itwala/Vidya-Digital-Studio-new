@@ -10,7 +10,7 @@ export const createLeadService = async (data, userId) => {
 
   // Optional duplicate prevention (email + phone)
   if (data.email || data.phone) {
-    const existing = await Lead.findOne({
+    const existing = await Lead.exists({
       $or: [{ email: data.email || null }, { phone: data.phone || null }],
     });
 
@@ -66,7 +66,8 @@ export const getAllLeadsService = async ({
       .populate("createdBy", "name email")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit),
+      .limit(limit)
+      .lean(),
     Lead.countDocuments(query),
   ]);
 
@@ -86,7 +87,8 @@ export const getLeadByIdService = async (leadId) => {
 
   const lead = await Lead.findById(leadId)
     .populate("createdBy", "name email")
-    .populate("meetingNotes.addedBy", "name");
+    .populate("meetingNotes.addedBy", "name")
+    .lean();
 
   if (!lead) throw new AppError("Lead not found", 404);
 

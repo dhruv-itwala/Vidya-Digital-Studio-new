@@ -22,21 +22,21 @@
   font-size: 14px;
 }
 
-th,
-td {
+.table th,
+.table td {
   padding: 12px;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
 }
 
-th {
+.table th {
   background: #f9fafb;
   font-weight: 600;
   font-size: 13px;
   text-transform: uppercase;
 }
 
-tbody tr:hover {
+.table tbody tr:hover {
   background: #f3f4f6;
 }
 
@@ -86,4 +86,19 @@ tbody tr:hover {
 .controls button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.tableSelect {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+  width: 100%;
+  max-width: 120px;
+  background-color: white;
+  outline: none;
+}
+
+.tableSelect:focus {
+  border-color: var(--color-primary);
 }

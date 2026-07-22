@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import crypto from "crypto";
 
 // Cron Jobs
 import "./config/cron.config.js";
@@ -29,6 +30,7 @@ import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
 import ugcCreatorRoutes from "./StaffCRM/UGCCreators/UGCCreators.routes.js";
 import loggerRoutes from "./logger/Logger.routes.js";
+import auditLogRoutes from "./StaffCRM/AuditLog/AuditLog.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 
@@ -40,12 +42,14 @@ const VERSION = process.env.VERSION || "v1.0";
 connectDB();
 
 // Middleware
-app.use(cors(corsOptions));
+app.use(cors("*"));
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
+  req.requestId = crypto.randomUUID();
+  req.startTime = Date.now();
+  console.log(`📨 [${req.requestId}] ${req.method} ${req.url}`);
   next();
 });
 
@@ -104,6 +108,9 @@ app.use(`/api/${VERSION}/ugccreators`, ugcCreatorRoutes);
 
 // Logger Routes
 app.use(`/api/${VERSION}/logs`, loggerRoutes);
+
+// Audit Log Routes
+app.use(`/api/${VERSION}/audit-logs`, auditLogRoutes);
 
 app.use(globalErrorHandler);
 

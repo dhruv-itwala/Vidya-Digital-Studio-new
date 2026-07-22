@@ -17,8 +17,6 @@ export default function Log() {
 
       const res = await getAllLogsAPI();
       setLogs(res.data.data || []);
-
-      setLogs(data.data || []);
     } catch (err) {
       console.error("Error fetching logs", err);
     } finally {

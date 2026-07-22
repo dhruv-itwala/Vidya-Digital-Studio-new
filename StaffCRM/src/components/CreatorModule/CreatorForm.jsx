@@ -71,6 +71,7 @@ export default function CreatorForm({
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const selectedTypes = watch("contentTypes") || [];
 
   useEffect(() => {

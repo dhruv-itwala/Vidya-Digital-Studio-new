@@ -18,9 +18,6 @@ export default function ClientForm({ mode = "view", initialData = null }) {
     updateClient,
     uploadDocument,
     deleteDocument,
-    addTransaction,
-    updateTransaction,
-    deleteTransaction,
     addCredential,
     deleteCredential,
   } = useClients();
@@ -112,6 +109,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
     try {
       setLoading(true);
 
+      // eslint-disable-next-line no-unused-vars
       const { credentials, documents, transactions, ...rest } = form;
 
       const finalData = { ...rest };

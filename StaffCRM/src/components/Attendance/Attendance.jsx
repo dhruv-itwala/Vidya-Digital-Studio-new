@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   getAllEmployeesAttendanceAPI,
   getLiveEmployeesStatusAPI,
@@ -66,7 +66,7 @@ export default function Attendance() {
     ).padStart(2, "0")}m`;
 
   /* ================= DAILY ================= */
-  const fetchDaily = async () => {
+  const fetchDaily = useCallback(async () => {
     try {
       setDailyLoading(true);
       const res = await getAllEmployeesAttendanceAPI(date);
@@ -76,10 +76,11 @@ export default function Attendance() {
     } finally {
       setDailyLoading(false);
     }
-  };
+  }, [date]);
 
   useEffect(() => {
     if (open.daily) fetchDaily();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, open.daily]);
 
   const updateStatus = async (id, status) => {
@@ -93,14 +94,14 @@ export default function Attendance() {
   };
 
   /* ================= LIVE ================= */
-  const fetchLive = async () => {
+  const fetchLive = useCallback(async () => {
     try {
       const res = await getLiveEmployeesStatusAPI(liveDate);
       setLive(res.data.data || []);
     } catch {
       toast.error("Failed to load live status");
     }
-  };
+  }, [liveDate]);
 
   useEffect(() => {
     if (!open.live) return;
@@ -126,6 +127,7 @@ export default function Attendance() {
       clearInterval(liveFetchRef.current);
       clearInterval(liveTickRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open.live, liveDate]);
 
   /* ================= RANGE ================= */
@@ -250,7 +252,7 @@ export default function Attendance() {
                           <td>
                             <select
                               value={e.status}
-                              className={styles[e.status?.toLowerCase()]}
+                              className={`${styles.tableSelect} ${styles[e.status?.toLowerCase()]}`}
                               onChange={(ev) =>
                                 updateStatus(e._id, ev.target.value)
                               }

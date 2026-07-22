@@ -35,7 +35,7 @@ export default function AllQuotations() {
     try {
       await deleteQuoteAPI(id);
       setQuotes((prev) => prev.filter((q) => q._id !== id));
-    } catch (err) {
+    } catch {
       alert("Failed to delete quotation");
     }
   };

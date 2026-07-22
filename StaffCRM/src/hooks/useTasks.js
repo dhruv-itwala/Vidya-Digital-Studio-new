@@ -22,7 +22,7 @@ export const useTasks = (role) => {
 
       const res = await api();
       setTasks(res.data || []);
-    } catch (err) {
+    } catch {
       setError("Failed to load tasks");
     } finally {
       setLoading(false);

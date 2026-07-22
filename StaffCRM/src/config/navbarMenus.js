@@ -1,7 +1,11 @@
 export const NAVBAR_MENUS = {
   admin: [
     //General
-    { label: "Dashboard", path: "/admin/dashboard" },
+    // { label: "Dashboard", path: "/admin/dashboard" },
+    { label: "Work Dashboard", path: "/admin/work-dashboard" },
+    // { label: "Profile", path: "/admin/profile" },
+    // { label: "Leaves", path: "/admin/leaves" },
+    // { label: "To Do List", path: "/admin/todo" },
 
     "divider",
     // Influencers and creators
@@ -21,7 +25,7 @@ export const NAVBAR_MENUS = {
     { label: "Tasks", path: "/admin/tasks" },
     { label: "Holidays", path: "/admin/holidays" },
     { label: "Reports", path: "/admin/reports" },
-    { label: "Leave Approvals", path: "/admin/leaves" },
+    { label: "Leave Approvals", path: "/admin/leave-approval" },
   ],
 
   employee: [

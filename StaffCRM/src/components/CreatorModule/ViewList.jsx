@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { BiSearch, BiChevronLeft, BiChevronRight } from "react-icons/bi";
@@ -28,7 +28,7 @@ export default function ViewList({ title = "Creators", getAPI }) {
     return () => clearTimeout(t);
   }, [search]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -44,18 +44,18 @@ export default function ViewList({ title = "Creators", getAPI }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, getAPI]);
 
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, [fetchData]);
 
   const filteredData = data
     .filter((d) => {
       const matchType =
         filterType === "all" || d.contentTypes?.includes(filterType);
 
-      const q = search.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       const matchSearch = !q || d.name?.toLowerCase().includes(q);
 
       const followers = Number(d.followers || 0);
@@ -241,7 +241,7 @@ export default function ViewList({ title = "Creators", getAPI }) {
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
-              <tr>
+              <tr className={styles.headerRow}>
                 <th>Name</th>
                 <th>Instagram</th>
                 <th>Followers</th>

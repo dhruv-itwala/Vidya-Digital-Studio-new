@@ -14,12 +14,12 @@ cron.schedule("59 23 * * *", async () => {
   const users = await User.find({
     role: { $ne: "admin" },
     isActive: true,
-  });
+  }).lean();
 
   // ===== FIND HOLIDAYS =====
   const holidays = await Holiday.find({
     date: { $gte: weekStartUTC, $lte: weekEndUTC },
-  });
+  }).lean();
 
   let holidayCount = 0;
 
@@ -32,48 +32,56 @@ cron.schedule("59 23 * * *", async () => {
 
   const requiredSeconds = (48 - holidayCount * 8) * 60 * 60;
 
-  for (const user of users) {
-    const records = await WorkRecord.find({
-      user: user._id,
-      date: { $gte: weekStartUTC, $lte: weekEndUTC },
-    });
+  // Batch process users to prevent MongoDB connection saturation
+  const BATCH_SIZE = 15;
+  for (let i = 0; i < users.length; i += BATCH_SIZE) {
+    const batch = users.slice(i, i + BATCH_SIZE);
 
-    let totalSeconds = 0;
+    await Promise.all(
+      batch.map(async (user) => {
+        const records = await WorkRecord.find({
+          user: user._id,
+          date: { $gte: weekStartUTC, $lte: weekEndUTC },
+        }).lean();
 
-    for (const record of records) {
-      if (!record.punchIn) continue;
+        let totalSeconds = 0;
 
-      const endTime = record.punchOut ?? new Date();
+        for (const record of records) {
+          if (!record.punchIn) continue;
 
-      const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
+          const endTime = record.punchOut ?? new Date();
 
-      totalSeconds += workedSeconds;
-    }
+          const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
 
-    const weekFinished = new Date() > weekEndUTC;
+          totalSeconds += workedSeconds;
+        }
 
-    let status = "IN_PROGRESS";
+        const weekFinished = new Date() > weekEndUTC;
 
-    if (totalSeconds >= requiredSeconds) {
-      status = "COMPLETED";
-    } else if (weekFinished) {
-      status = "DEFICIT";
-    }
+        let status = "IN_PROGRESS";
 
-    const totalMinutes = Math.floor(totalSeconds / 60);
+        if (totalSeconds >= requiredSeconds) {
+          status = "COMPLETED";
+        } else if (weekFinished) {
+          status = "DEFICIT";
+        }
 
-    await weeklyWork.findOneAndUpdate(
-      {
-        user: user._id,
-        weekStart: weekStartUTC,
-      },
-      {
-        weekEnd: weekEndUTC,
-        totalMinutes,
-        requiredMinutes: requiredSeconds / 60,
-        status,
-      },
-      { upsert: true },
+        const totalMinutes = Math.floor(totalSeconds / 60);
+
+        await weeklyWork.findOneAndUpdate(
+          {
+            user: user._id,
+            weekStart: weekStartUTC,
+          },
+          {
+            weekEnd: weekEndUTC,
+            totalMinutes,
+            requiredMinutes: requiredSeconds / 60,
+            status,
+          },
+          { upsert: true }
+        );
+      })
     );
   }
 

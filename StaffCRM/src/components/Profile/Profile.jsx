@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getInitials } from "../../utils/name.util";
 
 import styles from "./Profile.module.css";
-import { useState } from "react";
+
 
 export default function Profile() {
   const { user, loading } = useAuth();

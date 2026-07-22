@@ -15,6 +15,8 @@ import {
 import { signToken } from "../utils/jwt.util.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import AppError from "../utils/AppError.js";
+import { logActivity, captureBeforeState } from "../AuditLog/AuditLog.service.js";
+import User from "./user.model.js";
 
 /* ================= AUTH ================= */
 export const login = asyncHandler(async (req, res) => {
@@ -29,6 +31,17 @@ export const login = asyncHandler(async (req, res) => {
   const token = signToken({
     id: user._id,
     role: user.role,
+  });
+
+  logActivity({
+    req,
+    user,
+    category: "Authentication",
+    module: "Users",
+    action: "LOGIN",
+    entityId: user._id,
+    entityName: user.name,
+    description: `${user.name} logged in`,
   });
 
   res.json({
@@ -58,6 +71,17 @@ export const getProfile = asyncHandler(async (req, res) => {
 export const createUser = asyncHandler(async (req, res) => {
   const user = await createUserService(req.body);
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    module: "Users",
+    action: "CREATE",
+    entityId: user._id,
+    entityName: user.name,
+    description: `${req.user.name} created user '${user.name}'`,
+  });
+
   res.status(201).json({
     success: true,
     message: "User created successfully",
@@ -67,7 +91,21 @@ export const createUser = asyncHandler(async (req, res) => {
 
 /* ================= UPDATE USER ================= */
 export const updateUser = asyncHandler(async (req, res) => {
+  const beforeDoc = await captureBeforeState(User, req.params.id);
   const user = await updateUserService(req.user, req.params.id, req.body);
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    severity: "WARNING",
+    module: "Users",
+    action: "UPDATE",
+    entityId: user._id,
+    entityName: user.name,
+    description: `${req.user.name} updated user '${user.name}'`,
+    changes: { before: beforeDoc, after: user },
+  });
 
   res.json({
     success: true,
@@ -80,6 +118,18 @@ export const updateUser = asyncHandler(async (req, res) => {
 export const inactiveUser = asyncHandler(async (req, res) => {
   const user = await inactiveUserService(req.user, req.params.id);
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    severity: "WARNING",
+    module: "Users",
+    action: "STATUS_CHANGE",
+    entityId: user._id,
+    entityName: user.name,
+    description: `${req.user.name} ${user.isActive ? "activated" : "deactivated"} user '${user.name}'`,
+  });
+
   res.json({
     success: true,
     message: `User ${user.isActive ? "activated" : "deactivated"} successfully`,
@@ -90,6 +140,17 @@ export const inactiveUser = asyncHandler(async (req, res) => {
 /* ================= DELETE USER ================= */
 export const deleteUser = asyncHandler(async (req, res) => {
   const result = await deleteUserService(req.user, req.params.id);
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    severity: "CRITICAL",
+    module: "Users",
+    action: "DELETE",
+    entityId: req.params.id,
+    description: `${req.user.name} deleted a user permanently`,
+  });
 
   res.json({
     success: true,
@@ -143,6 +204,17 @@ export const getDashboardOverview = asyncHandler(async (req, res) => {
 /* ================= PROFILE PHOTO ================= */
 export const uploadProfilePhoto = asyncHandler(async (req, res) => {
   const user = await uploadProfilePhotoService(req.params.id, req.file);
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    module: "Users",
+    action: "UPLOAD_PHOTO",
+    entityId: user._id,
+    entityName: user.name,
+    description: `${req.user.name} updated profile photo for '${user.name}'`,
+  });
 
   res.json({
     success: true,

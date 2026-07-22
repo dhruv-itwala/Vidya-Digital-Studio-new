@@ -11,9 +11,7 @@ const SeniorDashboard = () => {
   const {
     leads,
     clients,
-    revenue,
     attendance,
-    recentPayments,
     upcomingMeetings,
   } = data;
 

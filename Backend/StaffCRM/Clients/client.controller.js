@@ -1,5 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import * as ClientService from "./Client.service.js";
+import { logActivity, captureBeforeState } from "../AuditLog/AuditLog.service.js";
+import Client from "./Client.model.js";
 
 /* ================= CREATE ================= */
 export const createClient = asyncHandler(async (req, res) => {
@@ -8,6 +10,17 @@ export const createClient = asyncHandler(async (req, res) => {
     req.user._id,
     req.file,
   );
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    module: "Clients",
+    action: "CREATE",
+    entityId: client._id,
+    entityName: client.companyName || client.clientName,
+    description: `${req.user.name} created Client '${client.companyName || client.clientName}'`,
+  });
 
   res.status(201).json({
     success: true,
@@ -42,11 +55,24 @@ export const getClientById = asyncHandler(async (req, res) => {
 
 /* ================= UPDATE CLIENT ================= */
 export const updateClient = asyncHandler(async (req, res) => {
+  const beforeDoc = await captureBeforeState(Client, req.params.id);
   const updated = await ClientService.updateClientService(
     req.params.id,
     req.body,
     req.file,
   );
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    module: "Clients",
+    action: "UPDATE",
+    entityId: updated._id,
+    entityName: updated.companyName || updated.clientName,
+    description: `${req.user.name} updated Client '${updated.companyName || updated.clientName}'`,
+    changes: { before: beforeDoc, after: updated },
+  });
 
   res.status(200).json({
     success: true,
@@ -59,6 +85,17 @@ export const updateClient = asyncHandler(async (req, res) => {
 export const toggleClientStatus = asyncHandler(async (req, res) => {
   const result = await ClientService.toggleClientStatusService(req.params.id);
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    severity: "WARNING",
+    module: "Clients",
+    action: "STATUS_CHANGE",
+    entityId: req.params.id,
+    description: `${req.user.name} toggled active status for Client`,
+  });
+
   res.status(200).json({
     success: true,
     message: "Client status toggled successfully",
@@ -69,6 +106,17 @@ export const toggleClientStatus = asyncHandler(async (req, res) => {
 /* ================= DELETE CLIENT ================= */
 export const deleteClient = asyncHandler(async (req, res) => {
   await ClientService.deleteClientService(req.params.id);
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    severity: "CRITICAL",
+    module: "Clients",
+    action: "DELETE",
+    entityId: req.params.id,
+    description: `${req.user.name} deleted a Client permanently`,
+  });
+
   res.status(200).json({
     success: true,
     message: "Client deleted successfully",
@@ -82,6 +130,18 @@ export const addCredential = asyncHandler(async (req, res) => {
     req.body,
   );
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    severity: "SECURITY",
+    module: "Clients",
+    action: "UPDATE",
+    entityId: updated._id,
+    description: `${req.user.name} added credentials for Client`,
+    changes: { after: req.body },
+  });
+
   res.status(200).json({
     success: true,
     message: "Credential added",
@@ -91,11 +151,24 @@ export const addCredential = asyncHandler(async (req, res) => {
 
 /* ================= UPDATE CREDENTIAL ================= */
 export const updateCredential = asyncHandler(async (req, res) => {
+  const beforeDoc = await captureBeforeState(Client, req.params.id);
   const updated = await ClientService.updateCredentialService(
     req.params.id,
     req.params.credId,
     req.body,
   );
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    severity: "SECURITY",
+    module: "Clients",
+    action: "UPDATE",
+    entityId: updated._id,
+    description: `${req.user.name} updated credentials for Client`,
+    changes: { before: beforeDoc, after: updated },
+  });
 
   res.status(200).json({
     success: true,
@@ -111,6 +184,17 @@ export const deleteCredential = asyncHandler(async (req, res) => {
     req.params.credId,
   );
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    severity: "SECURITY",
+    module: "Clients",
+    action: "DELETE",
+    entityId: updated._id,
+    description: `${req.user.name} deleted credentials for Client`,
+  });
+
   res.status(200).json({
     success: true,
     message: "Credential deleted",
@@ -125,6 +209,18 @@ export const addTransaction = asyncHandler(async (req, res) => {
     req.body,
   );
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "Finance",
+    severity: "WARNING",
+    module: "Clients",
+    action: "UPDATE",
+    entityId: updated._id,
+    description: `${req.user.name} added a transaction for Client`,
+    changes: { after: req.body },
+  });
+
   res.status(200).json({
     success: true,
     message: "Transaction added",
@@ -134,11 +230,24 @@ export const addTransaction = asyncHandler(async (req, res) => {
 
 /* ================= UPDATE TRANSACTION ================= */
 export const updateTransaction = asyncHandler(async (req, res) => {
+  const beforeDoc = await captureBeforeState(Client, req.params.id);
   const updated = await ClientService.updateTransactionService(
     req.params.id,
     req.params.txnId,
     req.body,
   );
+  logActivity({
+    req,
+    user: req.user,
+    category: "Finance",
+    severity: "WARNING",
+    module: "Clients",
+    action: "UPDATE",
+    entityId: updated._id,
+    description: `${req.user.name} updated a transaction for Client`,
+    changes: { before: beforeDoc, after: updated },
+  });
+
   res.status(200).json({
     success: true,
     message: "Transaction updated",
@@ -152,6 +261,17 @@ export const deleteTransaction = asyncHandler(async (req, res) => {
     req.params.id,
     req.params.txnId,
   );
+  logActivity({
+    req,
+    user: req.user,
+    category: "Finance",
+    severity: "WARNING",
+    module: "Clients",
+    action: "DELETE",
+    entityId: updated._id,
+    description: `${req.user.name} deleted a transaction for Client`,
+  });
+
   res.status(200).json({
     success: true,
     message: "Transaction deleted",
@@ -166,6 +286,16 @@ export const addDocument = asyncHandler(async (req, res) => {
     req.file,
   );
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    module: "Clients",
+    action: "UPDATE",
+    entityId: updated._id,
+    description: `${req.user.name} uploaded a document for Client`,
+  });
+
   res.status(200).json({
     success: true,
     message: "Document uploaded",
@@ -179,6 +309,17 @@ export const deleteDocument = asyncHandler(async (req, res) => {
     req.params.id,
     req.params.publicId, // 👈 FIXED
   );
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "CRM",
+    severity: "WARNING",
+    module: "Clients",
+    action: "DELETE",
+    entityId: updated._id,
+    description: `${req.user.name} deleted a document for Client`,
+  });
 
   res.status(200).json({
     success: true,

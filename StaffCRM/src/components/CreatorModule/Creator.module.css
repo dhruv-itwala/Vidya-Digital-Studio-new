@@ -189,6 +189,11 @@
 .btnDelete {
   cursor: pointer;
   justify-content: center;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .btnEdit {
@@ -197,10 +202,18 @@
   color: var(--color-primary) !important;
 }
 
+.btnEdit:hover {
+  background: #f0f0f0;
+}
+
 .btnDelete {
   border: 1px solid #f5dddd;
   background: #fff8f8;
   color: #c0392b;
+}
+
+.btnDelete:hover {
+  background: #fce8e8;
 }
 
 /* Stats */
@@ -373,6 +386,8 @@
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .drawerFooter {

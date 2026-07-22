@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   getMyTasksAPI,
@@ -26,11 +26,7 @@ export default function EmployeeTasks({
 
   /* ================= LOAD TASKS ================= */
 
-  useEffect(() => {
-    if (showTasks) loadTasks();
-  }, [showTasks]);
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       const res = await getMyTasksAPI();
       setTasks(res.data || []);
@@ -38,7 +34,12 @@ export default function EmployeeTasks({
       console.error(err);
       toast.error("Failed to load tasks");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (showTasks) loadTasks();
+  }, [showTasks, loadTasks]);
 
   /* ================= ACTIONS ================= */
 

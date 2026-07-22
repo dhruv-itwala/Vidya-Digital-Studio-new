@@ -17,6 +17,7 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
 
   useEffect(() => {
     if (task) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         name: task.name || "",
         details: task.details || "",

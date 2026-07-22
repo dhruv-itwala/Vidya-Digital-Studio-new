@@ -6,7 +6,7 @@ import styles from "./EmployeeAttendance.module.css";
 
 export default function EmployeeAttendance() {
   const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   /* ================= FETCH ================= */

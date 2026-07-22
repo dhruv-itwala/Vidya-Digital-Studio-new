@@ -140,6 +140,21 @@
   color: #6b7280;
 }
 
+.tableSelect {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+  width: 100%;
+  max-width: 120px;
+  background-color: white;
+  outline: none;
+}
+
+.tableSelect:focus {
+  border-color: var(--color-primary);
+}
+
 /* Status colors */
 .on_break {
   color: #f59e0b;

@@ -234,6 +234,21 @@
   color: #64748b;
 }
 
+.tableSelect {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+  width: 100%;
+  max-width: 120px;
+  background-color: white;
+  outline: none;
+}
+
+.tableSelect:focus {
+  border-color: var(--color-primary);
+}
+
 /* ================= PRIORITY ================= */
 .priority {
   padding: 4px 8px;
@@ -391,6 +406,21 @@
   font-weight: 800;
   color: #020617;
   margin-bottom: 6px;
+}
+
+.filterSelect,
+.filterInput {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+  background-color: white;
+  outline: none;
+}
+
+.filterSelect:focus,
+.filterInput:focus {
+  border-color: var(--color-primary);
 }
 
 /* ================= PILLS ================= */

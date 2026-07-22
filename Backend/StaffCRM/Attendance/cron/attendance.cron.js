@@ -16,7 +16,12 @@ cron.schedule("0 0 * * *", async () => {
     date: yesterday,
     punchIn: { $exists: true },
     punchOut: { $exists: false },
-  });
+  }).lean();
+
+  if (records.length === 0) return;
+
+  const workRecordOps = [];
+  const attendanceOps = [];
 
   for (const record of records) {
     // Auto-close at midnight
@@ -26,16 +31,32 @@ cron.schedule("0 0 * * *", async () => {
     record.breaks.forEach((b) => !b.out && (b.out = record.punchOut));
 
     calcWorkMinutes(record);
-    await record.save();
 
-    await Attendance.findOneAndUpdate(
-      { user: record.user, date: record.date },
-      {
-        status: "INCOMPLETE", // 🔥 KEY
-        source: "SYSTEM",
-        remarks: "Auto closed at midnight (forgot punch-out)",
+    workRecordOps.push({
+      updateOne: {
+        filter: { _id: record._id },
+        update: { $set: record },
       },
-      { upsert: true },
-    );
+    });
+
+    attendanceOps.push({
+      updateOne: {
+        filter: { user: record.user, date: record.date },
+        update: {
+          $set: {
+            status: "INCOMPLETE", // 🔥 KEY
+            source: "SYSTEM",
+            remarks: "Auto closed at midnight (forgot punch-out)",
+          },
+        },
+        upsert: true,
+      },
+    });
   }
+
+  // Execute bulk writes concurrently
+  await Promise.all([
+    WorkRecord.bulkWrite(workRecordOps),
+    Attendance.bulkWrite(attendanceOps),
+  ]);
 });

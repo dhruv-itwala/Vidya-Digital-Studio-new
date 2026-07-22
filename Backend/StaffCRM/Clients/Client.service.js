@@ -122,7 +122,7 @@ export const getClientByIdService = async (clientId) => {
   const client = await Client.findById(clientId).populate(
     "createdBy",
     "name email",
-  );
+  ).lean();
 
   if (!client) throw new AppError("Client not found", 404);
 
@@ -178,14 +178,15 @@ export const toggleClientStatusService = async (clientId) => {
     throw new AppError("Invalid client id", 400);
   }
 
-  const client = await Client.findById(clientId);
+  const client = await Client.findByIdAndUpdate(
+    clientId,
+    [{ $set: { isActive: { $not: "$isActive" } } }],
+    { new: true, runValidators: true }
+  );
 
   if (!client) {
     throw new AppError("Client not found", 404);
   }
-
-  client.isActive = !client.isActive;
-  await client.save();
 
   return {
     clientId: client._id,
@@ -223,13 +224,13 @@ export const addCredentialService = async (clientId, credentialData) => {
     throw new AppError("Invalid client id", 400);
   }
 
-  const client = await Client.findById(clientId);
+  const client = await Client.findByIdAndUpdate(
+    clientId,
+    { $push: { credentials: credentialData } },
+    { new: true, runValidators: true }
+  );
+
   if (!client) throw new AppError("Client not found", 404);
-
-  // Store password as plain text
-  client.credentials.push(credentialData);
-
-  await client.save();
 
   return client;
 };
@@ -305,16 +306,17 @@ export const addTransactionService = async (clientId, transactionData) => {
     throw new AppError("Invalid client id", 400);
   }
 
-  const client = await Client.findById(clientId);
-  if (!client) throw new AppError("Client not found", 404);
-
-  // ✅ Normalize date if provided
   if (transactionData.date) {
     transactionData.date = parseIST(transactionData.date);
   }
 
-  client.transactions.push(transactionData);
-  await client.save();
+  const client = await Client.findByIdAndUpdate(
+    clientId,
+    { $push: { transactions: transactionData } },
+    { new: true, runValidators: true }
+  );
+
+  if (!client) throw new AppError("Client not found", 404);
 
   return client;
 };

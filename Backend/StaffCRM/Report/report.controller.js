@@ -14,10 +14,22 @@ import {
 } from "./reportPdf.service.js";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { logActivity, captureBeforeState } from "../AuditLog/AuditLog.service.js";
+import Report from "./report.model.js";
 
 // ============== SUBMIT REPORT =======================
 export const submitReport = asyncHandler(async (req, res) => {
   const report = await submitReportService(req.user.id, req.body.workPoints);
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "Reports",
+    module: "Reports",
+    action: "CREATE",
+    entityId: report._id,
+    description: `${req.user.name} submitted their daily report`,
+  });
 
   res.status(201).json({
     success: true,
@@ -29,8 +41,20 @@ export const submitReport = asyncHandler(async (req, res) => {
 // ============== UPDATE REPORT =======================
 export const updateReport = asyncHandler(async (req, res) => {
   const { workPoints } = req.body;
+  const beforeDoc = await captureBeforeState(Report, req.params.id);
 
   const report = await updateReportService(req.params.id, req.user, workPoints);
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "Reports",
+    module: "Reports",
+    action: "UPDATE",
+    entityId: report._id,
+    description: `${req.user.name} updated their daily report`,
+    changes: { before: beforeDoc, after: report }
+  });
 
   res.json({
     success: true,

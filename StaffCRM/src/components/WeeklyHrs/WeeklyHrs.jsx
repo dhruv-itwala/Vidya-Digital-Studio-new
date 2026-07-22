@@ -3,7 +3,7 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
 const WeeklyHrs = ({ attendance }) => {
-  const { weeklySeconds, weeklyStatus } = attendance;
+  const { weeklySeconds } = attendance;
   const REQUIRED_SECONDS = attendance.weeklyRequiredSeconds;
 
   const percentage = Math.min((weeklySeconds / REQUIRED_SECONDS) * 100, 100);

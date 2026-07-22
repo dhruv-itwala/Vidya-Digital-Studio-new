@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BiSearch,
   BiPlus,
@@ -34,22 +34,22 @@ export default function CreatorList({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getAPI({ page, limit: pagelimit });
       setData(res.data.data);
       setTotalPages(res.data.pages);
-    } catch (err) {
+    } catch {
       toast.error(`Failed to load ${title}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pagelimit, getAPI, title]);
 
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, [fetchData]);
 
   const handleAdd = () => {
     setEditItem(null);

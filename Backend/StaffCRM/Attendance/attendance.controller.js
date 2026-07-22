@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import * as service from "./attendance.service.js";
 import { downloadAttendancePDFService } from "./pdf/attendancePdf.service.js";
 import { downloadAttendanceWithPunchPDFService } from "./pdf/attendancePdfWithPunch.js";
+import { logActivity } from "../AuditLog/AuditLog.service.js";
 
 // ================= TODAY WORK RECORD ================= */
 export const getTodayWorkRecord = asyncHandler(async (req, res) => {
@@ -13,12 +14,28 @@ export const getTodayWorkRecord = asyncHandler(async (req, res) => {
 // ================= PUNCH IN ================= */
 export const punchIn = asyncHandler(async (req, res) => {
   const data = await service.punchInService(req.user.id);
+  logActivity({
+    req,
+    user: req.user,
+    category: "Attendance",
+    module: "Attendance",
+    action: "PUNCH_IN",
+    description: `${req.user.name} punched in`,
+  });
   res.json({ success: true, data });
 });
 
 // ================= PUNCH OUT ================= */
 export const punchOut = asyncHandler(async (req, res) => {
   const data = await service.punchOutService(req.user.id);
+  logActivity({
+    req,
+    user: req.user,
+    category: "Attendance",
+    module: "Attendance",
+    action: "PUNCH_OUT",
+    description: `${req.user.name} punched out`,
+  });
   res.json({ success: true, data });
 });
 
@@ -78,6 +95,17 @@ export const markAttendanceStatus = asyncHandler(async (req, res) => {
     status,
   );
 
+  logActivity({
+    req,
+    user: req.user,
+    category: "Attendance",
+    severity: "WARNING",
+    module: "Attendance",
+    action: "STATUS_CHANGE",
+    entityId: userId,
+    description: `${req.user.name} manually marked attendance status as '${status}'`,
+  });
+
   res.json({
     success: true,
     message: "Attendance updated",
@@ -113,6 +141,16 @@ export const downloadAttendanceWithPunchPDF = asyncHandler(async (req, res) => {
 export const deleteAttendanceById = asyncHandler(async (req, res) => {
   const { attendanceId } = req.params;
   await service.deleteAttendanceByIdService(attendanceId);
+  logActivity({
+    req,
+    user: req.user,
+    category: "Attendance",
+    severity: "CRITICAL",
+    module: "Attendance",
+    action: "DELETE",
+    entityId: attendanceId,
+    description: `${req.user.name} deleted an attendance record`,
+  });
   res.json({ success: true, message: "Attendance record deleted" });
 });
 
@@ -139,6 +177,17 @@ export const getAllUsersWeeklyProgress = asyncHandler(async (req, res) => {
 // ================ HR OVERRIDE ATTENDANCE ================= */
 export const hrOverrideAttendance = asyncHandler(async (req, res) => {
   const data = await service.hrOverrideAttendanceService(req.body);
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    severity: "WARNING",
+    module: "Attendance",
+    action: "UPDATE",
+    description: `${req.user.name} applied HR override for attendance`,
+    changes: { after: req.body }
+  });
 
   res.json({
     success: true,

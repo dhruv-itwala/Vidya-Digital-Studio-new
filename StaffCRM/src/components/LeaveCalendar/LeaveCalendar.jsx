@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAllLeavesAPI } from "../../api/leave.api";
 import { getHolidaysAPI } from "../../api/holiday.api";
-import { getEmployeeBirthdaysAPI } from "../../api/admin.api";
 import styles from "./LeaveCalendar.module.css";
 import { useAuth } from "../../context/AuthContext";
 

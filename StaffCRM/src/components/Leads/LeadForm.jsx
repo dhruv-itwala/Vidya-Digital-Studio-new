@@ -64,7 +64,7 @@ export default function LeadForm({ mode = "create", initialData = null }) {
           })) || [],
       });
     }
-  }, [initialData]);
+  }, [initialData, isEdit]);
 
   /* ================= HANDLE CHANGE ================= */
   const handleChange = (e) => {

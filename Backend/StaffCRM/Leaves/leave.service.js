@@ -32,7 +32,7 @@ export const applyLeaveService = async (userId, data) => {
   }
 
   // ❌ Holiday check (range based)
-  const holiday = await holidayModel.findOne({
+  const holiday = await holidayModel.exists({
     date: { $gte: fromDate, $lte: toDate },
   });
 
@@ -41,7 +41,7 @@ export const applyLeaveService = async (userId, data) => {
   }
 
   // ❌ Overlapping leave check
-  const overlapping = await leavesModel.findOne({
+  const overlapping = await leavesModel.exists({
     user: userId,
     status: { $in: ["PENDING", "APPROVED"] },
     fromDate: { $lte: toDate },

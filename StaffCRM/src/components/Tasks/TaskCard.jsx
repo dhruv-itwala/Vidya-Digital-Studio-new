@@ -1,12 +1,7 @@
-import { useAuth } from "../../context/AuthContext";
 import TaskStatusBadge from "./TaskStatusBadge";
 import styles from "./Task.module.css";
-import { getDueStatus } from "../../utils/date.util";
 
 export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
-  const { user } = useAuth();
-  const dueStatus = getDueStatus(task.endDate);
-
   // Everyone can edit
   const canEdit = true;
   const canDelete = true;

@@ -22,7 +22,8 @@ export const getMyTasksService = async (userId) => {
   })
     .populate("assignedTo", "name email")
     .populate("createdBy.user", "name email")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 };
 
 // ================= GET COMPLETED TASKS =================
@@ -33,7 +34,8 @@ export const getMyCompletedTasksService = async (userId) => {
   })
     .populate("assignedTo", "name email")
     .populate("createdBy.user", "name email")
-    .sort({ updatedAt: -1 }); // completed recently first
+    .sort({ updatedAt: -1 })
+    .lean(); // completed recently first
 };
 
 // ================= GET ALL TASKS (ADMIN/HR) =================
@@ -41,7 +43,8 @@ export const getAllTasksService = async () => {
   return Task.find()
     .populate("assignedTo", "name email")
     .populate("createdBy.user", "name email")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 };
 
 // ================= UPDATE =================
@@ -76,11 +79,12 @@ export const updateTaskService = async (taskId, data, user) => {
 
 // ================= UPDATE STATUS =================
 export const updateTaskStatusService = async (taskId, status) => {
-  const task = await Task.findById(taskId);
+  const task = await Task.findByIdAndUpdate(
+    taskId,
+    { status },
+    { new: true, runValidators: true }
+  );
   if (!task) throw new Error("Task not found");
-
-  task.status = status;
-  await task.save();
 
   return task;
 };

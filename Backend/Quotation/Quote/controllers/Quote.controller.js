@@ -3,6 +3,7 @@ import Quote from "../models/Quote.model.js";
 import { generateQuotePdfBuffer } from "../services/Pdf.service.js";
 import { uploadBufferToCloudinary } from "../services/Cloudinary.service.js";
 import { sendEmailTemplate } from "../services/Email.service.js";
+import { logActivity } from "../../../StaffCRM/AuditLog/AuditLog.service.js";
 
 export const createQuote = async (req, res) => {
   try {
@@ -94,6 +95,19 @@ export const createQuote = async (req, res) => {
         console.warn("Email sending failed:", err.message);
       }
     }
+
+    logActivity({
+      req,
+      user: null, // Depending on if auth is passed here, but usually it's in req.user
+      category: "Quotations",
+      module: "Quotations",
+      action: "CREATE",
+      entityId: quote._id,
+      entityName: client.name,
+      description: `Generated quotation PDF for '${client.name}'`,
+      metadata: { subtotal: quote.subtotal, emailSent: quote.emailSent }
+    });
+
     return res.json({
       success: true,
       pdfUrl,
@@ -153,6 +167,18 @@ export const deleteQuote = async (req, res) => {
     }
 
     await quote.deleteOne();
+    
+    logActivity({
+      req,
+      user: null, // Same as above
+      category: "Quotations",
+      severity: "WARNING",
+      module: "Quotations",
+      action: "DELETE",
+      entityId: id,
+      description: `Deleted quotation PDF`,
+    });
+
     return res.json({ success: true });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });

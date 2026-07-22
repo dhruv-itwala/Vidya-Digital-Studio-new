@@ -15,17 +15,16 @@ export default function TodoList() {
   const [date, setDate] = useState(today());
 
   useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await getTodoByDateAPI(date);
+        setTodo(res.data);
+      } catch (e) {
+        toast.error(e.message);
+      }
+    };
     load();
   }, [date]);
-
-  const load = async () => {
-    try {
-      const res = await getTodoByDateAPI(date);
-      setTodo(res.data);
-    } catch (e) {
-      toast.error(e.message);
-    }
-  };
   const addItem = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;

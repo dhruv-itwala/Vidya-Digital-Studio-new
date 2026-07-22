@@ -12,7 +12,7 @@ export default function useBackendStatus() {
           timeout: 5000,
         });
         setIsDown(false);
-      } catch (err) {
+      } catch {
         setIsDown(true);
       } finally {
         setLoading(false);

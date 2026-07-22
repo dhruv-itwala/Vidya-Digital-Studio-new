@@ -10,7 +10,6 @@ import {
 } from "../api/attendance.api";
 import { getMyReportsByDateAPI } from "../api/report.api";
 import { getHolidaysAPI } from "../api/holiday.api";
-import { getAllLeavesAPI } from "../api/leave.api";
 
 /* ================= CONSTANTS ================= */
 const BREAK_LIMIT_SECONDS = 60 * 60;
@@ -127,10 +126,7 @@ export const useAttendance = () => {
     try {
       dispatch({ type: "SET_LOADING", payload: true });
 
-      const [holidayRes, leaveRes] = await Promise.all([
-        getHolidaysAPI(),
-        getAllLeavesAPI(),
-      ]);
+      const holidayRes = await getHolidaysAPI();
 
       const getISTDate = (date) =>
         new Date(date).toLocaleDateString("en-CA", {
@@ -183,7 +179,8 @@ export const useAttendance = () => {
 
   useEffect(() => {
     fetchDashboardStatus();
-    return () => abortRef.current?.abort();
+    const abort = abortRef.current;
+    return () => abort?.abort();
   }, [fetchDashboardStatus]);
 
   return {

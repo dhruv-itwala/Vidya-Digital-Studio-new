@@ -59,6 +59,7 @@ export default function CompletedTask({ tasks = [], onStatusChange }) {
 
                 <td>
                   <select
+                    className={styles.tableSelect}
                     value={task.status}
                     onChange={(e) => onStatusChange(task._id, e.target.value)}
                   >

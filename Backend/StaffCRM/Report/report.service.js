@@ -19,11 +19,17 @@ export const submitReportService = async (userId, workPoints) => {
   const today = todayISTDate();
   const { start, end } = getISTDayRange(today);
 
-  // 🔒 Attendance check (RANGE BASED)
-  const attendance = await Attendance.findOne({
-    user: userId,
-    date: { $gte: start, $lt: end },
-  });
+  // 🔒 Attendance & duplicate check (RANGE BASED)
+  const [attendance, exists] = await Promise.all([
+    Attendance.findOne({
+      user: userId,
+      date: { $gte: start, $lt: end },
+    }).lean(),
+    Report.exists({
+      user: userId,
+      date: { $gte: start, $lt: end },
+    }),
+  ]);
 
   if (attendance?.status === "LEAVE") {
     throw new AppError("You cannot submit a report while on leave", 403);
@@ -32,12 +38,6 @@ export const submitReportService = async (userId, workPoints) => {
   if (attendance?.status === "HOLIDAY") {
     throw new AppError("You cannot submit a report on a holiday", 403);
   }
-
-  // 🔒 Prevent duplicate submission
-  const exists = await Report.exists({
-    user: userId,
-    date: { $gte: start, $lt: end },
-  });
 
   if (exists) {
     throw new AppError("Report already submitted for today", 409);
@@ -53,7 +53,7 @@ export const submitReportService = async (userId, workPoints) => {
 /* ================= MY REPORTS ================= */
 
 export const getMyReportsService = async (userId) => {
-  return Report.find({ user: userId }).sort({ date: -1 });
+  return Report.find({ user: userId }).sort({ date: -1 }).lean();
 };
 
 /* ================= MY REPORT BY DATE ================= */
@@ -64,13 +64,13 @@ export const getMyReportByDateService = async (userId, dateStr) => {
   return Report.findOne({
     user: userId,
     date: { $gte: start, $lt: end },
-  });
+  }).lean();
 };
 
 /* ================= ADMIN: ALL REPORTS ================= */
 
 export const getAllReportsService = async () => {
-  return Report.find().populate("user", "name email").sort({ date: -1 });
+  return Report.find().populate("user", "name email").sort({ date: -1 }).lean();
 };
 
 /* ================= UPDATE REPORT ================= */
@@ -112,7 +112,7 @@ export const getAllReportsByDateService = async (dateStr) => {
 
   return Report.find({
     date: { $gte: start, $lt: end },
-  }).populate("user", "name email");
+  }).populate("user", "name email").lean();
 };
 
 /* ================= REPORTS BY DATE RANGE ================= */
@@ -130,7 +130,8 @@ export const getReportsByEmployeesAndDateRangeService = async (
     date: { $gte: from, $lt: to },
   })
     .populate("user", "name email")
-    .sort({ user: 1, date: 1 });
+    .sort({ user: 1, date: 1 })
+    .lean();
 };
 
 /* ================= REPORTS WITH WORKING HOURS ================= */
