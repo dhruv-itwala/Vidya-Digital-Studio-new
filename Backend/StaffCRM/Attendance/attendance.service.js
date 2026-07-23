@@ -47,11 +47,16 @@ export const getMyAttendanceService = async (userId, from, to) => {
 // ================= PUNCH IN ================= */
 export const punchInService = async (userId) => {
   const now = nowUTC();
+  const date = todayISTUTC();
   const [user, isHoliday, existing] = await Promise.all([
     User.findById(userId).select("role").lean(),
     Holiday.exists({ date }),
     WorkRecord.findOne({ user: userId, date }),
   ]);
+
+  if (isHoliday) {
+    throw new AppError("Today is a holiday", 400);
+  }
 
   if (existing && existing.punchIn) {
     if (!existing.punchOut) {
