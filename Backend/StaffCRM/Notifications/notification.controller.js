@@ -3,6 +3,7 @@ import {
   checkPunchInReminder,
   checkActiveShiftReminders,
   checkNightPunchOutReminder,
+  sendRemindersToAllUsers,
 } from "../Attendance/attendanceReminder.service.js";
 
 /**
@@ -65,20 +66,30 @@ export const triggerReminders = async (req, res, next) => {
     const { type } = req.body;
 
     if (type === "punchIn") {
-      const result = await checkPunchInReminder();
+      const result = await checkPunchInReminder(true);
       return res.status(200).json({ success: true, result });
     }
 
     if (type === "nightPunchOut") {
-      const result = await checkNightPunchOutReminder();
+      const result = await checkNightPunchOutReminder(true);
       return res.status(200).json({ success: true, result });
     }
 
-    // Default: activeShift
-    const result = await checkActiveShiftReminders();
-    return res.status(200).json({ success: true, result });
+    if (type === "activeShift") {
+      const result = await checkActiveShiftReminders();
+      return res.status(200).json({ success: true, result });
+    }
+
+    // Default or "all": Check and send reminders to ALL active users
+    const result = await sendRemindersToAllUsers();
+
+    return res.status(200).json({
+      success: true,
+      result,
+    });
   } catch (error) {
     next(error);
   }
 };
+
 

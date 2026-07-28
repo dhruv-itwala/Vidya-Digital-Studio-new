@@ -11,7 +11,7 @@ import { sendNotification } from "../Notifications/notification.service.js";
 /**
  * 1. 10:01 AM IST: Check users who have not punched in today
  */
-export const checkPunchInReminder = async () => {
+export const checkPunchInReminder = async (force = false) => {
   try {
     const today = todayISTUTC();
     const activeUsers = await User.find({
@@ -28,8 +28,8 @@ export const checkPunchInReminder = async () => {
           date: today,
         });
 
-        // If no record or record has no punchIn and reminder not sent yet
-        if (!record?.punchIn && !record?.punchInReminderSent) {
+        // If no record or record has no punchIn and (reminder not sent yet OR force=true)
+        if (!record?.punchIn && (!record?.punchInReminderSent || force)) {
           const result = await sendNotification(user._id, {
             title: "⏰ Shift Has Started!",
             body: "It is 10:01 AM. Your shift has officially started. Please punch in now to avoid late attendance!",
@@ -221,6 +221,65 @@ export const checkNightPunchOutReminder = async () => {
     return { success: true, notifiedCount };
   } catch (error) {
     console.error("[Reminder] Error in checkNightPunchOutReminder:", error);
+    return { success: false, error: error?.message };
+  }
+};
+
+/**
+ * 4. Admin/HR manual trigger: Send appropriate active reminder to ALL active users
+ */
+export const sendRemindersToAllUsers = async () => {
+  try {
+    const today = todayISTUTC();
+    const activeUsers = await User.find({ isActive: true }).lean();
+    let notifiedCount = 0;
+
+    for (const user of activeUsers) {
+      try {
+        const record = await WorkRecord.findOne({
+          user: user._id,
+          date: today,
+        });
+
+        let title = "⏰ Shift Reminder";
+        let body = "Please remember to mark your attendance and follow shift timings!";
+
+        if (!record || !record.punchIn) {
+          title = "⏰ Shift Has Started!";
+          body = "Your shift has started. Please punch in now to avoid late attendance!";
+        } else if (record.punchIn && !record.punchOut) {
+          const currentlyOnBreak =
+            record.breaks?.length > 0 &&
+            record.breaks[record.breaks.length - 1].in &&
+            !record.breaks[record.breaks.length - 1].out;
+
+          if (currentlyOnBreak) {
+            title = "⏳ Break Reminder";
+            body = "You are currently on break. Remember your 1-hour break limit and resume work on time.";
+          } else {
+            title = "📋 Active Shift Reminder";
+            body = "You are currently on shift. Remember to submit your work report 30 minutes before punching out!";
+          }
+        } else if (record.punchOut) {
+          title = "✅ Shift Completed";
+          body = "You have completed your shift for today. Have a great evening!";
+        }
+
+        const res = await sendNotification(user._id, {
+          title,
+          body,
+          url: "/",
+        });
+
+        if (res?.success) notifiedCount++;
+      } catch (e) {
+        console.error(`Error sending reminder to user ${user._id}:`, e?.message);
+      }
+    }
+
+    return { success: true, notifiedCount, totalUsers: activeUsers.length };
+  } catch (error) {
+    console.error("[Reminder] Error in sendRemindersToAllUsers:", error);
     return { success: false, error: error?.message };
   }
 };

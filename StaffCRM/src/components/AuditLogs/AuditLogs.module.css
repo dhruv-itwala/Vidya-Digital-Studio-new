@@ -30,7 +30,7 @@
 }
 
 .table th {
-  background-color: #f8f9fa;
+  background-color: var(--deep-forest, #0f5c44);
   color: #ffffff;
   font-weight: 600;
   text-transform: uppercase;
@@ -85,12 +85,12 @@
 }
 
 .details {
-  font-size: 0.8rem;
-  color: #666;
-  max-width: 250px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  color: #333;
+  max-width: none;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
 }
 
 /* Filters */
