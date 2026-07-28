@@ -45,8 +45,8 @@ export const createHolidayService = async (data) => {
     date,
   });
 
-  // 2️⃣ Fetch all non-admin users
-  const users = await User.find({ role: { $ne: "admin" } }).select("_id");
+  // 2️⃣ Fetch all users
+  const users = await User.find({ isActive: true }).select("_id");
 
   if (!users.length) return holiday;
 

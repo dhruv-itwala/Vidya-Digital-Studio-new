@@ -292,6 +292,7 @@ export default function Attendance() {
               <input
                 type="date"
                 value={liveDate}
+                className={styles.dateInput}
                 onChange={(e) => setLiveDate(e.target.value)}
               />
 

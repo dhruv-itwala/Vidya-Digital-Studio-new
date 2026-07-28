@@ -187,8 +187,7 @@ export default function Reports() {
 
         <div className={styles.employeeList}>
           {allEmployees
-            ?.filter((u) => u.role !== "admin")
-            .map((emp) => (
+            ?.map((emp) => (
               <label key={emp._id} className={styles.employeeCard}>
                 <input
                   type="checkbox"

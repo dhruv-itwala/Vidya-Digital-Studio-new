@@ -13,7 +13,7 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
     status: "pending",
   });
 
-  const employeeUsers = users.filter((u) => u.role !== "admin");
+  const employeeUsers = users;
 
   useEffect(() => {
     if (task) {

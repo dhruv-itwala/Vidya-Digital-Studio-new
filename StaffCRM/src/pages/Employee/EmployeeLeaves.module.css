@@ -131,7 +131,7 @@ textarea {
 th {
   background: var(--color-primary) !important;
   font-weight: 600;
-  color: #374151;
+  color: #fff !important;
 }
 
 /* Table headers and cells */

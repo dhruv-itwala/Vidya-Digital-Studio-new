@@ -202,7 +202,7 @@ export const getAllEmployeesAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);
 
   const [users, records, holiday] = await Promise.all([
-    User.find({ role: { $ne: "admin" }, isActive: true })
+    User.find({ isActive: true })
       .select("name email role")
       .lean(),
 
@@ -216,9 +216,10 @@ export const getAllEmployeesAttendanceService = async (date) => {
 
   // ROLE PRIORITY
   const priority = {
-    hr: 1,
-    employee: 2,
-    intern: 3,
+    admin: 1,
+    hr: 2,
+    employee: 3,
+    intern: 4,
   };
 
   // SORT USERS
@@ -333,9 +334,10 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
   });
 
   const priority = {
-    hr: 1,
-    employee: 2,
-    intern: 3,
+    admin: 1,
+    hr: 2,
+    employee: 3,
+    intern: 4,
   };
   return attendance
     .filter((a) => a.user) // ✅ MUST BE FIRST
@@ -391,7 +393,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   const mongoDate = parseIST(selectedKey);
 
   const [users, records] = await Promise.all([
-    User.find({ role: { $ne: "admin" }, isActive: true })
+    User.find({ isActive: true })
       .select("name role profilePicture")
       .lean(),
     WorkRecord.find({ date: mongoDate }).lean(),
@@ -399,9 +401,10 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
 
   // ROLE PRIORITY
   const priority = {
-    hr: 1,
-    employee: 2,
-    intern: 3,
+    admin: 1,
+    hr: 2,
+    employee: 3,
+    intern: 4,
   };
 
   // SORT USERS
@@ -656,9 +659,10 @@ export const getAllUsersWeeklyProgressService = async (weekStart) => {
     .lean();
 
   const priority = {
-    hr: 1,
-    employee: 2,
-    intern: 3,
+    admin: 1,
+    hr: 2,
+    employee: 3,
+    intern: 4,
   };
 
   return progress

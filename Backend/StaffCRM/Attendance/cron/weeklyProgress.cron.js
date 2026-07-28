@@ -12,7 +12,6 @@ cron.schedule("59 23 * * *", async () => {
   const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
 
   const users = await User.find({
-    role: { $ne: "admin" },
     isActive: true,
   }).lean();
 

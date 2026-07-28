@@ -15,7 +15,7 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
   });
   const [dirty, setDirty] = useState(false);
 
-  const employeeUsers = users.filter((u) => u.role !== "admin");
+  const employeeUsers = users;
 
   useEffect(() => {
     if (task) {

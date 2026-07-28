@@ -11,7 +11,7 @@ export default function TaskFilter({
 }) {
   const { status, priority, employees } = filters;
 
-  const employeeUsers = users.filter((u) => u.role !== "admin");
+  const employeeUsers = users;
 
   const handleEmployeeChange = (e) => {
     const selected = Array.from(

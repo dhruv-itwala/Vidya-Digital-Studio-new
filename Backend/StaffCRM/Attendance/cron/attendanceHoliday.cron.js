@@ -11,7 +11,7 @@ cron.schedule("0 0 * * *", async () => {
 
   if (!isHoliday) return;
 
-  const users = await userModel.find({ role: { $ne: "admin" } });
+  const users = await userModel.find({ isActive: true });
 
   for (const user of users) {
     await attendanceModel.findOneAndUpdate(
