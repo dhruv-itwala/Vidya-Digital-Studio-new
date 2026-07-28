@@ -5,6 +5,12 @@ import { getInitials } from "../../utils/name.util";
 import { Images } from "../../assets/Data/images";
 import { NAVBAR_MENUS, SECTION_TITLES } from "../../config/navbarMenus";
 import styles from "./Navbar.module.css";
+import {
+  enablePushNotifications,
+  handleTestNotification,
+  getNotificationStatus,
+} from "../../services/pushNotification";
+import { FiBell } from "react-icons/fi";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -13,7 +19,13 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
 
+  // Push Notification state
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifStatus, setNotifStatus] = useState("checking");
+  const [loadingNotif, setLoadingNotif] = useState(false);
+
   const dropdownRef = useRef(null);
+  const notifRef = useRef(null);
 
   const role = user?.role?.toLowerCase();
   const menu = NAVBAR_MENUS[role] || [];
@@ -36,10 +48,19 @@ export default function Navbar() {
   if (currentGroup.length) groupedMenu.push(currentGroup);
 
   useEffect(() => {
+    getNotificationStatus().then((res) => {
+      setNotifStatus(res.status);
+    });
+  }, []);
+
+  useEffect(() => {
     const handler = (e) => {
       if (!dropdownRef.current?.contains(e.target)) {
         setOpen(false);
         setOpenIndex(null);
+      }
+      if (!notifRef.current?.contains(e.target)) {
+        setNotifOpen(false);
       }
     };
 
@@ -71,23 +92,92 @@ export default function Navbar() {
             <img src={Images.navbar_logo} alt="VIDYA Digital Studio" />
           </div>
 
-          {/* Profile */}
-          <div className={styles.rightButtons} ref={dropdownRef}>
-            <div className={styles.profileBtn} onClick={() => setOpen(!open)}>
-              {user?.profilePicture?.url ? (
-                <img
-                  src={user.profilePicture.url}
-                  alt={user.name}
-                  className={styles.avatarImg}
-                />
-              ) : (
-                <div className={styles.avatar}>{getInitials(user?.name)}</div>
+          {/* Profile & Notifications */}
+          <div className={styles.rightButtons}>
+            {/* Notification Bell */}
+            <div className={styles.notifWrapper} ref={notifRef}>
+              <button
+                className={styles.notifBellBtn}
+                onClick={() => setNotifOpen(!notifOpen)}
+                title="Push Notifications"
+              >
+                <FiBell />
+                {notifStatus === "enabled" && (
+                  <span className={styles.notifDot}></span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className={styles.notifDropdown}>
+                  <div className={styles.notifHeader}>
+                    <span>Push Notifications</span>
+                    <span
+                      className={`${styles.notifBadge} ${
+                        notifStatus === "enabled"
+                          ? styles.badgeActive
+                          : notifStatus === "granted"
+                          ? styles.badgeGranted
+                          : styles.badgeInactive
+                      }`}
+                    >
+                      {notifStatus === "enabled"
+                        ? "Active"
+                        : notifStatus === "granted"
+                        ? "Granted"
+                        : notifStatus === "denied"
+                        ? "Blocked"
+                        : "Not Enabled"}
+                    </span>
+                  </div>
+
+                  <div className={styles.notifBody}>
+                    <p className={styles.notifDesc}>
+                      Receive real-time alerts on tasks, attendance, and leaves across Desktop, Tablet, and Mobile.
+                    </p>
+
+                    <button
+                      className={styles.notifActionBtn}
+                      onClick={async () => {
+                        setLoadingNotif(true);
+                        await enablePushNotifications();
+                        const res = await getNotificationStatus();
+                        setNotifStatus(res.status);
+                        setLoadingNotif(false);
+                      }}
+                      disabled={loadingNotif}
+                    >
+                      {loadingNotif ? "Enabling..." : "Enable Notifications"}
+                    </button>
+
+                    <button
+                      className={styles.notifTestBtn}
+                      onClick={async () => {
+                        await handleTestNotification();
+                      }}
+                    >
+                      Send Test Notification
+                    </button>
+                  </div>
+                </div>
               )}
-              <span className={styles.userName}>{user?.name}</span>
             </div>
 
-            {open && (
-              <div className={styles.dropdown}>
+            <div className={styles.profileWrapper} ref={dropdownRef}>
+              <div className={styles.profileBtn} onClick={() => setOpen(!open)}>
+                {user?.profilePicture?.url ? (
+                  <img
+                    src={user.profilePicture.url}
+                    alt={user.name}
+                    className={styles.avatarImg}
+                  />
+                ) : (
+                  <div className={styles.avatar}>{getInitials(user?.name)}</div>
+                )}
+                <span className={styles.userName}>{user?.name}</span>
+              </div>
+
+              {open && (
+                <div className={styles.dropdown}>
                 {groupedMenu.map((group, index) => (
                   <div key={index} className={styles.group}>
                     {/* Header */}
@@ -123,9 +213,11 @@ export default function Navbar() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

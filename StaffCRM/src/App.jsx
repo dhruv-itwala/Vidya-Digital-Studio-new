@@ -14,6 +14,7 @@ import Loader from "./components/Loader/Loader";
 import { Toaster } from "react-hot-toast";
 
 import "./App.css";
+import { enablePushNotifications } from "./services/pushNotification";
 
 // Lazy Loaded Components
 const AllQuotations = React.lazy(() => import("./pages/Admin/AllQuotations"));

@@ -196,3 +196,146 @@
   width: 100%;
   text-align: left;
 }
+
+/* Push Notification Bell & Dropdown */
+.notifWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notifBellBtn {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.notifBellBtn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.notifDot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}
+
+.notifDropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 280px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notifHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+}
+
+.notifBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.badgeActive {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badgeGranted {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.badgeInactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.notifBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notifDesc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.notifActionBtn {
+  width: 100%;
+  padding: 10px 14px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.notifActionBtn:hover:not(:disabled) {
+  background: #1e293b;
+}
+
+.notifActionBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.notifTestBtn {
+  width: 100%;
+  padding: 9px 14px;
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notifTestBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}

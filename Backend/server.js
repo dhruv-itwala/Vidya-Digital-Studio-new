@@ -33,6 +33,7 @@ import loggerRoutes from "./logger/Logger.routes.js";
 import auditLogRoutes from "./StaffCRM/AuditLog/AuditLog.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
+import notificationRoutes from "./StaffCRM/Notifications/notification.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -111,6 +112,9 @@ app.use(`/api/${VERSION}/logs`, loggerRoutes);
 
 // Audit Log Routes
 app.use(`/api/${VERSION}/audit-logs`, auditLogRoutes);
+
+//notifications  Routes
+app.use(`/api/${VERSION}/notifications`, notificationRoutes);
 
 app.use(globalErrorHandler);
 
