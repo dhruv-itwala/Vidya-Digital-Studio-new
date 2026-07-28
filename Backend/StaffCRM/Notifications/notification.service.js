@@ -1,5 +1,7 @@
 import webpush from "web-push";
 import NotificationSubscription from "./notification.model.js";
+import { logActivity } from "../AuditLog/AuditLog.service.js";
+import User from "../Users/user.model.js";
 
 // Ensure Web Push is configured before sending
 const ensureVapidConfigured = () => {
@@ -64,6 +66,24 @@ export const sendNotification = async (
   });
 
   if (!subscriptions.length) {
+    try {
+      const targetUser = await User.findById(userId).select("name email role").lean();
+      const targetName = targetUser ? targetUser.name || targetUser.email : "Unknown User";
+      await logActivity({
+        user: targetUser ? { id: targetUser._id, name: targetUser.name, role: targetUser.role } : { id: userId, name: "System", role: "system" },
+        category: "System",
+        module: "Notifications",
+        action: "SEND_PUSH",
+        entityId: userId,
+        entityName: targetName,
+        description: `Push notification '${title}' skipped for ${targetName} (0 registered devices)`,
+        metadata: { title, body, url, sentCount: 0, reason: "No active push subscriptions found" },
+        status: "FAILED",
+      });
+    } catch (err) {
+      console.error("Audit log error in sendNotification:", err.message);
+    }
+
     return {
       success: false,
       count: 0,
@@ -100,6 +120,24 @@ export const sendNotification = async (
     }
   }
 
+  try {
+    const targetUser = await User.findById(userId).select("name email role").lean();
+    const targetName = targetUser ? targetUser.name || targetUser.email : "Unknown User";
+    await logActivity({
+      user: targetUser ? { id: targetUser._id, name: targetUser.name, role: targetUser.role } : { id: userId, name: "System", role: "system" },
+      category: "System",
+      module: "Notifications",
+      action: "SEND_PUSH",
+      entityId: userId,
+      entityName: targetName,
+      description: `Sent push notification '${title}' to ${targetName} (${sentCount}/${subscriptions.length} device(s))`,
+      metadata: { title, body, url, sentCount, totalDevices: subscriptions.length },
+      status: sentCount > 0 ? "SUCCESS" : "FAILED",
+    });
+  } catch (err) {
+    console.error("Audit log error in sendNotification:", err.message);
+  }
+
   return {
     success: sentCount > 0,
     count: sentCount,
@@ -109,3 +147,4 @@ export const sendNotification = async (
         : "Failed to send notification to active devices.",
   };
 };
+

@@ -12,8 +12,9 @@ import {
 export const subscribe = async (req, res, next) => {
   try {
     const subscription = req.body;
+    const userId = req.user.id || req.user._id;
 
-    await saveSubscription(req.user._id, subscription);
+    await saveSubscription(userId, subscription);
 
     return res.status(200).json({
       success: true,
@@ -30,7 +31,8 @@ export const subscribe = async (req, res, next) => {
  */
 export const testNotification = async (req, res, next) => {
   try {
-    const result = await sendNotification(req.user._id, {
+    const userId = req.user.id || req.user._id;
+    const result = await sendNotification(userId, {
       title: "🎉 Staff CRM",
       body: "Push notifications are working successfully on your device!",
       url: "/",

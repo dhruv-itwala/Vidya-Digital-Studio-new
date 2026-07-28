@@ -218,4 +218,26 @@ export const handleTriggerReminders = async (type = "all") => {
     return { success: false, error: msg };
   }
 };
+
+/**
+ * Automatically sync/renew push subscription if permission was already granted
+ */
+export const autoSyncPushSubscription = async () => {
+  try {
+    if (!("Notification" in window) || Notification.permission !== "granted") {
+      return;
+    }
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      await subscribeToNotificationsAPI(subscription);
+    }
+  } catch (err) {
+    console.warn("Silent push subscription sync failed:", err);
+  }
+};
+
 

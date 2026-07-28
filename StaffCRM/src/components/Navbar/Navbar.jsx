@@ -10,6 +10,7 @@ import {
   handleTestNotification,
   handleTriggerReminders,
   getNotificationStatus,
+  autoSyncPushSubscription,
 } from "../../services/pushNotification";
 import { FiBell } from "react-icons/fi";
 
@@ -52,7 +53,8 @@ export default function Navbar() {
     getNotificationStatus().then((res) => {
       setNotifStatus(res.status);
     });
-  }, []);
+    autoSyncPushSubscription();
+  }, [user]);
 
   useEffect(() => {
     const handler = (e) => {
