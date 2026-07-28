@@ -115,21 +115,20 @@ export default function Navbar() {
                   <div className={styles.notifHeader}>
                     <span>Push Notifications</span>
                     <span
-                      className={`${styles.notifBadge} ${
-                        notifStatus === "enabled"
-                          ? styles.badgeActive
-                          : notifStatus === "granted"
+                      className={`${styles.notifBadge} ${notifStatus === "enabled"
+                        ? styles.badgeActive
+                        : notifStatus === "granted"
                           ? styles.badgeGranted
                           : styles.badgeInactive
-                      }`}
+                        }`}
                     >
                       {notifStatus === "enabled"
                         ? "Active"
                         : notifStatus === "granted"
-                        ? "Granted"
-                        : notifStatus === "denied"
-                        ? "Blocked"
-                        : "Not Enabled"}
+                          ? "Granted"
+                          : notifStatus === "denied"
+                            ? "Blocked"
+                            : "Not Enabled"}
                     </span>
                   </div>
 
@@ -152,16 +151,16 @@ export default function Navbar() {
                       {loadingNotif ? "Enabling..." : "Enable Notifications"}
                     </button>
 
-                    <button
+                    {/* <button
                       className={styles.notifTestBtn}
                       onClick={async () => {
                         await handleTestNotification();
                       }}
                     >
                       Send Test Notification
-                    </button>
+                    </button> */}
 
-                    <button
+                    {/* <button
                       className={styles.notifTestBtn}
                       onClick={async () => {
                         await handleTriggerReminders("all");
@@ -169,7 +168,7 @@ export default function Navbar() {
                       title="Test checking shift & reminder rules right now"
                     >
                       Check Active Reminders
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               )}
@@ -191,41 +190,41 @@ export default function Navbar() {
 
               {open && (
                 <div className={styles.dropdown}>
-                {groupedMenu.map((group, index) => (
-                  <div key={index} className={styles.group}>
-                    {/* Header */}
-                    <div
-                      className={styles.groupHeader}
-                      onClick={() => toggleGroup(index)}
-                    >
-                      <span>
-                        {SECTION_TITLES[role]?.[index] ||
-                          `Section ${index + 1}`}
-                      </span>
-                      <span>{openIndex === index ? "−" : "+"}</span>
-                    </div>
-
-                    {/* Items */}
-                    {openIndex === index && (
-                      <div className={styles.groupItems}>
-                        {group.map((item, i) => (
-                          <button key={i} onClick={() => goTo(item.path)}>
-                            {item.label}
-                          </button>
-                        ))}
+                  {groupedMenu.map((group, index) => (
+                    <div key={index} className={styles.group}>
+                      {/* Header */}
+                      <div
+                        className={styles.groupHeader}
+                        onClick={() => toggleGroup(index)}
+                      >
+                        <span>
+                          {SECTION_TITLES[role]?.[index] ||
+                            `Section ${index + 1}`}
+                        </span>
+                        <span>{openIndex === index ? "−" : "+"}</span>
                       </div>
-                    )}
-                  </div>
-                ))}
 
-                {/* Sticky Logout */}
-                <div className={styles.logoutWrapper}>
-                  <button className={styles.logout} onClick={handleLogout}>
-                    Logout
-                  </button>
+                      {/* Items */}
+                      {openIndex === index && (
+                        <div className={styles.groupItems}>
+                          {group.map((item, i) => (
+                            <button key={i} onClick={() => goTo(item.path)}>
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Sticky Logout */}
+                  <div className={styles.logoutWrapper}>
+                    <button className={styles.logout} onClick={handleLogout}>
+                      Logout
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             </div>
           </div>
         </div>
