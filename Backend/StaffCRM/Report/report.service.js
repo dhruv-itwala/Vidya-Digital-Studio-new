@@ -3,6 +3,7 @@ import WorkRecord from "../Attendance/workRecord.model.js";
 import Report from "./report.model.js";
 import { getISTDayRange, normalizeDate } from "../utils/date.utils.js";
 import AppError from "../utils/AppError.js";
+import { notifyReportSubmittedEvent } from "../Notifications/notificationEvent.service.js";
 
 /* ================= HELPERS ================= */
 
@@ -43,11 +44,20 @@ export const submitReportService = async (userId, workPoints) => {
     throw new AppError("Report already submitted for today", 409);
   }
 
-  return Report.create({
+  const report = await Report.create({
     user: userId,
     date: today,
     workPoints,
   });
+
+  await WorkRecord.findOneAndUpdate(
+    { user: userId, date: { $gte: start, $lt: end } },
+    { $set: { reportSubmitted: true } },
+  );
+
+  notifyReportSubmittedEvent(userId);
+
+  return report;
 };
 
 /* ================= MY REPORTS ================= */

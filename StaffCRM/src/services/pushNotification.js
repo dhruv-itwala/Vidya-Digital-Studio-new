@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import {
   sendTestNotificationAPI,
   subscribeToNotificationsAPI,
+  triggerRemindersAPI,
 } from "../api/notification.api";
 
 /**
@@ -197,4 +198,24 @@ export const handleTestNotification = async () => {
     toast.error(msg);
     return { success: false, error: msg };
   }
-};
+};
+
+/**
+ * Trigger Reminders (Admin / Test Helper)
+ */
+export const handleTriggerReminders = async (type = "all") => {
+  try {
+    const { data } = await triggerRemindersAPI(type);
+    toast.success("✅ Reminder check triggered successfully!");
+    return { success: true, data };
+  } catch (error) {
+    console.error(error);
+    const msg =
+      error?.message ||
+      error?.data?.message ||
+      "Failed to trigger reminder check.";
+    toast.error(msg);
+    return { success: false, error: msg };
+  }
+};
+

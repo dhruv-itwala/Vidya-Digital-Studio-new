@@ -50,7 +50,11 @@ export const allTasks = async (req, res) => {
 
 export const updateTaskStatus = async (req, res) => {
   try {
-    const task = await updateTaskStatusService(req.params.id, req.body.status);
+    const task = await updateTaskStatusService(
+      req.params.id,
+      req.body.status,
+      req.user
+    );
     logActivity({
       req,
       user: req.user,

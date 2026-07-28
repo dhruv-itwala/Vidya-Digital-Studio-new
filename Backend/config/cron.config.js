@@ -7,6 +7,7 @@ import cron from "node-cron";
 import "../StaffCRM/Attendance/cron/attendance.cron.js";
 import "../StaffCRM/Attendance/cron/attendanceHoliday.cron.js";
 import "../StaffCRM/Attendance/cron/weeklyProgress.cron.js";
+import "../StaffCRM/Attendance/cron/attendanceReminder.cron.js";
 
 /* ================================
    LEAVE SYSTEM

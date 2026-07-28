@@ -1,4 +1,8 @@
 import Task from "./task.model.js";
+import {
+  notifyTaskAssigned,
+  notifyTaskCompleted,
+} from "../Notifications/notificationEvent.service.js";
 
 // ================= CREATE =================
 export const createTaskService = async (user, data) => {
@@ -6,13 +10,16 @@ export const createTaskService = async (user, data) => {
     throw new Error("At least one employee must be assigned");
   }
 
-  return Task.create({
+  const task = await Task.create({
     ...data,
     createdBy: {
       user: user.id,
       role: user.role.toLowerCase(),
     },
   });
+
+  notifyTaskAssigned(task, user.id);
+  return task;
 };
 
 // ================= GET MY TASK =================
@@ -78,7 +85,7 @@ export const updateTaskService = async (taskId, data, user) => {
 };
 
 // ================= UPDATE STATUS =================
-export const updateTaskStatusService = async (taskId, status) => {
+export const updateTaskStatusService = async (taskId, status, user = null) => {
   const task = await Task.findByIdAndUpdate(
     taskId,
     { status },
@@ -86,8 +93,13 @@ export const updateTaskStatusService = async (taskId, status) => {
   );
   if (!task) throw new Error("Task not found");
 
+  if (status === "complete" || status === "completed") {
+    notifyTaskCompleted(task, user?.id || user?._id);
+  }
+
   return task;
 };
+
 
 // ================= DELETE =================
 export const deleteTaskService = async (taskId, user) => {

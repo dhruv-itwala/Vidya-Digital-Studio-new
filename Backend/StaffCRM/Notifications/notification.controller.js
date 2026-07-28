@@ -1,4 +1,9 @@
 import { saveSubscription, sendNotification } from "./notification.service.js";
+import {
+  checkPunchInReminder,
+  checkActiveShiftReminders,
+  checkNightPunchOutReminder,
+} from "../Attendance/attendanceReminder.service.js";
 
 /**
  * Save Browser Push Subscription
@@ -48,3 +53,30 @@ export const testNotification = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Trigger Reminders Manually (For Testing/Admin)
+ * POST /api/notifications/trigger-reminders
+ */
+export const triggerReminders = async (req, res, next) => {
+  try {
+    const { type } = req.body;
+
+    if (type === "punchIn") {
+      const result = await checkPunchInReminder();
+      return res.status(200).json({ success: true, result });
+    }
+
+    if (type === "nightPunchOut") {
+      const result = await checkNightPunchOutReminder();
+      return res.status(200).json({ success: true, result });
+    }
+
+    // Default: activeShift
+    const result = await checkActiveShiftReminders();
+    return res.status(200).json({ success: true, result });
+  } catch (error) {
+    next(error);
+  }
+};
+

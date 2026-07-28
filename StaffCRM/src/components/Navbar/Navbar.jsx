@@ -8,6 +8,7 @@ import styles from "./Navbar.module.css";
 import {
   enablePushNotifications,
   handleTestNotification,
+  handleTriggerReminders,
   getNotificationStatus,
 } from "../../services/pushNotification";
 import { FiBell } from "react-icons/fi";
@@ -156,6 +157,16 @@ export default function Navbar() {
                       }}
                     >
                       Send Test Notification
+                    </button>
+
+                    <button
+                      className={styles.notifTestBtn}
+                      onClick={async () => {
+                        await handleTriggerReminders("all");
+                      }}
+                      title="Test checking shift & reminder rules right now"
+                    >
+                      Check Active Reminders
                     </button>
                   </div>
                 </div>

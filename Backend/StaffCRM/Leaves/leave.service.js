@@ -4,6 +4,13 @@ import holidayModel from "../Holidays/holiday.model.js";
 import attendanceModel from "../Attendance/attendance.model.js";
 import AppError from "../utils/AppError.js";
 import { getISTDayRange, normalizeDate } from "../utils/date.utils.js";
+import {
+  notifyLeaveApplied,
+  notifyLeaveApproved,
+  notifyLeaveDeclined,
+  notifyLeaveCancelled,
+} from "../Notifications/notificationEvent.service.js";
+
 
 // ---------- HELPERS ----------
 const getDateRange = (from, to) => {
@@ -52,7 +59,7 @@ export const applyLeaveService = async (userId, data) => {
     throw new AppError("Leave already exists in this date range", 409);
   }
 
-  return leavesModel.create({
+  const leave = await leavesModel.create({
     user: userId,
     fromDate,
     toDate,
@@ -60,6 +67,9 @@ export const applyLeaveService = async (userId, data) => {
     isHalfDay: data.isHalfDay || false,
     reason: data.reason,
   });
+
+  notifyLeaveApplied(leave, userId);
+  return leave;
 };
 
 // ---------- GET MY LEAVES ----------
@@ -107,6 +117,7 @@ export const approveLeaveService = async (leaveId, adminId) => {
     );
   }
 
+  notifyLeaveApproved(leave);
   return leave;
 };
 
@@ -121,7 +132,10 @@ export const declineLeaveService = async (leaveId, adminId) => {
 
   leave.status = "DECLINED";
   leave.actionBy = adminId;
-  return leave.save();
+  await leave.save();
+
+  notifyLeaveDeclined(leave);
+  return leave;
 };
 
 // ---------- CANCEL LEAVE ----------
@@ -188,7 +202,10 @@ export const cancelLeaveService = async (leaveId, user) => {
   leave.status = "CANCELLED";
   leave.actionBy = user.id;
 
-  return leave.save();
+  await leave.save();
+
+  notifyLeaveCancelled(leave, user.id);
+  return leave;
 };
 
 // ---------- LEAVE SUMMARY ----------
