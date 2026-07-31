@@ -1,0 +1,133 @@
+/* ================= CARD ================= */
+.card {
+  width: 100%;
+  height: 100%;
+  padding: 32px 24px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-normal);
+  border: 1px solid #f3f4f6;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #065f46; /* Deep green text */
+  background: #dcfce7; /* Light green bg */
+  padding: 6px 12px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ================= PROGRESS SECTION ================= */
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 32px;
+}
+
+.progressLabels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.doneText {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.targetText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* ================= GRADIENT BAR ================= */
+.progressBarContainer {
+  width: 100%;
+  height: 12px;
+  background: #f3f4f6;
+  border-radius: 100px;
+  position: relative;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #166534, #ea580c);
+  border-radius: 100px;
+  position: relative;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.thumb {
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background: #ea580c; /* matches the end of the gradient */
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ================= STATS BOX ================= */
+.statsBox {
+  display: flex;
+  justify-content: space-between;
+  background: #fdfaf6; /* Beige/Cream color */
+  padding: 24px;
+  border-radius: 16px;
+  margin-top: auto;
+}
+
+.statCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statValueGreen {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #166534;
+  font-variant-numeric: tabular-nums;
+}
+
+.statValueOrange {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ea580c;
+  font-variant-numeric: tabular-nums;
+}

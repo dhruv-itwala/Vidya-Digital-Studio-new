@@ -1,0 +1,298 @@
+.wrapper {
+  background: var(--color-surface);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ================= HEADER ================= */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.monthTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.yearHighlight {
+  color: var(--deep-forest);
+}
+
+.navBtn {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: all var(--transition-fast);
+}
+
+.navBtn:hover {
+  background: var(--color-primary-light);
+  color: var(--deep-forest);
+  transform: scale(1.05);
+}
+
+/* ================= WEEK ROW ================= */
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(100px, 1fr));
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.weekDay {
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.weekendHeader {
+  color: #ef4444;
+}
+
+/* ================= GRID ================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  gap: 8px;
+  min-width: 840px;
+}
+
+.cell {
+  min-height: 140px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 8px;
+  position: relative;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.cell:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.date {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.weekendDate {
+  color: #ef4444;
+}
+
+/* ================= HOLIDAY ================= */
+.holidayCell {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.holidayLabel {
+  font-size: 0.75rem;
+  background: #22c55e;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.weekendLabel {
+  font-size: 0.7rem;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-flex;
+  width: fit-content;
+}
+
+/* ================= LEAVES ================= */
+.leaves {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.leave {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Leave Types */
+.CASUAL { background: #3b82f6; }
+.SICK { background: #ef4444; }
+.UNPAID { background: #f59e0b; }
+
+.halfDay {
+  background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+  background-size: 10px 10px;
+}
+
+.leaveName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.birthdays {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.birthday {
+  font-size: 0.75rem;
+  background: #fef3c7;
+  color: #b45309;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ================= TODAY HIGHLIGHT ================= */
+.todayCell {
+  border: 2px solid var(--color-primary);
+  background: #f0fdfa;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.todayBadge {
+  font-size: 0.7rem;
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dateInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobileDayName {
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ================= RESPONSIVE (PWA) ================= */
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  
+  .monthTitle {
+    font-size: 1.25rem;
+  }
+  
+  .navBtn {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Switch from Grid to vertical List for mobile */
+  .weekRow {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    min-width: 100%;
+    gap: 12px;
+  }
+
+  .emptyCell {
+    display: none; /* Hide padding cells on mobile list view */
+  }
+
+  .cell {
+    min-height: auto;
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .mobileDayName {
+    display: inline-block; /* Show day name next to date on mobile */
+  }
+
+  .date {
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+
+  .leaves {
+    gap: 8px;
+  }
+
+  .leave {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+}
+

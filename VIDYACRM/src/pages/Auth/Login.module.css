@@ -1,0 +1,354 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--color-background);
+  font-family: "Inter", sans-serif;
+  overflow: hidden;
+}
+
+/* ================= LEFT SIDE (BRANDING) ================= */
+.branding {
+  flex: 1;
+  background: linear-gradient(135deg, var(--deep-forest) 0%, #083c2c 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 40px;
+}
+
+.brandContent {
+  position: relative;
+  z-index: 10;
+  max-width: 480px;
+  animation: slideInUp 0.8s var(--transition-slow) forwards;
+  opacity: 0;
+}
+
+.brandBadge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.brandTitle {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+
+.brandSubtitle {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Decorative Circles */
+.circle1, .circle2 {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--vibrant-orange) 0%, var(--warm-coral-red) 100%);
+  filter: blur(80px);
+  opacity: 0.4;
+  z-index: 1;
+}
+
+.circle1 {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  left: -100px;
+  animation: float 10s ease-in-out infinite;
+}
+
+.circle2 {
+  width: 300px;
+  height: 300px;
+  bottom: -50px;
+  right: -50px;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* ================= RIGHT SIDE (FORM) ================= */
+.formSection {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface);
+  padding: 40px;
+  position: relative;
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 400px;
+  animation: fadeIn 0.6s var(--transition-normal) forwards;
+  opacity: 0;
+  animation-delay: 0.2s;
+}
+
+.logoWrapper {
+  margin-bottom: 40px;
+}
+
+.logo {
+  height: 48px;
+  object-fit: contain;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.header p {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.field input {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  font-size: 1rem;
+  color: var(--color-text);
+  background: var(--color-background);
+  transition: all var(--transition-normal);
+}
+
+.field input::placeholder {
+  color: #a0a0a0;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Password Field */
+.passwordBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordBox input {
+  width: 100%;
+  padding-right: 48px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  padding: 4px;
+}
+
+.eyeBtn:hover {
+  color: var(--color-primary);
+}
+
+.eyeBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  border-radius: 4px;
+}
+
+.forgotPassword {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+}
+
+.forgotPassword a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forgotPassword a:hover {
+  color: var(--vibrant-orange);
+}
+
+/* Button */
+.btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(15, 92, 68, 0.2);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-button-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 92, 68, 0.3);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Errors */
+.error {
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.serverError {
+  background: var(--color-red-light);
+  color: var(--color-accent);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  .page {
+    flex-direction: column;
+  }
+
+  .branding {
+    flex: none;
+    padding: 60px 30px;
+    text-align: center;
+  }
+
+  .brandTitle {
+    font-size: 2.25rem;
+  }
+
+  .formSection {
+    flex: 1;
+    padding: 40px 20px;
+    border-radius: 30px 30px 0 0;
+    margin-top: -30px;
+    z-index: 20;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .logoWrapper {
+    display: flex;
+    justify-content: center;
+  }
+
+  .header {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .brandTitle {
+    font-size: 1.75rem;
+  }
+  
+  .brandSubtitle {
+    font-size: 1rem;
+  }
+  
+  .formContainer {
+    padding: 0;
+  }
+}

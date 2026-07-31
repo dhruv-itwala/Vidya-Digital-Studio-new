@@ -1,0 +1,112 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+/* CARD */
+.holidayCard {
+  position: relative;
+  max-width: 520px;
+  width: 100%;
+  padding: 64px 44px;
+  border-radius: 22px;
+  text-align: center;
+
+  background: linear-gradient(135deg, var(--color-background), #ffffff);
+
+  box-shadow: 0 18px 45px rgba(15, 92, 68, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+
+  animation: fadeUp 0.9s ease-out forwards;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* HOVER LIFT */
+.holidayCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 30px 65px rgba(15, 92, 68, 0.25);
+}
+
+/* ICON */
+.icon {
+  font-size: 3.5rem;
+  color: var(--color-secondary);
+  margin-bottom: 16px;
+  animation: float 3.2s ease-in-out infinite;
+}
+
+/* TITLE */
+.holidayTitle {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 14px;
+  color: var(--color-primary);
+}
+
+/* TEXT */
+.holidayText {
+  font-size: 1.15rem;
+  color: var(--color-text);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+/* STARS */
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  color: var(--color-accent);
+  opacity: 0.8;
+}
+
+.stars svg {
+  animation: pulse 2.4s infinite;
+}
+
+.stars svg:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.stars svg:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}

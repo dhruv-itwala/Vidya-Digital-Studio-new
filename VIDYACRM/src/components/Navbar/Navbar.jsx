@@ -1,0 +1,224 @@
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getInitials } from "../../utils/name.util";
+import { Images } from "../../assets/Data/images";
+import { NAVBAR_MENUS, SECTION_TITLES } from "../../config/navbarMenus";
+import styles from "./Navbar.module.css";
+import {
+  enablePushNotifications,
+  getNotificationStatus,
+  autoSyncPushSubscription,
+} from "../../services/pushNotification";
+import { FiBell, FiChevronDown, FiLogOut } from "react-icons/fi";
+
+export default function Navbar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const [open, setOpen] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
+
+  // Push Notification state
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifStatus, setNotifStatus] = useState("checking");
+  const [loadingNotif, setLoadingNotif] = useState(false);
+
+  const dropdownRef = useRef(null);
+  const notifRef = useRef(null);
+
+  const role = user?.role?.toLowerCase();
+  const menu = NAVBAR_MENUS[role] || [];
+
+  // 👉 Convert menu into grouped sections using "divider"
+  const groupedMenu = [];
+  let currentGroup = [];
+
+  menu.forEach((item) => {
+    if (item === "divider") {
+      if (currentGroup.length) {
+        groupedMenu.push(currentGroup);
+        currentGroup = [];
+      }
+    } else {
+      currentGroup.push(item);
+    }
+  });
+
+  if (currentGroup.length) groupedMenu.push(currentGroup);
+
+  useEffect(() => {
+    getNotificationStatus().then((res) => {
+      setNotifStatus(res.status);
+    });
+    autoSyncPushSubscription();
+  }, [user]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!dropdownRef.current?.contains(e.target)) {
+        setOpen(false);
+        setOpenIndex(null);
+      }
+      if (!notifRef.current?.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  const goTo = (path) => {
+    navigate(path);
+    setOpen(false);
+    setOpenIndex(null);
+  };
+
+  const toggleGroup = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  return (
+    <header className={styles.navbarWrapper}>
+      <div className="masterContainer">
+        <div className={styles.navbar}>
+          {/* Logo */}
+          <div className={styles.logo} onClick={() => navigate("/")}>
+            <img src={Images.navbar_logo} alt="VIDYA Digital Studio" />
+          </div>
+
+          {/* Profile & Notifications */}
+          <div className={styles.rightButtons}>
+            {/* Notification Bell */}
+            <div className={styles.notifWrapper} ref={notifRef}>
+              <button
+                className={`${styles.notifBellBtn} ${notifOpen ? styles.active : ""}`}
+                onClick={() => setNotifOpen(!notifOpen)}
+                title="Push Notifications"
+              >
+                <FiBell />
+                {notifStatus === "enabled" && (
+                  <span className={styles.notifDot}></span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className={styles.notifDropdown}>
+                  <div className={styles.notifHeader}>
+                    <span>Notifications</span>
+                    <span
+                      className={`${styles.notifBadge} ${
+                        notifStatus === "enabled"
+                          ? styles.badgeActive
+                          : notifStatus === "granted"
+                          ? styles.badgeGranted
+                          : styles.badgeInactive
+                      }`}
+                    >
+                      {notifStatus === "enabled"
+                        ? "Active"
+                        : notifStatus === "granted"
+                        ? "Granted"
+                        : notifStatus === "denied"
+                        ? "Blocked"
+                        : "Off"}
+                    </span>
+                  </div>
+
+                  <div className={styles.notifBody}>
+                    <p className={styles.notifDesc}>
+                      Receive real-time alerts on tasks, attendance, and leaves across all your devices.
+                    </p>
+
+                    <button
+                      className={styles.notifActionBtn}
+                      onClick={async () => {
+                        setLoadingNotif(true);
+                        await enablePushNotifications();
+                        const res = await getNotificationStatus();
+                        setNotifStatus(res.status);
+                        setLoadingNotif(false);
+                      }}
+                      disabled={loadingNotif}
+                    >
+                      {loadingNotif ? "Enabling..." : "Enable Notifications"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Dropdown */}
+            <div className={styles.profileWrapper} ref={dropdownRef}>
+              <div className={`${styles.profileBtn} ${open ? styles.active : ""}`} onClick={() => setOpen(!open)}>
+                {user?.profilePicture?.url ? (
+                  <img
+                    src={user.profilePicture.url}
+                    alt={user.name}
+                    className={styles.avatarImg}
+                  />
+                ) : (
+                  <div className={styles.avatar}>{getInitials(user?.name)}</div>
+                )}
+                <span className={styles.userName}>{user?.name}</span>
+                <FiChevronDown className={styles.chevron} />
+              </div>
+
+              {open && (
+                <div className={styles.dropdown}>
+                  <div className={styles.dropdownHeader}>
+                    <span className={styles.dropdownRole}>{role}</span>
+                  </div>
+                  <div className={styles.dropdownScroll}>
+                    {groupedMenu.map((group, index) => (
+                      <div key={index} className={styles.group}>
+                        {/* Header */}
+                        <div
+                          className={styles.groupHeader}
+                          onClick={() => toggleGroup(index)}
+                        >
+                          <span>
+                            {SECTION_TITLES[role]?.[index] || `Section ${index + 1}`}
+                          </span>
+                          <span className={styles.groupToggleIcon}>
+                            {openIndex === index ? "−" : "+"}
+                          </span>
+                        </div>
+
+                        {/* Items */}
+                        <div
+                          className={`${styles.groupItems} ${
+                            openIndex === index ? styles.groupItemsOpen : ""
+                          }`}
+                        >
+                          {group.map((item, i) => (
+                            <button key={i} onClick={() => goTo(item.path)}>
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Sticky Logout */}
+                  <div className={styles.logoutWrapper}>
+                    <button className={styles.logout} onClick={handleLogout}>
+                      <FiLogOut /> Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

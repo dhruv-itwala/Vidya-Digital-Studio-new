@@ -1,0 +1,182 @@
+.container {
+  margin: 20px auto;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.filterToggle {
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+}
+
+.filterSection {
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.pillContainer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-primary);
+  background: #fff;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.pill.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.dateRow {
+  display: flex;
+  gap: 8px;
+}
+
+.clear {
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+}
+
+th {
+  background: var(--color-primary);
+  color: white;
+  padding: 12px;
+  font-size: 12px;
+}
+
+td {
+  padding: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.priority {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.low {
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+}
+
+.medium {
+  background: #fde68a;
+  color: #92400e;
+}
+
+.high {
+  background: var(--color-accent);
+  color: white;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  align-items: center;
+}
+
+.rowsSelect {
+  min-width: none;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.pageControls {
+  display: flex;
+  gap: 8px;
+}
+
+/* ===== Mobile Filter UX ===== */
+@media (max-width: 768px) {
+  .filterSection {
+    flex-direction: column;
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .filterGroup {
+    width: 100%;
+  }
+
+  /* Horizontal scroll pills */
+  .pillContainer {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pillContainer::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pill {
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  /* Date inputs become stacked */
+  .dateRow {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .dateRow input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .clear {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+}

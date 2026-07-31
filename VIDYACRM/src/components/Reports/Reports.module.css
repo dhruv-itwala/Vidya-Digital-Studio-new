@@ -1,0 +1,317 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* ================= HEADER ================= */
+.headerArea {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--color-surface);
+  padding: 32px;
+  border-radius: 24px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.subHeading {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ========== CARD LAYOUT ========== */
+.card {
+  width: 100%;
+  background-color: var(--color-surface);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ========== CONTROLS ========== */
+.controlsGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.inputField {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: #f9fafb;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  outline: none;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.inputField:focus {
+  background: #ffffff;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.primaryBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--deep-forest);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: #0b4331;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 92, 68, 0.2);
+}
+
+.primaryBtn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ========== TABLE ========== */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.table th {
+  background: #f9fafb;
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: #f8fafc;
+}
+
+.emptyState {
+  padding: 40px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.employeeName {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* Status Badge */
+.statusBadge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status_submitted { background: #dcfce7; color: #166534; }
+.status_pending { background: #fee2e2; color: #991b1b; }
+
+/* Work Points */
+.pointsList {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.pointsList li {
+  line-height: 1.4;
+}
+
+/* ========== CUSTOM REPORT ========== */
+.customDivider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.customDivider::before, .customDivider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.customDivider::not(:empty)::before { margin-right: 16px; }
+.customDivider::not(:empty)::after { margin-left: 16px; }
+
+.employeeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* Employee Check Card */
+.empCard {
+  cursor: pointer;
+}
+
+.empCard input {
+  display: none;
+}
+
+.empCardContent {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: #f9fafb;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.empCard:hover .empCardContent {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.empCard input:checked + .empCardContent {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+.empCheckIndicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  background: #fff;
+}
+
+.empCard input:checked + .empCardContent .empCheckIndicator {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.empCheckIndicator::after {
+  content: '';
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  margin-bottom: 2px;
+}
+
+.empCard input:checked + .empCardContent .empCheckIndicator::after {
+  opacity: 1;
+}
+
+.empName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .controlsGroup {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .cardHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

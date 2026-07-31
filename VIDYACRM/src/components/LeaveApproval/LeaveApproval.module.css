@@ -1,0 +1,353 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ================= ACCORDION ================= */
+.accordion {
+  background: var(--color-surface);
+  border-radius: 24px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.accordionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--color-surface);
+  transition: background var(--transition-fast);
+}
+
+.accordionHeader:hover {
+  background: #f8fafc;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.headerLeft h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+.badge {
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+.headerRight {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.iconWrapperOrange {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #fff7ed;
+  color: #ea580c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.iconWrapperGreen {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #ecfdf5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.iconWrapperNeutral {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #f3f4f6;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.accordionBody {
+  padding: 0 24px 24px 24px;
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= TABLE ================= */
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.table th {
+  background: #f9fafb;
+  padding: 16px 24px;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr {
+  transition: background var(--transition-fast);
+}
+
+.table tr:hover td {
+  background: #f8fafc;
+}
+
+.emptyState {
+  padding: 48px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Table Elements */
+.empName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.duration {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.arrow {
+  color: #9ca3af;
+  margin: 0 6px;
+}
+
+.typeGroup {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.typeBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.halfDayBadge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reasonText {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  max-width: 250px;
+  display: inline-block;
+  white-space: normal;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.approveBtn, .declineBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.approveBtn {
+  background: var(--color-primary-light);
+  color: var(--deep-forest);
+}
+
+.approveBtn:hover {
+  background: var(--deep-forest);
+  color: #ffffff;
+}
+
+.declineBtn {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.declineBtn:hover {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.statusGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pending { background: #fef9c3; color: #a16207; }
+.approved { background: #dcfce7; color: #166534; }
+.declined { background: #fef2f2; color: #b91c1c; }
+.cancelled { background: #f3f4f6; color: #4b5563; }
+
+.cancelLink {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cancelLink:hover {
+  color: #b91c1c;
+}
+
+/* ================= PAGINATION ================= */
+.pagination {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.pageBtn, .activePage {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pageBtn {
+  background: #f3f4f6;
+  border: 1px solid transparent;
+  color: #4b5563;
+}
+
+.pageBtn:hover {
+  background: #e5e7eb;
+}
+
+.activePage {
+  background: var(--deep-forest);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(15, 92, 68, 0.15);
+}
+
+@media (max-width: 768px) {
+  .headerLeft h3 {
+    font-size: 1.1rem;
+  }
+}

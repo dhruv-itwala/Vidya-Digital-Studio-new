@@ -1,0 +1,76 @@
+import { useEffect, useMemo, useState } from "react";
+import { getUpcomingHolidaysAPI } from "../../api/holiday.api";
+import styles from "./Holiday.module.css";
+import { holidayFormatDate, holidayGetDayName } from "../../utils/date.util";
+
+export default function Holiday() {
+  const [holidays, setHolidays] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHolidays();
+  }, []);
+
+  const fetchHolidays = async () => {
+    try {
+      setLoading(true);
+      const res = await getUpcomingHolidaysAPI();
+
+      const list = Array.isArray(res?.data?.data) ? res.data.data : [];
+
+      setHolidays(list);
+    } catch (error) {
+      console.error("Failed to fetch holidays", error);
+      setHolidays([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ===== SORT BY DATE ===== */
+  const sortedHolidays = useMemo(() => {
+    if (!Array.isArray(holidays)) return [];
+    return [...holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [holidays]);
+
+  return (
+    <div
+      className="masterContainer"
+      style={{ flexDirection: "column", gap: 20 }}
+    >
+      <h2>Company Holidays</h2>
+
+      <div className={styles.card}>
+        {loading && <p className={styles.info}>Loading holidays...</p>}
+
+        {!loading && sortedHolidays.length === 0 && (
+          <p className={styles.info}>No holidays announced yet</p>
+        )}
+
+        {!loading && sortedHolidays.length > 0 && (
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={styles.headerRow}>Day</th>
+                  <th className={styles.headerRow}>Date</th>
+                  <th className={styles.headerRow}>Holiday</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {sortedHolidays.map((h) => (
+                  <tr key={h._id}>
+                    <td>{holidayGetDayName(h.date)}</td>
+                    <td>{holidayFormatDate(h.date)}</td>
+                    <td>{h.name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

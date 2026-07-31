@@ -1,0 +1,279 @@
+/* ================= ROOT ================= */
+.container {
+  margin: 24px 0;
+}
+
+/* ================= KANBAN ================= */
+.kanban {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 24px;
+}
+
+.kanban::-webkit-scrollbar {
+  height: 8px;
+}
+.kanban::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.column {
+  flex: 1;
+  min-width: 340px;
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.columnTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ================= CARD ================= */
+.card {
+  background: #ffffff !important;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: #d1d5db;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.taskName {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+/* ================= PRIORITY ACCENTS ================= */
+.priorityBadge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.lowBadge { background: #ecfdf5; color: #059669; }
+.mediumBadge { background: #fff7ed; color: #ea580c; }
+.highBadge { background: #fef2f2; color: #dc2626; }
+
+.card.low { border-top: 4px solid #10b981; }
+.card.medium { border-top: 4px solid #f97316; }
+.card.high { border-top: 4px solid #ef4444; }
+
+/* ================= DETAILS ================= */
+.details {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.meta {
+  padding: 16px 0;
+  border-top: 1px dashed var(--color-border);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.dateInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dateItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.dateIcon {
+  color: #9ca3af;
+}
+
+/* ================= FOOTER & USERS ================= */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.assigned {
+  display: flex;
+  align-items: center;
+  margin-left: 8px; /* For avatar overlap */
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--deep-forest);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  margin-left: -8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.userAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ================= ACTIONS ================= */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusSelect {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+  background: #f9fafb;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.statusSelect:hover {
+  border-color: #d1d5db;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 6px;
+}
+
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #f3f4f6;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.iconBtn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.deleteBtn:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .kanban {
+    flex-direction: column;
+  }
+}
+
+/* ================= TABLE (For TaskCompleted) ================= */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-surface);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+
+.table th {
+  background: #f9fafb;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-align: left;
+  padding: 20px 24px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table td {
+  padding: 20px 24px;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: #f8fafc;
+}
+
+.empty {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 48px;
+  color: var(--color-text-muted);
+}

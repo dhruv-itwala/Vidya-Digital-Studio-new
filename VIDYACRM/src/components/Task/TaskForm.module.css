@@ -1,0 +1,131 @@
+.form {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  transition:
+    border 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.userSelect select {
+  width: 100%;
+  min-height: 100px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip {
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.chipRemove {
+  margin-left: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.dateInputs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dateInputs label {
+  flex: 1;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--color-primary);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.submitButton:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: #e5e7eb;
+}
+
+.submitButton {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .dateInputs {
+    flex-direction: column;
+  }
+}
