@@ -10,12 +10,12 @@ import {
 } from "./report.controller.js";
 import { roleCheck } from "../middleware/role.middleware.js";
 import { protect } from "../middleware/auth.middleware.js";
-import { apiLogger } from "../../logger/logger.middleware.js";
+
 
 const reportRoutes = express.Router();
 
 reportRoutes.use(protect);
-reportRoutes.use(apiLogger);
+
 
 reportRoutes.post("/submit", submitReport);
 reportRoutes.put("/update/:id", updateReport);

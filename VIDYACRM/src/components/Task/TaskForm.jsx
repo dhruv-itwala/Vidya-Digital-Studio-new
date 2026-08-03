@@ -58,6 +58,12 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
     if (form.assignedTo.length === 0)
       return toast.error("Assign at least one user");
 
+    if (form.startDate && form.endDate) {
+      if (new Date(form.startDate) > new Date(form.endDate)) {
+        return toast.error("Start Date cannot be later than End Date");
+      }
+    }
+
     try {
       if (task) {
         await updateTaskAPI(task._id, form); // ✅ Use updateTaskAPI

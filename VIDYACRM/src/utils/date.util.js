@@ -11,12 +11,14 @@ export const getDueStatus = (endDate) => {
 
 export const holidayGetDayName = (date) => {
   return new Date(date).toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
     weekday: "long",
   });
 };
 
 export const holidayFormatDate = (date) => {
   return new Date(date).toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -38,13 +40,10 @@ export const formatToIST = (utcDate) => {
 
 export const formatISTDate = (date) => {
   if (!date) return "-";
-
-  const d = new Date(date);
-  const ist = new Date(d.getTime() + 330 * 60000);
-
-  const day = String(ist.getUTCDate()).padStart(2, "0");
-  const month = String(ist.getUTCMonth() + 1).padStart(2, "0");
-  const year = ist.getUTCFullYear();
-
-  return `${day}/${month}/${year}`;
+  return new Date(date).toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 };

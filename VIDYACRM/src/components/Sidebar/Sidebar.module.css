@@ -12,18 +12,20 @@
 
 /* ================= LOGO ================= */
 .logoContainer {
-  padding: 24px 32px;
+  padding: 24px 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   height: 88px;
+  gap: 10px;
 }
 
 .logo {
   height: 40px;
   object-fit: contain;
-  filter: brightness(0) invert(1); /* Makes the green logo white to pop on dark bg */
+  filter: brightness(0) invert(1);
+  /* Makes the green logo white to pop on dark bg */
 }
 
 /* ================= SCROLL AREA ================= */
@@ -39,6 +41,7 @@
 .scrollArea::-webkit-scrollbar {
   width: 4px;
 }
+
 .scrollArea::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
@@ -91,7 +94,8 @@
 }
 
 .itemsOpen {
-  max-height: 500px; /* arbitrary large value */
+  max-height: 500px;
+  /* arbitrary large value */
 }
 
 .menuItem {
@@ -172,7 +176,7 @@
     left: -320px;
     width: 280px;
     height: 100vh;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
     transition: left var(--transition-normal);
   }
 
@@ -184,9 +188,10 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    z-index: 90; /* Just below sidebar's 100 */
+    z-index: 90;
+    /* Just below sidebar's 100 */
     animation: fadeIn 0.3s ease forwards;
   }
 
@@ -194,7 +199,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -204,8 +209,8 @@
     cursor: pointer;
     transition: background var(--transition-fast);
   }
-  
+
   .closeBtn:hover {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
   }
 }

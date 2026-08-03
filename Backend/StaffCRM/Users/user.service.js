@@ -30,6 +30,20 @@ export const createUserService = async (data) => {
   return User.create(data);
 };
 
+/* ================= PREFERENCES ================= */
+export const updateNotificationPreferencesService = async (userId, preferences) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  user.notificationPreferences = {
+    ...user.notificationPreferences,
+    ...preferences,
+  };
+
+  await user.save();
+  return user.notificationPreferences;
+};
+
 /* ================= UPDATE ================= */
 export const updateUserService = async (loggedInUser, userId, data) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) {

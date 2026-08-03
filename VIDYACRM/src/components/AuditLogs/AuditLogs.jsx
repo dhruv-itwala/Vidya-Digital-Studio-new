@@ -3,6 +3,8 @@ import styles from "./AuditLogs.module.css";
 import { getAuditLogsAPI } from "../../api/auditLog.api";
 import Loader from "../Loader/Loader";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiSearch, FiFilter, FiCalendar, FiShield, FiAlertTriangle, FiInfo, FiXCircle, FiCheckCircle, FiRefreshCw, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -27,7 +29,7 @@ export default function AuditLogs() {
       setLoading(true);
       const res = await getAuditLogsAPI({
         page: currentPage,
-        limit: 50, // default limit
+        limit: 50,
         search: filters.search || undefined,
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
@@ -57,7 +59,6 @@ export default function AuditLogs() {
   const resetFilters = () => {
     setFilters({ search: "", startDate: "", endDate: "", role: "" });
     setPage(1);
-    // Setting state is async, so we pass empty filters manually to fetchLogs
     getAuditLogsAPI({ page: 1, limit: 50 }).then(res => {
       setLogs(res.data.data || []);
       if (res.data.pagination) setPagination(res.data.pagination);
@@ -72,186 +73,260 @@ export default function AuditLogs() {
     if (page > 1) setPage(page - 1);
   };
 
-  // Convert to IST
   const formatDate = (date) => {
     return new Date(date).toLocaleString("en-IN", {
       timeZone: "Asia/Kolkata",
-      dateStyle: "medium",
-      timeStyle: "short",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
   };
 
-  const getSeverityClass = (severity) => {
+  const getSeverityBadge = (severity) => {
     switch (severity) {
       case "INFO":
-        return styles.severityInfo;
+        return <span className={`${styles.badge} ${styles.info}`}><FiInfo className={styles.badgeIcon} /> Info</span>;
       case "WARNING":
-        return styles.severityWarning;
+        return <span className={`${styles.badge} ${styles.warning}`}><FiAlertTriangle className={styles.badgeIcon} /> Warning</span>;
       case "CRITICAL":
-        return styles.severityCritical;
+        return <span className={`${styles.badge} ${styles.critical}`}><FiXCircle className={styles.badgeIcon} /> Critical</span>;
       case "SECURITY":
-        return styles.severitySecurity;
+        return <span className={`${styles.badge} ${styles.security}`}><FiShield className={styles.badgeIcon} /> Security</span>;
       default:
-        return "";
+        return <span className={`${styles.badge} ${styles.info}`}>{severity}</span>;
     }
+  };
+
+  const getStatusBadge = (status) => {
+    if (status === "FAILED") {
+      return <span className={`${styles.statusBadge} ${styles.failed}`}><FiXCircle className={styles.statusIcon} /> Failed</span>;
+    }
+    return <span className={`${styles.statusBadge} ${styles.success}`}><FiCheckCircle className={styles.statusIcon} /> Success</span>;
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.03 }
+    }
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.3 } }
   };
 
   return (
     <div className="masterContainer">
-      <div className={styles.container}>
-        <h2 className={styles.title}>Audit Logs</h2>
+      <motion.div 
+        className={styles.container}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <header className={styles.header}>
+          <div className={styles.headerLeft}>
+            <div className={styles.iconWrapper}>
+              <FiShield className={styles.headerIcon} />
+            </div>
+            <div>
+              <h2 className={styles.title}>System Audit Logs</h2>
+              <p className={styles.subtitle}>Monitor and track user activities across the platform</p>
+            </div>
+          </div>
+        </header>
 
-        <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <label>Search (Names, Action)</label>
+        <div className={styles.filterToolbar}>
+          <div className={styles.searchBox}>
+            <FiSearch className={styles.searchIcon} />
             <input
               type="text"
               name="search"
-              placeholder="Search..."
+              placeholder="Search by action, name..."
               value={filters.search}
               onChange={handleFilterChange}
-              className={styles.input}
+              className={styles.searchInput}
             />
           </div>
           
-          <div className={styles.filterGroup}>
-            <label>Role</label>
-            <select
-              name="role"
-              value={filters.role}
-              onChange={handleFilterChange}
-              className={styles.input}
-            >
-              <option value="">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="hr">HR</option>
-              <option value="employee">Employee</option>
-            </select>
-          </div>
-
-          <div className={styles.filterGroup}>
-            <label>Start Date</label>
-            <input
-              type="date"
-              name="startDate"
-              value={filters.startDate}
-              onChange={handleFilterChange}
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.filterGroup}>
-            <label>End Date</label>
-            <input
-              type="date"
-              name="endDate"
-              value={filters.endDate}
-              onChange={handleFilterChange}
-              className={styles.input}
-            />
-          </div>
-
-          <button className={styles.applyBtn} onClick={applyFilters}>
-            Apply Filters
-          </button>
-          
-          <button className={styles.resetBtn} onClick={resetFilters}>
-            Reset
-          </button>
-        </div>
-
-        {loading ? (
-          <Loader />
-        ) : (
-          <>
-            <div className={styles.tableWrapper}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Action</th>
-                    <th>Module</th>
-                    <th>Entity</th>
-                    <th>Severity</th>
-                    <th>Status</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {logs.map((log) => (
-                    <tr key={log._id}>
-                      <td>{formatDate(log.timestamp)}</td>
-
-                      <td>{log.userName || log.user?.name || "Unknown"}</td>
-                      
-                      <td>{log.userRole || "-"}</td>
-
-                      <td className={styles.action}>{log.action}</td>
-
-                      <td>
-                        <span className={styles.module}>{log.module}</span>
-                      </td>
-
-                      <td>{log.entityName || "-"}</td>
-
-                      <td className={getSeverityClass(log.severity)}>
-                        {log.severity || "INFO"}
-                      </td>
-
-                      <td
-                        className={
-                          log.status === "FAILED" ? styles.error : styles.success
-                        }
-                      >
-                        {log.status || "SUCCESS"}
-                      </td>
-                      
-                      <td className={styles.details} title={log.description}>
-                        {log.description}
-                      </td>
-                    </tr>
-                  ))}
-                  
-                  {logs.length === 0 && (
-                    <tr>
-                      <td colSpan="9" style={{ textAlign: "center", padding: "2rem" }}>
-                        No audit logs found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          <div className={styles.filtersGroup}>
+            <div className={styles.filterItem}>
+              <FiFilter className={styles.filterIcon} />
+              <select
+                name="role"
+                value={filters.role}
+                onChange={handleFilterChange}
+                className={styles.selectInput}
+              >
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="hr">HR</option>
+                <option value="employee">Employee</option>
+              </select>
             </div>
 
-            {pagination.pages > 1 && (
-              <div className={styles.pagination}>
-                <div className={styles.pageInfo}>
-                  Showing page {pagination.page} of {pagination.pages} ({pagination.total} total logs)
-                </div>
-                <div className={styles.pageControls}>
-                  <button 
-                    className={styles.pageBtn} 
-                    onClick={handlePrevPage}
-                    disabled={page === 1}
+            <div className={styles.filterItem}>
+              <FiCalendar className={styles.filterIcon} />
+              <input
+                type="date"
+                name="startDate"
+                value={filters.startDate}
+                onChange={handleFilterChange}
+                className={styles.dateInput}
+                title="Start Date"
+              />
+            </div>
+
+            <div className={styles.filterItem}>
+              <FiCalendar className={styles.filterIcon} />
+              <input
+                type="date"
+                name="endDate"
+                value={filters.endDate}
+                onChange={handleFilterChange}
+                className={styles.dateInput}
+                title="End Date"
+              />
+            </div>
+
+            <div className={styles.actionButtons}>
+              <motion.button 
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }} 
+                className={styles.applyBtn} 
+                onClick={applyFilters}
+              >
+                Apply
+              </motion.button>
+              
+              <motion.button 
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }} 
+                className={styles.resetBtn} 
+                onClick={resetFilters}
+                title="Reset Filters"
+              >
+                <FiRefreshCw />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.contentWrapper}>
+          {loading ? (
+            <div className={styles.loaderWrapper}>
+              <Loader />
+            </div>
+          ) : (
+            <>
+              <div className={styles.tableResponsive}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Time & User</th>
+                      <th>Action Details</th>
+                      <th>Module / Entity</th>
+                      <th>Severity</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+
+                  <motion.tbody
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
                   >
-                    Previous
-                  </button>
-                  <button 
-                    className={styles.pageBtn} 
-                    onClick={handleNextPage}
-                    disabled={page >= pagination.pages}
-                  >
-                    Next
-                  </button>
-                </div>
+                    <AnimatePresence>
+                      {logs.map((log) => (
+                        <motion.tr 
+                          key={log._id}
+                          variants={rowVariants}
+                          className={styles.tableRow}
+                          whileHover={{ backgroundColor: "rgba(248, 250, 252, 0.8)" }}
+                        >
+                          <td className={styles.timeUserCell}>
+                            <div className={styles.timeText}>{formatDate(log.timestamp)}</div>
+                            <div className={styles.userInfo}>
+                              <span className={styles.userName}>{log.userName || log.user?.name || "Unknown"}</span>
+                              <span className={styles.userRole}>{log.userRole || "-"}</span>
+                            </div>
+                          </td>
+
+                          <td className={styles.actionCell}>
+                            <div className={styles.actionText}>{log.action}</div>
+                            <div className={styles.actionDesc} title={log.description}>
+                              {log.description}
+                            </div>
+                          </td>
+
+                          <td className={styles.moduleCell}>
+                            <div className={styles.moduleTag}>{log.module}</div>
+                            <div className={styles.entityText}>{log.entityName || "-"}</div>
+                          </td>
+
+                          <td className={styles.severityCell}>
+                            {getSeverityBadge(log.severity)}
+                          </td>
+
+                          <td className={styles.statusCell}>
+                            {getStatusBadge(log.status)}
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+
+                    {logs.length === 0 && (
+                      <tr>
+                        <td colSpan="5">
+                          <div className={styles.emptyState}>
+                            <FiShield className={styles.emptyIcon} />
+                            <h3>No Audit Logs Found</h3>
+                            <p>Try adjusting your filters or search criteria.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </motion.tbody>
+                </table>
               </div>
-            )}
-          </>
-        )}
-      </div>
+
+              {pagination.pages > 1 && (
+                <div className={styles.pagination}>
+                  <div className={styles.pageInfo}>
+                    Showing <span className={styles.highlight}>{logs.length}</span> logs (Page {pagination.page} of {pagination.pages})
+                  </div>
+                  <div className={styles.pageControls}>
+                    <motion.button 
+                      whileHover={{ scale: page > 1 ? 1.05 : 1 }}
+                      whileTap={{ scale: page > 1 ? 0.95 : 1 }}
+                      className={styles.pageBtn} 
+                      onClick={handlePrevPage}
+                      disabled={page === 1}
+                    >
+                      <FiChevronLeft /> Prev
+                    </motion.button>
+                    <div className={styles.pageIndicator}>
+                      {pagination.page} / {pagination.pages}
+                    </div>
+                    <motion.button 
+                      whileHover={{ scale: page < pagination.pages ? 1.05 : 1 }}
+                      whileTap={{ scale: page < pagination.pages ? 0.95 : 1 }}
+                      className={styles.pageBtn} 
+                      onClick={handleNextPage}
+                      disabled={page >= pagination.pages}
+                    >
+                      Next <FiChevronRight />
+                    </motion.button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 }

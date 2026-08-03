@@ -77,6 +77,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
+
+    notificationPreferences: {
+      type: Object,
+      default: {
+        leaves: true,
+        reports: true,
+        tasks: true,
+      },
+    },
   },
   { timestamps: true },
 );

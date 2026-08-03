@@ -12,11 +12,11 @@ import {
   getAllUsersForAdmin,
   getDashboardOverview,
   uploadProfilePhoto,
+  updateNotificationPreferences,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
 import upload from "../../config/multer.config.js";
-import { apiLogger } from "../../logger/logger.middleware.js";
 
 const userRoutes = express.Router();
 
@@ -24,7 +24,8 @@ const userRoutes = express.Router();
 userRoutes.post("/login", login);
 
 userRoutes.use(protect);
-userRoutes.use(apiLogger);
+
+userRoutes.put("/preferences", roleCheck("admin", "hr"), updateNotificationPreferences);
 
 userRoutes.get("/me", getProfile);
 userRoutes.get("/", getAllUsers);

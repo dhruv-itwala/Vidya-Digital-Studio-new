@@ -142,24 +142,24 @@ export default function LeaveApproval() {
                     ) : (
                       paginate(pendingLeaves, pendingPage).map((l) => (
                         <tr key={l._id}>
-                          <td>
+                          <td data-label="Employee">
                             <div className={styles.employeeInfo}>
                               <span className={styles.empName}>{l.user?.name}</span>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Duration">
                             <span className={styles.duration}>
                               {formatDateIST(l.fromDate)} <span className={styles.arrow}>→</span> {formatDateIST(l.toDate)}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="Type & Half Day">
                             <div className={styles.typeGroup}>
                               <span className={styles.typeBadge}>{l.type}</span>
                               {l.isHalfDay && <span className={styles.halfDayBadge}>Half Day</span>}
                             </div>
                           </td>
-                          <td><span className={styles.reasonText}>{l.reason || "—"}</span></td>
-                          <td>
+                          <td data-label="Reason"><span className={styles.reasonText}>{l.reason || "—"}</span></td>
+                          <td data-label="Actions">
                             <div className={styles.actionGroup}>
                               <button className={styles.approveBtn} onClick={() => approve(l._id)} title="Approve">
                                 <FiCheckCircle /> Approve
@@ -219,23 +219,23 @@ export default function LeaveApproval() {
                     ) : (
                       paginate(historyLeaves, historyPage).map((l) => (
                         <tr key={l._id}>
-                          <td>
+                          <td data-label="Employee">
                             <div className={styles.employeeInfo}>
                               <span className={styles.empName}>{l.user?.name}</span>
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Duration">
                             <span className={styles.duration}>
                               {formatDateIST(l.fromDate)} <span className={styles.arrow}>→</span> {formatDateIST(l.toDate)}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="Type & Half Day">
                             <div className={styles.typeGroup}>
                               <span className={styles.typeBadge}>{l.type}</span>
                               {l.isHalfDay && <span className={styles.halfDayBadge}>Half Day</span>}
                             </div>
                           </td>
-                          <td>
+                          <td data-label="Status">
                             <div className={styles.statusGroup}>
                               <span className={`${styles.statusBadge} ${styles[l.status.toLowerCase()]}`}>
                                 {l.status}

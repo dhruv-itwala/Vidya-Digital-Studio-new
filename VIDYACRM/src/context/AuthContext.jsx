@@ -104,6 +104,7 @@ export const AuthProvider = ({ children }) => {
         refetchUsers: fetchAllUsers,
         refetchProfile,
         updateUserPhoto,
+        updateUserPreferences: (prefs) => setUser(prev => ({ ...prev, notificationPreferences: prefs })),
       }}
     >
       {children}

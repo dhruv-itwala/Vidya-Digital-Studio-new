@@ -25,11 +25,13 @@ import leaveRoutes from "./StaffCRM/Leaves/leave.routes.js";
 import todoRoutes from "./StaffCRM/Todo/todo.routes.js";
 import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
 import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
+import ClientPortalRoutes from "./StaffCRM/Clients/ClientPortal.routes.js";
+import ContentTaskRoutes from "./StaffCRM/Tasks/ContentTask.routes.js";
 import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 
 import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
 import ugcCreatorRoutes from "./StaffCRM/UGCCreators/UGCCreators.routes.js";
-import loggerRoutes from "./logger/Logger.routes.js";
+
 import auditLogRoutes from "./StaffCRM/AuditLog/AuditLog.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
@@ -97,6 +99,10 @@ app.use(`/api/${VERSION}/todo`, todoRoutes);
 
 // Client Routes
 app.use(`/api/${VERSION}/clients`, ClientRoutes);
+app.use(`/api/${VERSION}/client-portal`, ClientPortalRoutes);
+
+// Content Task Routes
+app.use(`/api/${VERSION}/content-tasks`, ContentTaskRoutes);
 
 // Lead Routes
 app.use(`/api/${VERSION}/leads`, LeadsRoutes);
@@ -107,8 +113,7 @@ app.use(`/api/${VERSION}/influencers`, influencerRoutes);
 // UGCCreator Routes
 app.use(`/api/${VERSION}/ugccreators`, ugcCreatorRoutes);
 
-// Logger Routes
-app.use(`/api/${VERSION}/logs`, loggerRoutes);
+
 
 // Audit Log Routes
 app.use(`/api/${VERSION}/audit-logs`, auditLogRoutes);

@@ -76,9 +76,6 @@ const Dashboard = () => {
         <div className={styles.bentoBox}>
           <WeeklyHrs attendance={attendance} />
         </div>
-      </div>
-
-      <div className={styles.bentoGridTop}>
         <div className={styles.bentoBox}>
           <EmployeeReport onSubmitted={attendance.refresh} />
         </div>

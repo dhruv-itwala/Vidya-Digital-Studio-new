@@ -6,6 +6,9 @@ export const loginAPI = (data) => api.post("/users/login", data);
 // PROFILE (READ ONLY)
 export const getMyProfileAPI = () => api.get("/users/me");
 
+// NOTIFICATION PREFS
+export const updateNotificationPreferencesAPI = (data) => api.put("/users/preferences", data);
+
 // LOGOUT (frontend only)
 export const logoutAPI = () => {
   localStorage.removeItem("token");

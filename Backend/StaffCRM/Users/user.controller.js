@@ -10,6 +10,7 @@ import {
   getAllUsersForAdminService,
   getDashboardOverviewService,
   uploadProfilePhotoService,
+  updateNotificationPreferencesService,
 } from "./user.service.js";
 
 import { signToken } from "../utils/jwt.util.js";
@@ -17,6 +18,16 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import AppError from "../utils/AppError.js";
 import { logActivity, captureBeforeState } from "../AuditLog/AuditLog.service.js";
 import User from "./user.model.js";
+
+/* ================= PREFERENCES ================= */
+export const updateNotificationPreferences = asyncHandler(async (req, res) => {
+  const preferences = req.body;
+  const updatedPrefs = await updateNotificationPreferencesService(req.user.id, preferences);
+  res.status(200).json({
+    status: "success",
+    data: updatedPrefs,
+  });
+});
 
 /* ================= AUTH ================= */
 export const login = asyncHandler(async (req, res) => {

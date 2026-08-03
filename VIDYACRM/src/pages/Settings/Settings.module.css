@@ -1,0 +1,196 @@
+.container {
+  padding: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: #000000 !important;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #000000 !important;
+  margin: 0;
+  font-weight: 400;
+}
+
+.settingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cardHeader {
+  padding: 28px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(var(--brand-rgb, 10, 207, 131), 0.2), rgba(var(--brand-rgb, 10, 207, 131), 0.05));
+  color: var(--brand, #0acf83);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  box-shadow: inset 0 0 0 1px rgba(var(--brand-rgb, 10, 207, 131), 0.2);
+}
+
+.cardHeader h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  color: #000000;
+}
+
+.cardHeader p {
+  font-size: 0.95rem;
+  color: #000000 !important;
+  margin: 0;
+}
+
+.settingList {
+  display: flex;
+  flex-direction: column;
+}
+
+.settingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.3s ease;
+}
+
+.settingItem:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.settingItem:last-child {
+  border-bottom: none;
+}
+
+.settingInfo h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0 0 6px 0;
+  color: #000000 !important;
+  letter-spacing: -0.01em;
+}
+
+.settingInfo p {
+  font-size: 0.9rem;
+  color: #000000 !important;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Toggle Switch */
+.toggle {
+  width: 50px;
+  height: 28px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleOn {
+  background: var(--brand, #0acf83);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 12px rgba(var(--brand-rgb, 10, 207, 131), 0.3);
+}
+
+.toggleOff {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.toggleKnob {
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .cardHeader {
+    padding: 20px;
+  }
+
+  .settingItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .toggle {
+    align-self: flex-start;
+    margin-top: 4px;
+  }
+}

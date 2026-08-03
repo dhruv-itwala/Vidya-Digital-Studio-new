@@ -51,6 +51,13 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
   const submit = async () => {
     if (!form.name.trim()) return toast.error("Task name required");
     if (form.assignedTo.length === 0) return toast.error("Assign at least one user");
+
+    if (form.startDate && form.endDate) {
+      if (new Date(form.startDate) > new Date(form.endDate)) {
+        return toast.error("Start Date cannot be later than End Date");
+      }
+    }
+
     await onSubmit(form);
   };
 

@@ -26,6 +26,7 @@ export const NAVBAR_MENUS = {
     { label: "Holidays", path: "/admin/holidays" },
     { label: "Reports", path: "/admin/reports" },
     { label: "Leave Approvals", path: "/admin/leave-approval" },
+    { label: "Settings", path: "/admin/settings" },
   ],
 
   employee: [
@@ -68,6 +69,7 @@ export const NAVBAR_MENUS = {
     { label: "Holidays", path: "/hr/hrHoliday" },
     { label: "Reports", path: "/hr/hrReports" },
     { label: "Leave Approvals", path: "/hr/hrLeaveApproval" },
+    { label: "Settings", path: "/hr/settings" },
   ],
 
   intern: [

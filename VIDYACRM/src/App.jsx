@@ -77,6 +77,12 @@ const UGCCreator = React.lazy(
 const UGCView = React.lazy(() => import("./components/UgcCreatorList/UGCView"));
 const Log = React.lazy(() => import("./components/LogsPage/Log"));
 const AuditLogs = React.lazy(() => import("./components/AuditLogs/AuditLogs"));
+const Settings = React.lazy(() => import("./pages/Settings/Settings"));
+
+// Client Portal Lazy Loads
+const ClientLogin = React.lazy(() => import("./pages/ClientPortal/ClientLogin"));
+const ClientDashboard = React.lazy(() => import("./components/ClientPortal/ClientDashboard"));
+const ClientProtectedRoute = React.lazy(() => import("./routes/ClientProtectedRoute"));
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -94,6 +100,19 @@ export default function App() {
     <>
       <Suspense fallback={<Loader />}>
         <Routes>
+          {/* CLIENT PORTAL ROUTES */}
+          <Route path="/client-login" element={<ClientLogin />} />
+          <Route
+            path="/client-portal/*"
+            element={
+              <ClientProtectedRoute>
+                <Routes>
+                  <Route index element={<ClientDashboard />} />
+                </Routes>
+              </ClientProtectedRoute>
+            }
+          />
+
           {/* LOGIN */}
           <Route path="/login" element={<Login />} />
 
@@ -130,6 +149,7 @@ export default function App() {
             <Route path="tasks" element={<AdminTasks />} />
             <Route path="reports" element={<Reports />} />
             <Route path="todo" element={<TodoList />} />
+            <Route path="settings" element={<Settings />} />
 
             <Route path="leads" element={<ViewLeads />} />
             <Route path="leads/:id" element={<DetailLead />} />
@@ -171,12 +191,12 @@ export default function App() {
             <Route path="all-tasks" element={<AdminTasks />} />
             <Route path="todo" element={<TodoList />} />
             <Route path="hr" element={<HROverride />} />
+            <Route path="settings" element={<Settings />} />
 
             <Route path="hrLeaveApproval" element={<LeaveApproval />} />
             <Route path="hrReports" element={<Reports />} />
             <Route path="hrHoliday" element={<HRHoliday />} />
 
-            <Route path="logs" element={<Log />} />
             <Route path="audit-logs" element={<AuditLogs />} />
 
             <Route path="influencers" element={<Influencer />} />

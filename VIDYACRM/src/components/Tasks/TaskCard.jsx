@@ -24,9 +24,9 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
           </span>
         </div>
       </div>
-      
+
       <p className={styles.details}>{task.details}</p>
-      
+
       <div className={styles.meta}>
         <div className={styles.dateInfo}>
           <div className={styles.dateItem}>
@@ -39,10 +39,11 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
           </div>
         </div>
       </div>
-      
+
       <div className={styles.cardFooter}>
         <div className={styles.assigned}>
           {task.assignedTo?.map((u, index) => (
+
             <div key={`${u._id}-${index}`} className={styles.userAvatar} title={u.name}>
               {u.profilePicture?.url ? (
                 <img src={u.profilePicture.url} alt={u.name} />

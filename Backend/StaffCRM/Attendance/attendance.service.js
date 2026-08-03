@@ -91,7 +91,7 @@ export const punchOutService = async (userId) => {
     });
   }
 
-  if (!record) {
+  if (!record || !record.punchIn) {
     throw new AppError("Punch in first", 400);
   }
 
@@ -166,7 +166,7 @@ export const breakInService = async (userId) => {
     date: todayISTUTC(),
   });
 
-  if (!record || record.punchOut) {
+  if (!record || !record.punchIn || record.punchOut) {
     throw new AppError("No active session", 400);
   }
 
@@ -420,7 +420,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   return users.map((u) => {
     const record = recordMap.get(String(u._id));
 
-    if (!record) {
+    if (!record || !record.punchIn) {
       return {
         userId: u._id,
         name: u.name,

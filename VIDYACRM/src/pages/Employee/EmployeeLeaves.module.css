@@ -3,7 +3,10 @@
   flex-direction: column;
   gap: 32px;
   margin: 0 auto;
-  padding-bottom: 32px;
+  padding: 24px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .header {
@@ -29,6 +32,8 @@
   display: grid;
   grid-template-columns: 450px 1fr;
   gap: 24px;
+  width: 100%;
+  min-width: 0;
 }
 
 /* ================= CARDS ================= */
@@ -42,6 +47,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .cardHeader {
@@ -105,6 +113,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
+  width: 100%;
 }
 
 .inputWrap label {
@@ -113,12 +123,17 @@
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .input,
 .select,
 .textarea {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 12px 16px;
   border-radius: 12px;
   border: 1px solid var(--color-border);
@@ -127,6 +142,8 @@
   color: var(--color-text);
   transition: all var(--transition-fast);
   outline: none;
+  box-sizing: border-box;
+  -webkit-appearance: none; /* Removes Safari default styling that might stretch */
 }
 
 .textarea {
@@ -379,6 +396,62 @@ input:checked+.slider:before {
     max-width: 600px;
     margin: 0 auto;
     width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .tableWrapper {
+    border: none;
+    background: transparent;
+    overflow-x: hidden;
+  }
+
+  .table, .table tbody, .table tr, .table td {
+    display: block;
+    width: 100%;
+    min-width: unset;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    margin-bottom: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: right;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    text-align: left;
+    margin-right: 16px;
+    flex-shrink: 0;
   }
 }
 

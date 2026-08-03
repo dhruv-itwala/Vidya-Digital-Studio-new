@@ -8,6 +8,8 @@ import ClientBasicInfo from "./components/ClientBasicInfo";
 import ClientServices from "./components/ClientServices";
 import ClientDocuments from "./components/ClientDocuments";
 import ClientCredentials from "./components/ClientCredentials";
+import ClientPortalSettings from "./components/ClientPortalSettings";
+import ClientContentTasks from "./components/ClientContentTasks";
 import { FiArrowLeft, FiCheckCircle, FiEdit2 } from "react-icons/fi";
 
 export default function ClientForm({ mode = "view", initialData = null }) {
@@ -216,6 +218,14 @@ export default function ClientForm({ mode = "view", initialData = null }) {
             />
           </div>
 
+          <div className={styles.bentoSection}>
+            <ClientPortalSettings
+              form={form}
+              setForm={setFormWithDirty}
+              readOnly={readOnly}
+            />
+          </div>
+
           {!isCreate && (
             <>
               <div className={styles.bentoSection}>
@@ -237,6 +247,13 @@ export default function ClientForm({ mode = "view", initialData = null }) {
                   isCreate={isCreate}
                   addCredential={addCredential}
                   deleteCredential={deleteCredential}
+                />
+              </div>
+
+              <div className={styles.bentoSection}>
+                <ClientContentTasks
+                  clientId={form._id}
+                  readOnly={readOnly}
                 />
               </div>
             </>

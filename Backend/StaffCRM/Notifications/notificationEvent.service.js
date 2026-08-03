@@ -15,16 +15,19 @@ const formatShortISTDate = (dateVal) => {
   });
 };
 
-/**
- * Helper to find active Admin and HR user IDs (optionally excluding a sender ID)
- */
-const getAdminAndHrIds = async (excludeUserId = null) => {
+const getAdminAndHrIds = async (excludeUserId = null, eventType = null) => {
   const users = await User.find({
     role: { $in: ["admin", "hr"] },
     isActive: true,
-  }).select("_id");
+  }).select("_id notificationPreferences");
 
   return users
+    .filter((u) => {
+      if (eventType && u.notificationPreferences && u.notificationPreferences[eventType] === false) {
+        return false;
+      }
+      return true;
+    })
     .map((u) => u._id.toString())
     .filter((id) => id !== excludeUserId?.toString());
 };
@@ -47,7 +50,7 @@ export const notifyLeaveApplied = async (leave, applicantUserId) => {
     const title = "🗓️ New Leave Request!";
     const body = `${applicantName} applied for ${leave.type} leave (${fromStr} - ${toStr}). Reason: ${leave.reason || "N/A"}`;
 
-    const recipientIds = await getAdminAndHrIds(applicantUserId);
+    const recipientIds = await getAdminAndHrIds(applicantUserId, "leaves");
 
     await Promise.all(
       recipientIds.map((id) =>
@@ -118,23 +121,19 @@ export const notifyLeaveCancelled = async (leave, cancelledByUserId) => {
     const isCancelledByOwner =
       leave.user.toString() === cancelledByUserId.toString();
 
-    if (isCancelledByOwner) {
+    const employee = await User.findById(leave.user).select("name");
+    const employeeName = employee?.name || "A team member";
+
+    if (leave.user.toString() === cancelledByUserId.toString()) {
       // Employee cancelled their own leave -> Notify Admin & HR
-      const applicant = await User.findById(leave.user).select("name");
-      const applicantName = applicant?.name || "A team member";
-
-      const title = "🗑️ Leave Request Cancelled";
-      const body = `${applicantName} has cancelled their ${leave.type} leave request (${fromStr} - ${toStr}).`;
-
-      const recipientIds = await getAdminAndHrIds(leave.user);
-
+      const adminHrIds = await getAdminAndHrIds(cancelledByUserId, "leaves");
       await Promise.all(
-        recipientIds.map((id) =>
+        adminHrIds.map((id) =>
           sendNotification(id, {
-            title,
-            body,
+            title: "🚫 Leave Cancelled",
+            body: `${employeeName} has CANCELLED their ${leave.type} leave (${fromStr} - ${toStr}).`,
             url: "/leaves",
-          }).catch(() => {})
+          }).catch((e) => console.error(e))
         )
       );
     } else {
@@ -163,20 +162,20 @@ export const notifyLeaveCancelled = async (leave, cancelledByUserId) => {
 export const notifyReportSubmittedEvent = async (userId) => {
   try {
     const user = await User.findById(userId).select("name");
-    const userName = user?.name || "A team member";
+    const employeeName = user?.name || "A team member";
 
-    const title = "📊 Daily Work Report Submitted";
-    const body = `${userName} has submitted their work report for today.`;
+    const title = "📝 Daily Report Submitted";
+    const body = `${employeeName} has submitted their daily work report.`;
 
-    const recipientIds = await getAdminAndHrIds(userId);
+    const adminHrIds = await getAdminAndHrIds(userId, "reports");
 
     await Promise.all(
-      recipientIds.map((id) =>
+      adminHrIds.map((id) =>
         sendNotification(id, {
           title,
           body,
           url: "/reports",
-        }).catch(() => {})
+        }).catch((e) => console.error(e))
       )
     );
   } catch (err) {
@@ -225,6 +224,9 @@ export const notifyTaskCompleted = async (task, completedByUserId) => {
 
     // Avoid self notification if creator marked it complete themselves
     if (creatorId.toString() === completedByUserId?.toString()) return;
+
+    const creator = await User.findById(creatorId).select("notificationPreferences");
+    if (creator?.notificationPreferences?.tasks === false) return;
 
     const completer = await User.findById(completedByUserId).select("name");
     const completerName = completer?.name || "A team member";

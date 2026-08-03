@@ -34,6 +34,11 @@ export default function EmployeeLeaves() {
       toast.error("Please select a date range.");
       return;
     }
+    
+    if (new Date(fromDate) > new Date(toDate)) {
+      toast.error("From Date cannot be later than To Date.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -183,25 +188,25 @@ export default function EmployeeLeaves() {
                 ) : (
                   leaves.map((l) => (
                     <tr key={l._id}>
-                      <td>
+                      <td data-label="Duration">
                         <span className={styles.duration}>
                           {formatToIST(l.fromDate)} <span className={styles.arrow}>→</span> {formatToIST(l.toDate)}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Type">
                         <span className={styles.typeBadge}>{l.type}</span>
                       </td>
-                      <td>
+                      <td data-label="Half Day">
                         <span className={l.isHalfDay ? styles.yesBadge : styles.noBadge}>
                           {l.isHalfDay ? "YES" : "NO"}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Status">
                         <span className={`${styles.statusBadge} ${styles[l.status.toLowerCase()]}`}>
                           {l.status}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Actions">
                         {((l.status === "PENDING" || l.status === "APPROVED") && new Date(l.toDate) >= new Date(new Date().setHours(0,0,0,0))) && (
                           <button
                             className={styles.cancelBtn}

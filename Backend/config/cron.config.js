@@ -14,6 +14,11 @@ import "../StaffCRM/Attendance/cron/attendanceReminder.cron.js";
 ================================ */
 
 /* ================================
+   TASK SYSTEM
+================================ */
+import "../StaffCRM/Tasks/cron/contentTaskReminder.cron.js";
+
+/* ================================
    SYSTEM HEALTH
 ================================ */
 

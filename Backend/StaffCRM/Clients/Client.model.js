@@ -20,6 +20,24 @@ const documentSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const invoiceSchema = new mongoose.Schema(
+  {
+    invoiceNumber: String,
+    title: { type: String, required: true },
+    url: { type: String, required: true },
+    public_id: String,
+    amount: Number,
+    status: {
+      type: String,
+      enum: ["paid", "unpaid", "pending"],
+      default: "unpaid",
+    },
+    issueDate: { type: Date, default: Date.now },
+    dueDate: Date,
+  },
+  { _id: true },
+);
+
 const transactionSchema = new mongoose.Schema({
   amount: {
     type: Number,
@@ -49,8 +67,19 @@ const clientSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
+    // Client Portal Authentication
+    password: { type: String, select: false },
+
+    // Client Portal Details
+    contentCalendarLink: String,
+    driveFolderLink: String,
+    planDetails: String,
+    deliverables: [String],
+
     credentials: [credentialSchema],
     documents: [documentSchema],
+    invoices: [invoiceSchema],
     transactions: [transactionSchema],
     notes: String,
 

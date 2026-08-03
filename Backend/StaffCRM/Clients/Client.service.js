@@ -7,6 +7,7 @@ import {
 } from "../utils/cloudinaryUpload.js";
 import { parseIST } from "../utils/date.utils.js";
 import cloudinary from "../../config/cloudinary.config.js";
+import bcrypt from "bcryptjs";
 
 /* ================= CREATE CLIENT ================= */
 export const createClientService = async (data, userId, file) => {
@@ -32,6 +33,13 @@ export const createClientService = async (data, userId, file) => {
       data.services = [];
     }
   }
+
+  // Hash password if provided
+  if (data.password) {
+    const salt = await bcrypt.genSalt(10);
+    data.password = await bcrypt.hash(data.password, salt);
+  }
+
   return await Client.create(data);
 };
 
@@ -164,6 +172,15 @@ export const updateClientService = async (clientId, data, file) => {
       url: uploaded.secure_url,
       public_id: uploaded.public_id,
     };
+  }
+
+  // Hash password if provided
+  if (data.password) {
+    const salt = await bcrypt.genSalt(10);
+    data.password = await bcrypt.hash(data.password, salt);
+  } else {
+    // Prevent accidental overwrite of password with empty string
+    delete data.password;
   }
 
   return Client.findByIdAndUpdate(clientId, data, {
