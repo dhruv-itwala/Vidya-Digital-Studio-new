@@ -30,9 +30,14 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["admin", "employee", "hr", "intern"],
+      enum: ["administrative", "admin", "employee", "hr", "intern"],
       default: "employee",
       lowercase: true,
+    },
+
+    customPermissions: {
+      type: [String],
+      default: [],
     },
 
     isActive: {

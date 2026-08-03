@@ -5,10 +5,12 @@ import {
   updateUserAPI,
   uploadProfilePhotoAPI,
 } from "../../api/admin.api";
+import { getUserTargetsAPI, setTargetAPI } from "../../api/target.api";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeModal.module.css";
 import toast from "react-hot-toast";
 import { FiX, FiUploadCloud, FiUser } from "react-icons/fi";
+import { useEffect } from "react";
 
 export default function EmployeeModal({ user, onClose, onSaved }) {
   const { user: loggedInUser } = useAuth();
@@ -37,8 +39,23 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     personalEmail: user?.personalEmail || "",
     role: user?.role || "employee",
     salary: user?.salary || "",
+    salesTarget: "",
     isActive: user?.isActive ?? true,
+    customPermissions: user?.customPermissions || [],
   });
+
+  useEffect(() => {
+    if (isEdit) {
+      // Fetch target for the user
+      getUserTargetsAPI(user._id)
+        .then(res => {
+          if (res.data.targets && res.data.targets.length > 0) {
+            setForm(prev => ({ ...prev, salesTarget: res.data.targets[0].targetValue }));
+          }
+        })
+        .catch(err => console.error("Failed to fetch targets", err));
+    }
+  }, [isEdit, user]);
 
   const handleChange = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -47,12 +64,28 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     setLoading(true);
     try {
       const payload = { ...form };
+      const targetValue = payload.salesTarget;
+      delete payload.salesTarget; // Don't send this to user API
       if (!payload.password) delete payload.password;
 
+      let savedUserId;
       if (isEdit) {
         await updateUserAPI(user._id, payload);
+        savedUserId = user._id;
       } else {
-        await createUserAPI(payload);
+        const res = await createUserAPI(payload);
+        savedUserId = res.data.user._id;
+      }
+
+      // Set target if provided
+      if (targetValue && targetValue !== "") {
+        await setTargetAPI({
+          user: savedUserId,
+          metric: "revenue",
+          targetValue: Number(targetValue),
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+        });
       }
 
       onSaved();
@@ -129,10 +162,12 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     }
   };
 
-  const roleOptions =
-    loggedInUser.role === "admin"
-      ? ["employee", "hr", "intern", "admin"]
-      : ["employee", "hr", "intern"];
+  let roleOptions = ["employee", "hr", "intern"];
+  if (loggedInUser.role === "administrative") {
+    roleOptions = ["employee", "hr", "intern", "admin", "administrative"];
+  } else if (loggedInUser.role === "admin") {
+    roleOptions = ["employee", "hr", "intern", "admin"];
+  }
 
   return (
     <div className={styles.overlay}>
@@ -365,6 +400,19 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
               </div>
             </div>
 
+            <div className={styles.grid2}>
+              <div className={styles.inputGroup}>
+                <label>Monthly Sales Target (Revenue)</label>
+                <input
+                  type="number"
+                  placeholder="e.g. 500000"
+                  value={form.salesTarget}
+                  onChange={(e) => handleChange("salesTarget", e.target.value)}
+                  className={styles.inputField}
+                />
+              </div>
+            </div>
+
             <div className={styles.inputGroupFull}>
               <label>Home Address</label>
               <textarea
@@ -386,6 +434,34 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 <span className={styles.slider}></span>
                 <span className={styles.toggleText}>Active Account Status</span>
               </label>
+            </div>
+
+            <div className={styles.inputGroupFull} style={{marginTop: '16px'}}>
+              <label>Custom Permissions (RBAC)</label>
+              <div className={styles.permissionsGrid}>
+                {[
+                  { id: "leads_manage", label: "Manage Leads" },
+                  { id: "clients_manage", label: "Manage Clients" },
+                  { id: "tasks_manage", label: "Manage All Tasks" },
+                  { id: "reports_view", label: "View Team Reports" },
+                ].map((perm) => (
+                  <label key={perm.id} className={styles.permissionItem}>
+                    <input
+                      type="checkbox"
+                      checked={form.customPermissions.includes(perm.id)}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        if (isChecked) {
+                          handleChange("customPermissions", [...form.customPermissions, perm.id]);
+                        } else {
+                          handleChange("customPermissions", form.customPermissions.filter(p => p !== perm.id));
+                        }
+                      }}
+                    />
+                    {perm.label}
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className={styles.modalFooter}>

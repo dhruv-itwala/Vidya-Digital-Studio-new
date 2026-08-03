@@ -80,7 +80,7 @@ export const getProfile = asyncHandler(async (req, res) => {
 
 /* ================= CREATE USER ================= */
 export const createUser = asyncHandler(async (req, res) => {
-  const user = await createUserService(req.body);
+  const user = await createUserService(req.user, req.body);
 
   logActivity({
     req,

@@ -25,7 +25,14 @@ export const loginService = async (email, password) => {
 };
 
 /* ================= CREATE ================= */
-export const createUserService = async (data) => {
+export const createUserService = async (loggedInUser, data) => {
+  if (data.role === "administrative" && loggedInUser.role !== "administrative") {
+    throw new AppError("Only Administrative users can create Administrative users", 403);
+  }
+  if (data.role === "admin" && loggedInUser.role === "hr") {
+    throw new AppError("HR cannot create Admin users", 403);
+  }
+  
   data.password = await bcrypt.hash(data.password, 10);
   return User.create(data);
 };
@@ -53,9 +60,14 @@ export const updateUserService = async (loggedInUser, userId, data) => {
   const targetUser = await User.findById(userId);
   if (!targetUser) throw new AppError("User not found", 404);
 
-  // HR cannot modify Admin
-  if (loggedInUser.role === "hr" && targetUser.role === "admin") {
-    throw new AppError("HR cannot modify Admin", 403);
+  // HR cannot modify Admin or Administrative
+  if (loggedInUser.role === "hr" && (targetUser.role === "admin" || targetUser.role === "administrative")) {
+    throw new AppError("HR cannot modify Admin or Administrative", 403);
+  }
+
+  // Admin cannot modify Administrative
+  if (loggedInUser.role === "admin" && targetUser.role === "administrative") {
+    throw new AppError("Admin cannot modify Administrative", 403);
   }
 
   // Only Admin and HR can change role

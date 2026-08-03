@@ -12,6 +12,8 @@ import { useAttendance } from "../../hooks/useAttendance";
 import { useAuth } from "../../context/AuthContext";
 import EmployeeReport from "../../pages/Employee/EmployeeReport";
 import TaskDashboard from "../Tasks/TaskDashboard";
+import NoticeBoardWidget from "./NoticeBoardWidget/NoticeBoardWidget";
+import SalesTargetWidget from "./SalesTargetWidget/SalesTargetWidget";
 
 const Dashboard = () => {
   const { user, role, birthdays, allEmployees } = useAuth();
@@ -61,6 +63,8 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <NoticeBoardWidget />
+
       {/* Birthdays */}
       {birthdays?.length > 0 && (
         <div className={styles.bentoFull}>
@@ -78,6 +82,9 @@ const Dashboard = () => {
         </div>
         <div className={styles.bentoBox}>
           <EmployeeReport onSubmitted={attendance.refresh} />
+        </div>
+        <div className={styles.bentoBox}>
+          <SalesTargetWidget />
         </div>
       </div>
     </div>

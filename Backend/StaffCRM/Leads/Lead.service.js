@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Lead from "./Lead.model.js";
+import Target from "../Targets/Target.model.js";
 import Client from "../Clients/Client.model.js";
 import AppError from "../utils/AppError.js";
 import { getISTDayRange, normalizeDate } from "../utils/date.utils.js";
@@ -162,6 +163,19 @@ export const updateLeadStatusService = async (leadId, status, userId) => {
 
   if (lead.isConverted) {
     throw new AppError("Converted lead status cannot be changed", 400);
+  }
+
+  // If status changed to Client Won, update target
+  if (lead.status !== "Client Won" && status === "Client Won") {
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    
+    // Fire and forget (or await) the target update
+    Target.findOneAndUpdate(
+      { user: lead.createdBy, metric: "revenue", month: currentMonth, year: currentYear },
+      { $inc: { achievedValue: lead.expectedRevenue || 0 } },
+      { upsert: true }
+    ).catch(err => console.error("Failed to update target:", err));
   }
 
   lead.status = status;

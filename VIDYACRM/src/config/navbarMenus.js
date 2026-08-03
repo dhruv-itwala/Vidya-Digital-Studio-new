@@ -1,4 +1,34 @@
 export const NAVBAR_MENUS = {
+  administrative: [
+    //General
+    { label: "Dashboard", path: "/admin/dashboard" },
+    { label: "Task List", path: "/admin/task-list" },
+    { label: "Profile", path: "/admin/profile" },
+    { label: "Leaves", path: "/admin/leaves" },
+    { label: "To Do List", path: "/admin/todo" },
+
+    "divider",
+    // Influencers and creators
+    { label: "Influencers", path: "/admin/influencers" },
+    { label: "UGC Creators", path: "/admin/ugc-creators" },
+
+    "divider",
+    // Clients and sales
+    { label: "Quotations", path: "/admin/quotations" },
+    { label: "Leads", path: "/admin/leads" },
+    { label: "Clients", path: "/admin/clients" },
+
+    "divider",
+    // general HR tools
+    { label: "Employees", path: "/admin/employees" },
+    { label: "Attendance", path: "/admin/attendance" },
+    { label: "Tasks", path: "/admin/tasks" },
+    { label: "Holidays", path: "/admin/holidays" },
+    { label: "Reports", path: "/admin/reports" },
+    { label: "Leave Approvals", path: "/admin/leave-approval" },
+    { label: "Settings", path: "/admin/settings" },
+    { label: "Notice Board", path: "/admin/notices" },
+  ],
   admin: [
     //General
     { label: "Dashboard", path: "/admin/dashboard" },
@@ -90,6 +120,7 @@ export const NAVBAR_MENUS = {
 };
 
 export const SECTION_TITLES = {
+  administrative: ["General", "Creators", "Business", "HR Tools"],
   admin: ["General", "Creators", "Business", "HR Tools"],
   hr: ["General", "Creators", "Business", "HR Tools"],
   employee: ["General", "Creators"],

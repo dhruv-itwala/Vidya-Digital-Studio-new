@@ -33,6 +33,8 @@ import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
 import ugcCreatorRoutes from "./StaffCRM/UGCCreators/UGCCreators.routes.js";
 
 import auditLogRoutes from "./StaffCRM/AuditLog/AuditLog.routes.js";
+import announcementRoutes from "./StaffCRM/Announcements/Announcement.routes.js";
+import targetRoutes from "./StaffCRM/Targets/Target.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 import notificationRoutes from "./StaffCRM/Notifications/notification.routes.js";
@@ -96,6 +98,12 @@ app.use(`/api/${VERSION}/tasks`, taskRoutes);
 
 // To-do Routes
 app.use(`/api/${VERSION}/todo`, todoRoutes);
+
+// Announcement Routes
+app.use(`/api/${VERSION}/announcements`, announcementRoutes);
+
+// Target Routes
+app.use(`/api/${VERSION}/targets`, targetRoutes);
 
 // Client Routes
 app.use(`/api/${VERSION}/clients`, ClientRoutes);

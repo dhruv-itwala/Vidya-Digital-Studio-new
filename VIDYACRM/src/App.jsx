@@ -22,7 +22,9 @@ const SeniorDashboard = React.lazy(
   () => import("./components/Dashboard/SeniorDashboard"),
 );
 
-const AdminEmployees = React.lazy(() => import("./pages/Admin/AdminEmployees"));
+const AdminEmployees = React.lazy(() => import("./pages/Admin/AdminEmployees"));;
+const NoticeBoard = React.lazy(() => import("./pages/Admin/NoticeBoard"));
+// const ClientLogin = React.lazy(() => import("./pages/Auth/ClientLogin"));
 const AdminTasks = React.lazy(() => import("./pages/Admin/AdminTasks"));
 
 const HRHoliday = React.lazy(() => import("./pages/HR/HRHoliday"));
@@ -130,7 +132,7 @@ export default function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute allowedRoles={["admin", "administrative"]}>
                 <AdminLayout />
               </ProtectedRoute>
             }
@@ -150,6 +152,7 @@ export default function App() {
             <Route path="reports" element={<Reports />} />
             <Route path="todo" element={<TodoList />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="notices" element={<NoticeBoard />} />
 
             <Route path="leads" element={<ViewLeads />} />
             <Route path="leads/:id" element={<DetailLead />} />
