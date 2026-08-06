@@ -1,6 +1,6 @@
 import SystemSettings from "./SystemSettings.model.js";
-import AppError from "../../utils/AppError.js";
-import { asyncHandler } from "../../utils/asyncHandler.js";
+import AppError from "../utils/AppError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Helper to ensure at least one document exists
 export const getGlobalSettings = async () => {

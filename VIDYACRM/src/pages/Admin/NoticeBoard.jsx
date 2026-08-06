@@ -36,6 +36,22 @@ const NoticeBoard = () => {
     fetchAnnouncements();
   }, []);
 
+  const toggleUser = (userId) => {
+    if (form.targetUsers.includes(userId)) {
+      setForm({ ...form, targetUsers: form.targetUsers.filter(id => id !== userId) });
+    } else {
+      setForm({ ...form, targetUsers: [...form.targetUsers, userId] });
+    }
+  };
+
+  const toggleAll = () => {
+    if (form.targetUsers.length === (allEmployees?.length || 0)) {
+      setForm({ ...form, targetUsers: [] });
+    } else {
+      setForm({ ...form, targetUsers: allEmployees?.map(emp => emp._id) || [] });
+    }
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -125,27 +141,27 @@ const NoticeBoard = () => {
             </div>
 
             <div className={styles.inputGroupFull} style={{ marginTop: '16px', marginBottom: '24px' }}>
-              <label>Target Users (Hold Ctrl/Cmd to select multiple. Leave empty to broadcast to Everyone)</label>
-              <select
-                multiple
-                value={form.targetUsers}
-                onChange={(e) => {
-                  const options = e.target.options;
-                  const selectedValues = [];
-                  for (let i = 0; i < options.length; i++) {
-                    if (options[i].selected) {
-                      selectedValues.push(options[i].value);
-                    }
-                  }
-                  setForm({ ...form, targetUsers: selectedValues });
-                }}
-                className={styles.multiSelect}
-                style={{ padding: '8px', minHeight: '80px', width: '100%', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-              >
+              <label>Target Users</label>
+              <p style={{fontSize: '0.8rem', color: '#64748b', margin: '4px 0 0 0'}}>
+                Select specific employees or click 'All Employees' to broadcast to everyone.
+              </p>
+              <div className={styles.usersGrid}>
+                <div 
+                  className={`${styles.userChip} ${form.targetUsers.length === (allEmployees?.length || 0) && allEmployees?.length > 0 ? styles.userChipSelected : styles.userChipUnselected}`}
+                  onClick={toggleAll}
+                >
+                  All Employees
+                </div>
                 {allEmployees?.map(emp => (
-                  <option key={emp._id} value={emp._id}>{emp.name}</option>
+                  <div 
+                    key={emp._id} 
+                    className={`${styles.userChip} ${form.targetUsers.includes(emp._id) ? styles.userChipSelected : styles.userChipUnselected}`}
+                    onClick={() => toggleUser(emp._id)}
+                  >
+                    {emp.name}
+                  </div>
                 ))}
-              </select>
+              </div>
             </div>
 
             <button type="submit" disabled={isSubmitting} className={styles.submitBtn}>
