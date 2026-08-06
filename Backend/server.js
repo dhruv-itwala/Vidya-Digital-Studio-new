@@ -35,6 +35,7 @@ import ugcCreatorRoutes from "./StaffCRM/UGCCreators/UGCCreators.routes.js";
 import auditLogRoutes from "./StaffCRM/AuditLog/AuditLog.routes.js";
 import announcementRoutes from "./StaffCRM/Announcements/Announcement.routes.js";
 import targetRoutes from "./StaffCRM/Targets/Target.routes.js";
+import systemSettingsRoutes from "./StaffCRM/Settings/SystemSettings.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 import notificationRoutes from "./StaffCRM/Notifications/notification.routes.js";
@@ -104,6 +105,9 @@ app.use(`/api/${VERSION}/announcements`, announcementRoutes);
 
 // Target Routes
 app.use(`/api/${VERSION}/targets`, targetRoutes);
+
+// System Settings Routes
+app.use(`/api/${VERSION}/settings`, systemSettingsRoutes);
 
 // Client Routes
 app.use(`/api/${VERSION}/clients`, ClientRoutes);

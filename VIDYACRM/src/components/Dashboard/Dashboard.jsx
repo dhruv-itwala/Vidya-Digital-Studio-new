@@ -83,9 +83,6 @@ const Dashboard = () => {
         <div className={styles.bentoBox}>
           <EmployeeReport onSubmitted={attendance.refresh} />
         </div>
-        <div className={styles.bentoBox}>
-          <SalesTargetWidget />
-        </div>
       </div>
     </div>
   );

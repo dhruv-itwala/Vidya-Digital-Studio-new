@@ -1,6 +1,7 @@
 // Backend/StaffCRM/Notifications/notificationEvent.service.js
 import User from "../Users/user.model.js";
 import { sendNotification } from "./notification.service.js";
+import { getGlobalSettings } from "../Settings/SystemSettings.controller.js";
 
 /**
  * Format IST short date string e.g. "28 Jul"
@@ -41,6 +42,9 @@ const getAdminAndHrIds = async (excludeUserId = null, eventType = null) => {
  */
 export const notifyLeaveApplied = async (leave, applicantUserId) => {
   try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.hr?.leaveApplied === false) return;
+
     const applicant = await User.findById(applicantUserId).select("name");
     const applicantName = applicant?.name || "A team member";
 
@@ -73,6 +77,9 @@ export const notifyLeaveApplied = async (leave, applicantUserId) => {
  */
 export const notifyLeaveApproved = async (leave) => {
   try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.hr?.leaveStatusChanged === false) return;
+
     const fromStr = formatShortISTDate(leave.fromDate);
     const toStr = formatShortISTDate(leave.toDate);
 
@@ -94,6 +101,9 @@ export const notifyLeaveApproved = async (leave) => {
  */
 export const notifyLeaveDeclined = async (leave) => {
   try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.hr?.leaveStatusChanged === false) return;
+
     const fromStr = formatShortISTDate(leave.fromDate);
     const toStr = formatShortISTDate(leave.toDate);
 
@@ -161,6 +171,9 @@ export const notifyLeaveCancelled = async (leave, cancelledByUserId) => {
  */
 export const notifyReportSubmittedEvent = async (userId) => {
   try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.reminders?.report === false) return;
+
     const user = await User.findById(userId).select("name");
     const employeeName = user?.name || "A team member";
 
@@ -192,6 +205,9 @@ export const notifyReportSubmittedEvent = async (userId) => {
  */
 export const notifyTaskAssigned = async (task, creatorUserId) => {
   try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.reminders?.tasks === false) return;
+
     if (!Array.isArray(task.assignedTo)) return;
 
     const title = "📋 New Task Assigned!";
@@ -219,6 +235,9 @@ export const notifyTaskAssigned = async (task, creatorUserId) => {
  */
 export const notifyTaskCompleted = async (task, completedByUserId) => {
   try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.reminders?.tasks === false) return;
+
     const creatorId = task?.createdBy?.user;
     if (!creatorId) return;
 
@@ -241,5 +260,47 @@ export const notifyTaskCompleted = async (task, completedByUserId) => {
     });
   } catch (err) {
     console.error("[NotificationEvent] Error in notifyTaskCompleted:", err?.message || err);
+  }
+};
+/* =========================================================
+   ANNOUNCEMENT NOTIFICATIONS
+========================================================= */
+
+/**
+ * 8. Notify Users when an Announcement is posted
+ */
+export const notifyAnnouncement = async (announcement, targetUsers) => {
+  try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.info?.noticeboard === false) return;
+
+    const title = `📢 ${announcement.title}`;
+    const body = announcement.message.substring(0, 50) + (announcement.message.length > 50 ? "..." : "");
+
+    let recipientIds = [];
+    
+    if (targetUsers && targetUsers.length > 0) {
+      // Send only to target users
+      recipientIds = targetUsers.map(id => id.toString());
+    } else {
+      // Broadcast to all active users
+      const allUsers = await User.find({ isActive: true }).select("_id");
+      recipientIds = allUsers.map(u => u._id.toString());
+    }
+
+    // Exclude author from notification
+    recipientIds = recipientIds.filter(id => id !== announcement.author.toString());
+
+    await Promise.all(
+      recipientIds.map((id) =>
+        sendNotification(id, {
+          title,
+          body,
+          url: "/dashboard",
+        }).catch(() => {})
+      )
+    );
+  } catch (err) {
+    console.error("[NotificationEvent] Error in notifyAnnouncement:", err?.message || err);
   }
 };

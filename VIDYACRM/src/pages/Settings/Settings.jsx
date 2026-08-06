@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { updateNotificationPreferencesAPI } from "../../api/auth.api";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
+import SystemSettings from "./SystemSettings";
 
 export default function Settings() {
   const { user, updateUserPreferences } = useAuth();
@@ -15,6 +16,8 @@ export default function Settings() {
   });
 
   const [saving, setSaving] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("personal");
 
   useEffect(() => {
     if (user?.notificationPreferences) {
@@ -47,6 +50,8 @@ export default function Settings() {
     }
   };
 
+  const isAdminOrHR = ["admin", "hr", "administrative"].includes(user?.role);
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -54,15 +59,33 @@ export default function Settings() {
         <p className={styles.subtitle}>Manage your account preferences and notifications.</p>
       </div>
 
-      <div className={styles.settingsGrid}>
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardIcon}>🔔</div>
-            <div>
-              <h2>Notification Preferences</h2>
-              <p>Choose what events you want to be notified about.</p>
+      {isAdminOrHR && (
+        <div className={styles.tabs}>
+          <button 
+            className={`${styles.tab} ${activeTab === "personal" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("personal")}
+          >
+            My Preferences
+          </button>
+          <button 
+            className={`${styles.tab} ${activeTab === "system" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("system")}
+          >
+            Global System Notifications
+          </button>
+        </div>
+      )}
+
+      {activeTab === "personal" && (
+        <div className={styles.settingsGrid}>
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardIcon}>🔔</div>
+              <div>
+                <h2>Personal Notification Preferences</h2>
+                <p>Choose what events you want to be notified about personally.</p>
+              </div>
             </div>
-          </div>
 
           <div className={styles.settingList}>
             {/* Leaves */}
@@ -124,7 +147,9 @@ export default function Settings() {
 
           </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === "system" && <SystemSettings />}
     </div>
   );
 }

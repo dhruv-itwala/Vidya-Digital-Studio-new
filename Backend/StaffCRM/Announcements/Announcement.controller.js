@@ -1,6 +1,8 @@
 import Announcement from "./Announcement.model.js";
 import AppError from "../utils/AppError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { getISTDayRange } from "../utils/date.utils.js";
+import { notifyAnnouncement } from "../Notifications/notificationEvent.service.js";
 
 // @route   GET /api/announcements
 // @desc    Get all active announcements
@@ -9,7 +11,10 @@ export const getAnnouncements = asyncHandler(async (req, res) => {
   
   // Find announcements that don't have an expiry date OR haven't expired yet
   const announcements = await Announcement.find({
-    $or: [{ expiresAt: { $exists: false } }, { expiresAt: null }, { expiresAt: { $gt: now } }],
+    $and: [
+      { $or: [{ expiresAt: { $exists: false } }, { expiresAt: null }, { expiresAt: { $gt: now } }] },
+      { $or: [{ targetUsers: { $exists: false } }, { targetUsers: { $size: 0 } }, { targetUsers: req.user._id }] }
+    ]
   })
     .populate("author", "name profilePicture")
     .sort({ createdAt: -1 });
@@ -20,10 +25,17 @@ export const getAnnouncements = asyncHandler(async (req, res) => {
 // @route   POST /api/announcements
 // @desc    Create a new announcement
 export const createAnnouncement = asyncHandler(async (req, res) => {
-  const { title, message, type, expiresAt } = req.body;
+  const { title, message, type, expiresAt, targetUsers } = req.body;
 
   if (!title || !message) {
     throw new AppError("Title and message are required", 400);
+  }
+
+  let finalExpiresAt = expiresAt;
+  if (expiresAt) {
+    // If the user picked a date, make it expire at the very end of that day in IST
+    const { end } = getISTDayRange(expiresAt);
+    finalExpiresAt = new Date(end.getTime() - 1);
   }
 
   const announcement = await Announcement.create({
@@ -31,8 +43,12 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
     message,
     type,
     author: req.user._id,
-    expiresAt,
+    expiresAt: finalExpiresAt,
+    targetUsers: targetUsers || [],
   });
+
+  // Dispatch push notification
+  await notifyAnnouncement(announcement, targetUsers);
 
   res.status(201).json({ success: true, announcement });
 });

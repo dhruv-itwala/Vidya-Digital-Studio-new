@@ -14,6 +14,10 @@ const announcementSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    targetUsers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }],
     expiresAt: {
       type: Date,
     },

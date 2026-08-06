@@ -3,17 +3,21 @@ import styles from "./NoticeBoard.module.css";
 import { getAnnouncementsAPI, createAnnouncementAPI, deleteAnnouncementAPI } from "../../api/announcement.api";
 import toast from "react-hot-toast";
 import { FiTrash2, FiPlus } from "react-icons/fi";
+import { useAuth } from "../../context/AuthContext";
 
 const NoticeBoard = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { allEmployees } = useAuth();
+  
   const [form, setForm] = useState({
     title: "",
     message: "",
     type: "info",
     expiresAt: "",
+    targetUsers: [],
   });
 
   const fetchAnnouncements = async () => {
@@ -44,7 +48,7 @@ const NoticeBoard = () => {
       setIsSubmitting(true);
       await createAnnouncementAPI(form);
       toast.success("Announcement posted!");
-      setForm({ title: "", message: "", type: "info", expiresAt: "" });
+      setForm({ title: "", message: "", type: "info", expiresAt: "", targetUsers: [] });
       fetchAnnouncements();
     } catch (err) {
       toast.error("Failed to post announcement");
@@ -118,6 +122,30 @@ const NoticeBoard = () => {
                   onChange={handleChange} 
                 />
               </div>
+            </div>
+
+            <div className={styles.inputGroupFull} style={{ marginTop: '16px', marginBottom: '24px' }}>
+              <label>Target Users (Hold Ctrl/Cmd to select multiple. Leave empty to broadcast to Everyone)</label>
+              <select
+                multiple
+                value={form.targetUsers}
+                onChange={(e) => {
+                  const options = e.target.options;
+                  const selectedValues = [];
+                  for (let i = 0; i < options.length; i++) {
+                    if (options[i].selected) {
+                      selectedValues.push(options[i].value);
+                    }
+                  }
+                  setForm({ ...form, targetUsers: selectedValues });
+                }}
+                className={styles.multiSelect}
+                style={{ padding: '8px', minHeight: '80px', width: '100%', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+              >
+                {allEmployees?.map(emp => (
+                  <option key={emp._id} value={emp._id}>{emp.name}</option>
+                ))}
+              </select>
             </div>
 
             <button type="submit" disabled={isSubmitting} className={styles.submitBtn}>
