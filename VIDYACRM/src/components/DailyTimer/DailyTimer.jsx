@@ -85,8 +85,52 @@ export default function DailyTimer({ attendance }) {
     <div className={styles.card}>
       <h3 className={styles.title}>LIVE CRM ATTENDANCE TIMER</h3>
 
-      <div className={styles.timerDisplay}>
-        {formatTime(liveWorkSeconds)}
+      {/* CIRCULAR PROGRESS BAR */}
+      <div className={styles.progressContainer}>
+        <svg className={styles.progressSvg} viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#0F5C44" />
+              <stop offset="100%" stopColor="#0F5C44" />
+            </linearGradient>
+            <linearGradient id="overtimeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ea580c" />
+              <stop offset="100%" stopColor="#f97316" />
+            </linearGradient>
+          </defs>
+          
+          <circle
+            className={styles.progressBg}
+            cx="100"
+            cy="100"
+            r="85"
+          />
+          <circle
+            className={styles.progressCircle}
+            cx="100"
+            cy="100"
+            r="85"
+            style={{
+              strokeDasharray: 2 * Math.PI * 85,
+              strokeDashoffset: (2 * Math.PI * 85) * Math.min(liveWorkSeconds / WORK_TARGET_SECONDS, 1),
+              stroke: remainingWork === 0 ? "url(#overtimeGradient)" : "url(#progressGradient)"
+            }}
+          />
+        </svg>
+
+        <div className={styles.progressContent}>
+          <div className={styles.timerDisplay}>
+            {remainingWork === 0 && liveWorkSeconds > WORK_TARGET_SECONDS ? (
+               <span style={{ color: "#ea580c", fontSize: "0.6em", display: "block" }}>OVERTIME</span>
+            ) : null}
+            {remainingWork === 0 && liveWorkSeconds > WORK_TARGET_SECONDS 
+              ? formatTime(liveWorkSeconds - WORK_TARGET_SECONDS) 
+              : formatTime(remainingWork)}
+          </div>
+          <div className={styles.progressLabel}>
+            {remainingWork === 0 && liveWorkSeconds > WORK_TARGET_SECONDS ? "EXTRA WORKED" : "REMAINING"}
+          </div>
+        </div>
       </div>
 
       <div className={`${styles.statusLabel} ${statusClass}`}>
@@ -95,7 +139,7 @@ export default function DailyTimer({ attendance }) {
 
       <div className={styles.statsPill}>
         <div className={styles.statRowGreen}>
-          Target Work: {formatTime(WORK_TARGET_SECONDS)} • Remaining: {formatTime(remainingWork)}
+          Total Worked: {formatTime(liveWorkSeconds)} • Target: {formatTime(WORK_TARGET_SECONDS)}
         </div>
         <div className={styles.statRowOrange}>
           Break Quota: {formatTime(BREAK_LIMIT_SECONDS)} • Remaining: {formatTime(remainingBreak)}

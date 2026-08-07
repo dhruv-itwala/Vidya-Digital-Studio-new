@@ -128,7 +128,7 @@ export default function AdminEmployees() {
                         <input
                           type="checkbox"
                           checked={u.isActive}
-                          disabled={user.role === "hr" && u.role === "admin"}
+                          disabled={false}
                           onChange={async () => {
                             const action = u.isActive ? "Deactivate" : "Activate";
                             const ok = confirm(`${action} ${u.name}?`);
@@ -146,7 +146,7 @@ export default function AdminEmployees() {
                     <td>
                       <div className={styles.actionGroup}>
                         <button
-                          disabled={(user.role === "hr" && u.role === "admin")}
+                          disabled={false}
                           onClick={() => setEditingUser(u)}
                           className={styles.actionEdit}
                           title="Edit Employee"
@@ -154,9 +154,9 @@ export default function AdminEmployees() {
                           <FaUserEdit />
                         </button>
 
-                        {user.role === "admin" && (
+                        {(user.role === "admin" || user.role === "hr") && (
                           <button
-                            disabled={user.role === "hr" && u.role === "admin"}
+                            disabled={false}
                             onClick={async () => {
                               if (!confirm(`Delete ${u.name} permanently?`)) return;
                               await deleteUserAPI(u._id);

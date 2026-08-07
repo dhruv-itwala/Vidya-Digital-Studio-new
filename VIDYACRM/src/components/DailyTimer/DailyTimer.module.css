@@ -23,15 +23,64 @@
   margin-bottom: 12px;
 }
 
-/* ================= TIMER ================= */
+/* ================= PROGRESS BAR ================= */
+.progressContainer {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progressSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1) rotate(-90deg); /* Start at top, reduce anti-clockwise */
+}
+
+.progressBg {
+  fill: none;
+  stroke: #f3f4f6;
+  stroke-width: 12;
+}
+
+.progressCircle {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+}
+
+.progressContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .timerDisplay {
-  font-size: 3.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  color: #166534; /* Deep Green */
+  color: #0F5C44;
   text-align: center;
-  line-height: 1;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  margin-bottom: 12px;
+}
+
+.progressLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
 }
 
 /* ================= STATUS ================= */

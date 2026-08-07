@@ -90,6 +90,7 @@ export const NAVBAR_MENUS = {
     { label: "UGC Creators", path: "/hr/ugc-creators" },
     "divider",
     // Clients and sales
+    { label: "Quotations", path: "/hr/quotations" },
     { label: "Leads", path: "/hr/leads" },
     { label: "Clients", path: "/hr/clients" },
     "divider",

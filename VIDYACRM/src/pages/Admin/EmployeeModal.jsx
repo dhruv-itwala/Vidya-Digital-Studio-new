@@ -163,7 +163,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
   };
 
   let roleOptions = ["employee", "hr", "intern"];
-  if (loggedInUser.role === "administrative") {
+  if (loggedInUser.role === "administrative" || loggedInUser.role === "hr") {
     roleOptions = ["employee", "hr", "intern", "admin", "administrative"];
   } else if (loggedInUser.role === "admin") {
     roleOptions = ["employee", "hr", "intern", "admin"];

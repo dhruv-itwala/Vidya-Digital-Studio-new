@@ -187,6 +187,7 @@ export const useAttendance = () => {
     ...state,
     WORK_TARGET_SECONDS: state.dailyRequiredSeconds,
     BREAK_LIMIT_SECONDS,
+    refresh: syncFromServer,
 
     punchIn: () => handleAction(punchInAPI, "👋 Have a great day!"),
     punchOut: async () => {

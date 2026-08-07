@@ -52,8 +52,8 @@ export default function TaskFilter({
           </select>
         </div>
 
-        {/* Employee Filter (Admin Only) */}
-        {role === "admin" && (
+        {/* Employee Filter (Admin/HR Only) */}
+        {(role === "admin" || role === "hr") && (
           <div className={styles.filterGroup}>
             <label>Assigned To</label>
             <select className={`${styles.selectInput} ${styles.multiSelect}`} multiple value={employees} onChange={handleEmployeeChange}>
