@@ -126,6 +126,6 @@ export const SECTION_TITLES = {
   administrative: ["General", "Creators", "Business", "HR Tools"],
   admin: ["General", "Creators", "Business", "HR Tools"],
   hr: ["General", "Creators", "Business", "HR Tools"],
-  employee: ["General", "Creators"],
-  intern: ["General", "Creators"],
+  employee: ["General", "Creators", "Business", "Extra Tools"],
+  intern: ["General", "Creators", "Business", "Extra Tools"],
 };

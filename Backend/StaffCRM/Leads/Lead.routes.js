@@ -1,14 +1,13 @@
 import express from "express";
 import * as ctrl from "./lead.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
-import { roleCheck } from "../middleware/role.middleware.js";
-
+import { roleCheck, roleOrPermissionCheck } from "../middleware/role.middleware.js";
 
 const LeadsRoutes = express.Router();
 
 LeadsRoutes.use(protect);
 
-LeadsRoutes.use(roleCheck("admin", "hr"));
+LeadsRoutes.use(roleOrPermissionCheck(["admin", "hr"], "leads_manage"));
 
 /* ================= BASIC CRUD ================= */
 
@@ -24,8 +23,7 @@ LeadsRoutes.get("/:id", ctrl.getLeadById);
 // Update Lead
 LeadsRoutes.patch("/:id", ctrl.updateLead);
 
-// Delete Lead
-LeadsRoutes.delete("/:id", roleCheck("admin", "hr"), ctrl.deleteLead);
+LeadsRoutes.delete("/:id", roleOrPermissionCheck(["admin", "hr"], "leads_manage"), ctrl.deleteLead);
 
 /* ================= MEETING NOTES ================= */
 
@@ -41,6 +39,6 @@ LeadsRoutes.patch("/:id/proposal", ctrl.updateLeadProposal);
 
 /* ================= CONVERT TO CLIENT ================= */
 
-LeadsRoutes.post("/:id/convert", roleCheck("admin", "hr"), ctrl.convertLead);
+LeadsRoutes.post("/:id/convert", roleOrPermissionCheck(["admin", "hr"], "leads_manage"), ctrl.convertLead);
 
 export default LeadsRoutes;

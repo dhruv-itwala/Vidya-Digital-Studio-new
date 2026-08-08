@@ -10,5 +10,6 @@ ClientPortalRoutes.post("/login", ctrl.clientLogin);
 // Protected routes for clients
 ClientPortalRoutes.use(clientProtect);
 ClientPortalRoutes.get("/me", ctrl.getClientDashboard);
+ClientPortalRoutes.get("/me/credentials", ctrl.getClientCredentials);
 
 export default ClientPortalRoutes;

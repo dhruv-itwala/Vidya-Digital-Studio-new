@@ -62,3 +62,23 @@ export const getClientDashboard = async (req, res, next) => {
     next(error);
   }
 };
+
+// Get Client Credentials
+export const getClientCredentials = async (req, res, next) => {
+  try {
+    const clientId = req.client.id; // from clientProtect middleware
+
+    const client = await Client.findById(clientId).select("+credentials -password");
+
+    if (!client) {
+      throw new AppError("Client not found", 404);
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: client.credentials || [],
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -1,16 +1,15 @@
 import express from "express";
 import * as ctrl from "./client.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
-import { roleCheck } from "../middleware/role.middleware.js";
+import { roleCheck, roleOrPermissionCheck } from "../middleware/role.middleware.js";
 import upload from "../../config/multer.config.js";
-
 
 const ClientRoutes = express.Router();
 
 ClientRoutes.use(protect);
 
 
-ClientRoutes.use(roleCheck("admin", "hr"));
+ClientRoutes.use(roleOrPermissionCheck(["admin", "hr"], "clients_manage"));
 /* ================= BASIC CRUD ================= */
 
 // Create Client (with optional profile image)

@@ -82,9 +82,13 @@ const AuditLogs = React.lazy(() => import("./components/AuditLogs/AuditLogs"));
 const Settings = React.lazy(() => import("./pages/Settings/Settings"));
 
 // Client Portal Lazy Loads
-const ClientLogin = React.lazy(() => import("./pages/ClientPortal/ClientLogin"));
 const ClientDashboard = React.lazy(() => import("./components/ClientPortal/ClientDashboard"));
-const ClientProtectedRoute = React.lazy(() => import("./routes/ClientProtectedRoute"));
+const ClientPortalLayout = React.lazy(() => import("./layouts/ClientPortalLayout"));
+const ClientProfile = React.lazy(() => import("./pages/ClientPortal/ClientProfile"));
+const ClientAssets = React.lazy(() => import("./pages/ClientPortal/ClientAssets"));
+const ClientDocuments = React.lazy(() => import("./pages/ClientPortal/ClientDocuments"));
+const ClientInvoices = React.lazy(() => import("./pages/ClientPortal/ClientInvoices"));
+const ClientTransactions = React.lazy(() => import("./pages/ClientPortal/ClientTransactions"));
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -102,19 +106,6 @@ export default function App() {
     <>
       <Suspense fallback={<Loader />}>
         <Routes>
-          {/* CLIENT PORTAL ROUTES */}
-          <Route path="/client-login" element={<ClientLogin />} />
-          <Route
-            path="/client-portal/*"
-            element={
-              <ClientProtectedRoute>
-                <Routes>
-                  <Route index element={<ClientDashboard />} />
-                </Routes>
-              </ClientProtectedRoute>
-            }
-          />
-
           {/* LOGIN */}
           <Route path="/login" element={<Login />} />
 
@@ -168,6 +159,14 @@ export default function App() {
             <Route path="clients/:id" element={<DetailClient />} />
             <Route path="clients/create" element={<CreateClient />} />
             <Route path="clients/:id/edit" element={<EditClient />} />
+            <Route path="clients/:id/portal" element={<ClientPortalLayout />}>
+              <Route index element={<ClientDashboard />} />
+              <Route path="profile" element={<ClientProfile />} />
+              <Route path="assets" element={<ClientAssets />} />
+              <Route path="documents" element={<ClientDocuments />} />
+              <Route path="invoices" element={<ClientInvoices />} />
+              <Route path="transactions" element={<ClientTransactions />} />
+            </Route>
             <Route path="quotations" element={<AllQuotations />} />
           </Route>
 
@@ -216,6 +215,14 @@ export default function App() {
             <Route path="clients/:id" element={<DetailClient />} />
             <Route path="clients/create" element={<CreateClient />} />
             <Route path="clients/:id/edit" element={<EditClient />} />
+            <Route path="clients/:id/portal" element={<ClientPortalLayout />}>
+              <Route index element={<ClientDashboard />} />
+              <Route path="profile" element={<ClientProfile />} />
+              <Route path="assets" element={<ClientAssets />} />
+              <Route path="documents" element={<ClientDocuments />} />
+              <Route path="invoices" element={<ClientInvoices />} />
+              <Route path="transactions" element={<ClientTransactions />} />
+            </Route>
             <Route path="quotations" element={<AllQuotations />} />
             <Route path="notices" element={<NoticeBoard />} />
           </Route>
@@ -244,6 +251,27 @@ export default function App() {
             <Route path="influencers/view" element={<InfluencerView />} />
             <Route path="ugc-creators" element={<UGCCreator />} />
             <Route path="ugc-creators/view" element={<UGCView />} />
+
+            <Route path="leads" element={<ViewLeads />} />
+            <Route path="leads/:id" element={<DetailLead />} />
+            <Route path="leads/create" element={<CreateLead />} />
+            <Route path="leads/:id/edit" element={<EditLead />} />
+
+            <Route path="clients" element={<ViewClients />} />
+            <Route path="clients/:id" element={<DetailClient />} />
+            <Route path="clients/create" element={<CreateClient />} />
+            <Route path="clients/:id/edit" element={<EditClient />} />
+            <Route path="clients/:id/portal" element={<ClientPortalLayout />}>
+              <Route index element={<ClientDashboard />} />
+              <Route path="profile" element={<ClientProfile />} />
+              <Route path="assets" element={<ClientAssets />} />
+              <Route path="documents" element={<ClientDocuments />} />
+              <Route path="invoices" element={<ClientInvoices />} />
+              <Route path="transactions" element={<ClientTransactions />} />
+            </Route>
+
+            <Route path="all-tasks" element={<AdminTasks />} />
+            <Route path="reports" element={<Reports />} />
           </Route>
 
           {/* FALLBACK */}

@@ -10,7 +10,7 @@ import ClientDocuments from "./components/ClientDocuments";
 import ClientCredentials from "./components/ClientCredentials";
 import ClientPortalSettings from "./components/ClientPortalSettings";
 import ClientContentTasks from "./components/ClientContentTasks";
-import { FiArrowLeft, FiCheckCircle, FiEdit2 } from "react-icons/fi";
+import { FiArrowLeft, FiCheckCircle, FiEdit2, FiExternalLink } from "react-icons/fi";
 
 export default function ClientForm({ mode = "view", initialData = null }) {
   const navigate = useNavigate();
@@ -175,6 +175,16 @@ export default function ClientForm({ mode = "view", initialData = null }) {
           </div>
           
           <div className={styles.headerActions}>
+            {isView && (
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={() => navigate(`/${role}/clients/${form._id}/portal`)}
+                style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}
+              >
+                <FiExternalLink /> Portal View
+              </button>
+            )}
             {isView && (
               <button
                 type="button"

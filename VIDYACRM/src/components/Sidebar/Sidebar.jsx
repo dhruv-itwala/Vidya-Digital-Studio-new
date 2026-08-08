@@ -19,7 +19,32 @@ export default function Sidebar({ isOpen, onClose }) {
   }, [location.pathname]);
 
   const role = user?.role?.toLowerCase();
-  const menu = NAVBAR_MENUS[role] || [];
+  let menu = [...(NAVBAR_MENUS[role] || [])];
+
+  if (role === "employee" || role === "intern") {
+    const hasLeads = user?.customPermissions?.includes("leads_manage");
+    const hasClients = user?.customPermissions?.includes("clients_manage");
+    const hasTasks = user?.customPermissions?.includes("tasks_manage");
+    const hasReports = user?.customPermissions?.includes("reports_view");
+
+    const pathPrefix = role === "intern" ? "employee" : role;
+
+    let businessGroup = [];
+    if (hasLeads) businessGroup.push({ label: "Leads", path: `/${pathPrefix}/leads` });
+    if (hasClients) businessGroup.push({ label: "Clients", path: `/${pathPrefix}/clients` });
+
+    if (businessGroup.length > 0) {
+      menu.push("divider", ...businessGroup);
+    }
+
+    let extraGroup = [];
+    if (hasTasks) extraGroup.push({ label: "All Tasks", path: `/${pathPrefix}/all-tasks` });
+    if (hasReports) extraGroup.push({ label: "Reports", path: `/${pathPrefix}/reports` });
+
+    if (extraGroup.length > 0) {
+      menu.push("divider", ...extraGroup);
+    }
+  }
 
   const [openIndex, setOpenIndex] = useState(0); // Open first section by default
 

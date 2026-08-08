@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from "react";
 import clientApi from "../../api/clientAxios";
-import Loader from "../Loader/Loader";
 import { FaGoogleDrive, FaCalendarAlt, FaCheckCircle } from "react-icons/fa";
 import styles from "./ClientDashboard.module.css";
 import { FiStar, FiChevronRight } from "react-icons/fi";
-import { useParams } from "react-router-dom";
-import { getClientByIdAPI } from "../../api/clients.api";
 
 const getEmbedUrl = (url) => {
   if (!url) return null;
@@ -21,15 +18,14 @@ const getEmbedUrl = (url) => {
 const ClientDashboard = () => {
   const [clientData, setClientData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { id: clientId } = useParams();
 
   useEffect(() => {
-    if (clientId) fetchDashboard();
-  }, [clientId]);
+    fetchDashboard();
+  }, []);
 
   const fetchDashboard = async () => {
     try {
-      const res = await getClientByIdAPI(clientId);
+      const res = await clientApi.get("/client-portal/me");
       setClientData(res.data.data);
     } catch (error) {
       console.error("Failed to fetch client data", error);
@@ -38,7 +34,7 @@ const ClientDashboard = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  if (loading) return <div>Loading...</div>;
   if (!clientData) return <div className={styles.errorText}>Failed to load data.</div>;
 
   return (
