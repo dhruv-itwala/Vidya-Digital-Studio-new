@@ -53,7 +53,8 @@ export const updateTaskStatus = async (req, res) => {
     const task = await updateTaskStatusService(
       req.params.id,
       req.body.status,
-      req.user
+      req.user,
+      req.body.holdReason
     );
     logActivity({
       req,

@@ -53,16 +53,28 @@ export const useTasks = (role) => {
     }
   };
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, status, holdReason = "") => {
     let previous;
 
     setTasks((prev) => {
       previous = prev;
-      return prev.map((t) => (t._id === id ? { ...t, status } : t));
+      return prev.map((t) =>
+        t._id === id
+          ? {
+              ...t,
+              status,
+              holdReason: status === "hold" ? holdReason : t.holdReason,
+              completedAt: status === "complete" ? new Date().toISOString() : null,
+            }
+          : t
+      );
     });
 
     try {
-      await updateTaskStatusAPI(id, status);
+      const res = await updateTaskStatusAPI(id, status, holdReason);
+      if (res?.data) {
+        setTasks((prev) => prev.map((t) => (t._id === id ? res.data : t)));
+      }
       return { success: true };
     } catch {
       setTasks(previous);

@@ -22,7 +22,7 @@ const ClientProfile = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div style={{padding: '2rem'}}>Loading...</div>;
   if (!clientData) return <div className={styles.errorText}>No profile found.</div>;
 
   return (

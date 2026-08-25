@@ -44,14 +44,72 @@
   color: var(--color-text-muted);
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.viewToggleGroup {
+  display: flex;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border, #e2e8f0);
+}
+
+.viewToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewToggleBtn:hover {
+  color: #1e293b;
+}
+
+.activeViewBtn {
+  background: #ffffff;
+  color: var(--deep-forest, #0f5c44) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 /* =========================
    ACTION BUTTONS
 ========================= */
 .actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
+}
+
+.secondaryBtn {
+  padding: 12px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+}
+
+.secondaryBtn:hover {
+  background: #e5e7eb;
+  color: #111827;
 }
 
 .primaryBtn {

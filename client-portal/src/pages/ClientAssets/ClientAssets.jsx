@@ -32,7 +32,7 @@ const ClientAssets = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div style={{padding: '2rem'}}>Loading...</div>;
 
   return (
     <div className={styles.pageContainer}>

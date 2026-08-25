@@ -42,9 +42,9 @@ export const createTaskAPI = async (data) => {
   }
 };
 
-export const updateTaskStatusAPI = async (id, status) => {
+export const updateTaskStatusAPI = async (id, status, holdReason = "") => {
   try {
-    return await api.patch(`/tasks/${id}/status`, { status });
+    return await api.patch(`/tasks/${id}/status`, { status, holdReason });
   } catch (error) {
     handleError(error);
   }

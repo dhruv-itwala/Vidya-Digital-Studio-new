@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getAllTasksAPI, updateTaskStatusAPI } from "../../api/task.api";
+import { formatToIST } from "../../utils/date.util";
 import styles from "./AllTaskCompleted.module.css";
 import Loader from "../Loader/Loader";
 import { IoFilterOutline } from "react-icons/io5";
@@ -147,7 +148,8 @@ export default function AllTaskCompleted() {
               <th>Task Name</th>
               <th>Priority</th>
               <th>Assigned To</th>
-              <th>Due Date</th>
+              <th>Due Date & Time</th>
+              <th>Completed Date & Time</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -162,7 +164,8 @@ export default function AllTaskCompleted() {
                   </span>
                 </td>
                 <td>{t.assignedTo.map((u) => u.name).join(", ")}</td>
-                <td>{new Date(t.endDate).toLocaleDateString()}</td>
+                <td>{formatToIST(t.endDate)}</td>
+                <td>{formatToIST(t.completedAt || t.updatedAt)}</td>
                 <td>
                   <select
                     value={t.status}
@@ -180,7 +183,7 @@ export default function AllTaskCompleted() {
 
           <tfoot>
             <tr>
-              <td colSpan="5">
+              <td colSpan="6">
                 <div className={styles.pagination}>
                   <div>
                     <select

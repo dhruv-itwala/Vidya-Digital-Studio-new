@@ -1,18 +1,20 @@
 import TaskStatusBadge from "./TaskStatusBadge";
 import { getInitials } from "../../utils/name.util";
-import { FiEdit2, FiTrash2, FiClock, FiCalendar } from "react-icons/fi";
+import { formatToIST, isTaskOverdue } from "../../utils/date.util";
+import { FiEdit2, FiTrash2, FiClock, FiCalendar, FiAlertCircle, FiPauseCircle } from "react-icons/fi";
 import styles from "./Task.module.css";
 
 export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
   const canEdit = true;
   const canDelete = true;
 
-  const formattedStart = task.startDate
-    ? new Date(task.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    : "-";
-  const formattedEnd = task.endDate
-    ? new Date(task.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    : "-";
+  const formattedStart = formatToIST(task.startDate);
+  const formattedEnd = formatToIST(task.endDate);
+  const overdue = isTaskOverdue(task.endDate, task.status);
+
+  const handleStatusChange = (e) => {
+    onStatusChange(task._id, e.target.value);
+  };
 
   return (
     <div className={`${styles.card} ${styles[task.priority?.toLowerCase()]}`}>
@@ -27,38 +29,53 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
 
       <p className={styles.details}>{task.details}</p>
 
+      {task.status === "hold" && task.holdReason && (
+        <div className={styles.holdReasonBadge}>
+          <FiPauseCircle className={styles.holdIcon} />
+          <span>
+            <strong>Hold Reason:</strong> {task.holdReason}
+          </span>
+        </div>
+      )}
+
       <div className={styles.meta}>
         <div className={styles.dateInfo}>
-          <div className={styles.dateItem}>
+          <div className={styles.dateItem} title={`Start: ${formattedStart}`}>
             <FiCalendar className={styles.dateIcon} />
             <span>{formattedStart}</span>
           </div>
-          <div className={styles.dateItem}>
+          <div className={`${styles.dateItem} ${overdue ? styles.overdueDate : ""}`} title={`Due: ${formattedEnd}`}>
             <FiClock className={styles.dateIcon} />
             <span>{formattedEnd}</span>
+            {overdue && <span className={styles.overdueBadge}>Overdue</span>}
           </div>
         </div>
       </div>
 
       <div className={styles.cardFooter}>
         <div className={styles.assigned}>
-          {task.assignedTo?.map((u, index) => (
+          {task.assignedTo?.map((u, index) => {
+            const userName = typeof u === "object" ? u.name : "Employee";
+            const avatarUrl = typeof u === "object" ? u.profilePicture?.url : null;
+            const uId = typeof u === "object" ? u._id : u;
 
-            <div key={`${u._id}-${index}`} className={styles.userAvatar} title={u.name}>
-              {u.profilePicture?.url ? (
-                <img src={u.profilePicture.url} alt={u.name} />
-              ) : (
-                getInitials(u.name)
-              )}
-            </div>
-          ))}
+            return (
+              <div key={`${uId}-${index}`} className={styles.userAvatar} title={userName}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={userName} />
+                ) : (
+                  getInitials(userName)
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className={styles.actions}>
           <select
             className={styles.statusSelect}
             value={task.status}
-            onChange={(e) => onStatusChange(task._id, e.target.value)}
+            onChange={handleStatusChange}
           >
             <option value="pending">Pending</option>
             <option value="started">Started</option>

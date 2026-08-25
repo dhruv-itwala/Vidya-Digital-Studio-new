@@ -22,7 +22,7 @@ const ClientTransactions = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div style={{padding: '2rem'}}>Loading...</div>;
 
   return (
     <div className={styles.pageContainer}>
@@ -41,7 +41,7 @@ const ClientTransactions = () => {
               <div className={styles.timelineContent}>
                 <div className={styles.timelineHeader}>
                   <h4 className={styles.txType}>{tx.paymentMethod} Payment</h4>
-                  <span className={styles.txAmount}>₹{tx.amount.toLocaleString('en-IN')}</span>
+                  <span className={styles.txAmount}>₹{tx.amount?.toLocaleString('en-IN') || 0}</span>
                 </div>
                 <div className={styles.timelineMeta}>
                   <span className={styles.txDate}>{new Date(tx.date).toLocaleDateString()}</span>

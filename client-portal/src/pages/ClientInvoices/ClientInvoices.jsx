@@ -22,7 +22,7 @@ const ClientInvoices = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div style={{padding: '2rem'}}>Loading...</div>;
 
   return (
     <div className={styles.pageContainer}>
@@ -48,7 +48,7 @@ const ClientInvoices = () => {
                 <tr key={inv._id}>
                   <td className={styles.fw500}>{inv.invoiceNumber}</td>
                   <td>{new Date(inv.date).toLocaleDateString()}</td>
-                  <td className={styles.amount}>₹{inv.amount.toLocaleString('en-IN')}</td>
+                  <td className={styles.amount}>₹{inv.amount?.toLocaleString('en-IN') || 0}</td>
                   <td>
                     <span className={`${styles.badge} ${styles[inv.status.toLowerCase()]}`}>
                       {inv.status}

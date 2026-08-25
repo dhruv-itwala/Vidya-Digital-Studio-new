@@ -31,7 +31,7 @@ const ClientDocuments = () => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div style={{padding: '2rem'}}>Loading...</div>;
 
   return (
     <div className={styles.pageContainer}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import styles from "./TaskForm.module.css";
 import toast from "react-hot-toast";
 import { createTaskAPI, updateTaskAPI } from "../../api/task.api";
+import { toLocalDatetimeInput, fromLocalDatetimeInput } from "../../utils/date.util";
 
 export default function TaskForm({ users, task, onCancel, onCreated }) {
   const [form, setForm] = useState({
@@ -15,19 +16,18 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
   });
   const [dirty, setDirty] = useState(false);
 
-  const employeeUsers = users;
+  const employeeUsers = users || [];
 
   useEffect(() => {
     if (task) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
-        name: task.name,
-        details: task.details,
-        assignedTo: task.assignedTo.map((u) => u._id),
-        priority: task.priority,
-        startDate: task.startDate ? task.startDate.slice(0, 10) : "",
-        endDate: task.endDate ? task.endDate.slice(0, 10) : "",
-        status: task.status,
+        name: task.name || "",
+        details: task.details || "",
+        assignedTo: task.assignedTo?.map((u) => (typeof u === "object" ? u._id : u)) || [],
+        priority: task.priority || "medium",
+        startDate: toLocalDatetimeInput(task.startDate),
+        endDate: toLocalDatetimeInput(task.endDate),
+        status: task.status || "pending",
       });
     }
   }, [task]);
@@ -58,17 +58,27 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
     if (form.assignedTo.length === 0)
       return toast.error("Assign at least one user");
 
+    if (form.status === "hold" && !form.holdReason?.trim()) {
+      return toast.error("Please provide a reason why this task is on hold");
+    }
+
     if (form.startDate && form.endDate) {
       if (new Date(form.startDate) > new Date(form.endDate)) {
-        return toast.error("Start Date cannot be later than End Date");
+        return toast.error("Start Date & Time cannot be later than Due Date & Time");
       }
     }
 
+    const payload = {
+      ...form,
+      startDate: fromLocalDatetimeInput(form.startDate),
+      endDate: fromLocalDatetimeInput(form.endDate),
+    };
+
     try {
       if (task) {
-        await updateTaskAPI(task._id, form); // ✅ Use updateTaskAPI
+        await updateTaskAPI(task._id, payload);
       } else {
-        await createTaskAPI(form); // ✅ Use createTaskAPI
+        await createTaskAPI(payload);
       }
       setDirty(false);
       onCreated();
@@ -77,16 +87,6 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
       toast.error("Failed to submit task");
     }
   };
-
-  // const submit = async () => {
-  //   if (!form.name.trim()) return toast.error("Task name required");
-  //   if (form.assignedTo.length === 0)
-  //     return toast.error("Assign at least one user");
-
-  //   await onSubmit(form, task?._id);
-
-  //   setDirty(false);
-  // };
 
   return (
     <div className={styles.form}>
@@ -104,7 +104,7 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
       />
 
       <div className={styles.userSelect}>
-        <select multiple onChange={handleUserSelect}>
+        <select multiple onChange={handleUserSelect} value={form.assignedTo}>
           {employeeUsers.map((u) => (
             <option key={u._id} value={u._id}>
               {u.name}
@@ -133,17 +133,17 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
 
       <div className={styles.dateInputs}>
         <label>
-          Start Date:{" "}
+          Start Date & Time:{" "}
           <input
-            type="date"
+            type="datetime-local"
             value={form.startDate}
             onChange={(e) => updateField("startDate", e.target.value)}
           />
         </label>
         <label>
-          End Date:{" "}
+          Due Date & Time:{" "}
           <input
-            type="date"
+            type="datetime-local"
             value={form.endDate}
             min={form.startDate}
             onChange={(e) => updateField("endDate", e.target.value)}
@@ -171,6 +171,16 @@ export default function TaskForm({ users, task, onCancel, onCreated }) {
         <option value="hold">Hold</option>
         <option value="complete">Complete</option>
       </select>
+
+      {form.status === "hold" && (
+        <textarea
+          placeholder="Reason for putting this task on hold (Required)..."
+          value={form.holdReason || ""}
+          onChange={(e) => updateField("holdReason", e.target.value)}
+          className={styles.textarea}
+          style={{ borderColor: "#fde68a", background: "#fffbeb" }}
+        />
+      )}
 
       <div className={styles.actionsRow}>
         <button

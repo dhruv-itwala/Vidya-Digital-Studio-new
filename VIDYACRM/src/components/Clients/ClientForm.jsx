@@ -15,6 +15,7 @@ import { FiArrowLeft, FiCheckCircle, FiEdit2, FiExternalLink } from "react-icons
 export default function ClientForm({ mode = "view", initialData = null }) {
   const navigate = useNavigate();
   const { role } = useAuth();
+  const pathPrefix = role === "intern" ? "employee" : role;
   const {
     createClient,
     updateClient,
@@ -121,7 +122,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
 
       toast.success("Saved successfully");
       setIsDirty(false);
-      navigate(`/${role}/clients`);
+      navigate(`/${pathPrefix}/clients`);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -179,7 +180,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
               <button
                 type="button"
                 className={styles.primaryBtn}
-                onClick={() => navigate(`/${role}/clients/${form._id}/portal`)}
+                onClick={() => navigate(`/${pathPrefix}/clients/${form._id}/portal`)}
                 style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}
               >
                 <FiExternalLink /> Portal View
@@ -189,7 +190,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
               <button
                 type="button"
                 className={styles.primaryBtn}
-                onClick={() => navigate(`/${role}/clients/${form._id}/edit`)}
+                onClick={() => navigate(`/${pathPrefix}/clients/${form._id}/edit`)}
               >
                 <FiEdit2 /> Edit Profile
               </button>

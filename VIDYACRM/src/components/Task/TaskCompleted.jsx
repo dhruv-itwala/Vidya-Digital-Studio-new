@@ -3,6 +3,7 @@ import {
   getMyCompletedTasksAPI,
   updateTaskStatusAPI,
 } from "../../api/task.api";
+import { formatToIST } from "../../utils/date.util";
 import styles from "./Task.module.css";
 import Loader from "../Loader/Loader";
 
@@ -126,7 +127,8 @@ export default function TaskCompleted() {
             <th>Task Name</th>
             <th>Priority</th>
             <th>Assigned To</th>
-            <th>Due Date</th>
+            <th>Due Date & Time</th>
+            <th>Completed Date & Time</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -134,7 +136,7 @@ export default function TaskCompleted() {
         <tbody>
           {filteredTasks.length === 0 ? (
             <tr>
-              <td colSpan="5" className={styles.empty}>
+              <td colSpan="6" className={styles.empty}>
                 No completed tasks found
               </td>
             </tr>
@@ -156,9 +158,11 @@ export default function TaskCompleted() {
                 </td>
 
                 <td>
-                  {task.endDate
-                    ? new Date(task.endDate).toLocaleDateString()
-                    : "-"}
+                  {formatToIST(task.endDate)}
+                </td>
+
+                <td>
+                  {formatToIST(task.completedAt || task.updatedAt)}
                 </td>
 
                 <td>

@@ -1,5 +1,5 @@
 import toast from "react-hot-toast";
-
+import { useState } from "react";
 import styles from "./TaskDashboard.module.css";
 import { useAuth } from "../../context/AuthContext";
 import { useTasks } from "../../hooks/useTasks";
@@ -11,11 +11,14 @@ import TaskFilter from "./TaskFilter";
 import TaskAnalytics from "./TaskAnalytics";
 import TaskKanban from "./TaskKanban";
 import TaskCompleted from "./TaskCompleted";
+import TaskSheet from "./TaskSheet";
 import TaskForm from "./TaskForm";
-import { useState } from "react";
+import HoldReasonModal from "./HoldReasonModal";
+import { FiTrello, FiList } from "react-icons/fi";
 
 export default function TaskDashboard({ role }) {
-  const { allEmployees } = useAuth();
+  const { allEmployees, role: authRole } = useAuth();
+  const effectiveRole = role || authRole;
 
   const {
     tasks,
@@ -25,7 +28,7 @@ export default function TaskDashboard({ role }) {
     updateTask,
     updateStatus,
     deleteTask,
-  } = useTasks(role);
+  } = useTasks(effectiveRole);
 
   const {
     activeTasks,
@@ -35,11 +38,40 @@ export default function TaskDashboard({ role }) {
     setPriority,
     setEmployees,
     resetFilters,
-  } = useTaskFilters(tasks, role);
+  } = useTaskFilters(tasks, effectiveRole);
 
   const modal = useTaskModal();
 
+  const [activeView, setActiveView] = useState("sheet"); // "sheet" or "kanban"
   const [showFilters, setShowFilters] = useState(false);
+  const [holdModal, setHoldModal] = useState({
+    isOpen: false,
+    task: null,
+  });
+
+  const handleStatusChangeWithHoldModal = (id, newStatus, holdReason = "") => {
+    if (newStatus === "hold" && !holdReason) {
+      const taskObj = tasks.find((t) => t._id === id);
+      setHoldModal({
+        isOpen: true,
+        task: taskObj || { _id: id },
+      });
+      return;
+    }
+    updateStatus(id, newStatus, holdReason);
+  };
+
+  const handleConfirmHoldModal = (reason) => {
+    if (holdModal.task?._id) {
+      updateStatus(holdModal.task._id, "hold", reason);
+    }
+    setHoldModal({ isOpen: false, task: null });
+  };
+
+  const handleCancelHoldModal = () => {
+    setHoldModal({ isOpen: false, task: null });
+  };
+
   const handleSubmit = async (data) => {
     const res = modal.task
       ? await updateTask(modal.task._id, data)
@@ -60,43 +92,90 @@ export default function TaskDashboard({ role }) {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleWrapper}>
-          <h2 className={styles.title}>My Tasks</h2>
-          <span className={styles.subtitle}>Manage and track your work</span>
+          <h2 className={styles.title}>Task Management</h2>
+          <span className={styles.subtitle}>
+            Manage, track and monitor tasks with deadlines and completion records
+          </span>
         </div>
-        <div className={styles.actions}>
-          <button
-            className={styles.primaryBtn}
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            Filters
-          </button>
-          <button className={styles.primaryBtn} onClick={modal.openCreate}>
-            + Create Task
-          </button>
+
+        <div className={styles.headerRight}>
+          {/* View Mode Toggle */}
+          <div className={styles.viewToggleGroup}>
+            <button
+              className={`${styles.viewToggleBtn} ${
+                activeView === "sheet" ? styles.activeViewBtn : ""
+              }`}
+              onClick={() => setActiveView("sheet")}
+            >
+              <FiList />
+              <span>Task Sheet</span>
+            </button>
+            <button
+              className={`${styles.viewToggleBtn} ${
+                activeView === "kanban" ? styles.activeViewBtn : ""
+              }`}
+              onClick={() => setActiveView("kanban")}
+            >
+              <FiTrello />
+              <span>Kanban</span>
+            </button>
+          </div>
+
+          <div className={styles.actions}>
+            {activeView === "kanban" && (
+              <button
+                className={styles.secondaryBtn}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                Filters
+              </button>
+            )}
+            <button className={styles.primaryBtn} onClick={modal.openCreate}>
+              + Create Task
+            </button>
+          </div>
         </div>
       </div>
-      {showFilters && (
-        <TaskFilter
-          role={role}
-          users={allEmployees}
-          filters={filters}
-          setStatus={setStatus}
-          setPriority={setPriority}
-          setEmployees={setEmployees}
-          resetFilters={resetFilters}
-        />
-      )}
 
+      {/* Analytics always visible or top level */}
       <TaskAnalytics tasks={tasks} />
 
-      <TaskKanban
-        tasks={activeTasks}
-        onStatusChange={updateStatus}
-        onDelete={deleteTask}
-        onEdit={modal.openEdit}
-      />
+      {activeView === "sheet" ? (
+        <TaskSheet
+          tasks={tasks}
+          role={effectiveRole}
+          users={allEmployees}
+          onStatusChange={handleStatusChangeWithHoldModal}
+          onEdit={modal.openEdit}
+          onDelete={deleteTask}
+        />
+      ) : (
+        <>
+          {showFilters && (
+            <TaskFilter
+              role={effectiveRole}
+              users={allEmployees}
+              filters={filters}
+              setStatus={setStatus}
+              setPriority={setPriority}
+              setEmployees={setEmployees}
+              resetFilters={resetFilters}
+            />
+          )}
 
-      <TaskCompleted tasks={completedTasks} onStatusChange={updateStatus} />
+          <TaskKanban
+            tasks={activeTasks}
+            onStatusChange={handleStatusChangeWithHoldModal}
+            onDelete={deleteTask}
+            onEdit={modal.openEdit}
+          />
+
+          <TaskCompleted
+            tasks={completedTasks}
+            onStatusChange={handleStatusChangeWithHoldModal}
+          />
+        </>
+      )}
 
       {modal.isOpen && (
         <div className={styles.modalOverlay} onClick={modal.close}>
@@ -113,6 +192,14 @@ export default function TaskDashboard({ role }) {
           </div>
         </div>
       )}
+
+      {/* Hold Reason Modal */}
+      <HoldReasonModal
+        isOpen={holdModal.isOpen}
+        task={holdModal.task}
+        onConfirm={handleConfirmHoldModal}
+        onCancel={handleCancelHoldModal}
+      />
     </div>
   );
 }

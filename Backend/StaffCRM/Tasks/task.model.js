@@ -29,11 +29,21 @@ const taskSchema = new mongoose.Schema(
 
     startDate: Date,
     endDate: Date,
+    completedAt: {
+      type: Date,
+      default: null,
+    },
 
     status: {
       type: String,
       enum: ["pending", "started", "hold", "complete"],
       default: "pending",
+    },
+
+    holdReason: {
+      type: String,
+      default: "",
+      trim: true,
     },
 
     createdBy: {

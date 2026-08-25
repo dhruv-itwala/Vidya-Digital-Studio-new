@@ -1,4 +1,5 @@
 import { getInitials } from "../../utils/name.util";
+import { formatToIST } from "../../utils/date.util";
 import styles from "./TaskCompleted.module.css";
 
 export default function TaskCompleted({ tasks = [], onStatusChange }) {
@@ -29,7 +30,8 @@ export default function TaskCompleted({ tasks = [], onStatusChange }) {
               <th>Task Details</th>
               <th>Priority</th>
               <th>Assigned To</th>
-              <th>Due Date</th>
+              <th>Due Date & Time</th>
+              <th>Completed Date & Time</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -43,8 +45,8 @@ export default function TaskCompleted({ tasks = [], onStatusChange }) {
                   </div>
                 </td>
                 <td>
-                  <span className={`${styles.priorityBadge} ${styles[task.priority.toLowerCase()]}`}>
-                    {task.priority.toUpperCase()}
+                  <span className={`${styles.priorityBadge} ${styles[task.priority?.toLowerCase() || "medium"]}`}>
+                    {(task.priority || "MEDIUM").toUpperCase()}
                   </span>
                 </td>
                 <td>
@@ -62,9 +64,12 @@ export default function TaskCompleted({ tasks = [], onStatusChange }) {
                 </td>
                 <td>
                   <span className={styles.dateText}>
-                    {task.endDate
-                      ? new Date(task.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                      : "-"}
+                    {formatToIST(task.endDate)}
+                  </span>
+                </td>
+                <td>
+                  <span className={styles.completedDateText}>
+                    {formatToIST(task.completedAt || task.updatedAt)}
                   </span>
                 </td>
                 <td>

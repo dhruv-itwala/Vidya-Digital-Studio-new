@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import styles from "./TaskForm.module.css";
 import toast from "react-hot-toast";
+import { toLocalDatetimeInput, fromLocalDatetimeInput } from "../../utils/date.util";
 
 export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
   const [form, setForm] = useState({
@@ -11,6 +12,7 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
     startDate: "",
     endDate: "",
     status: "pending",
+    holdReason: "",
   });
 
   const employeeUsers = users;
@@ -20,11 +22,12 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
       setForm({
         name: task.name || "",
         details: task.details || "",
-        assignedTo: task.assignedTo?.map((u) => u._id) || [],
+        assignedTo: task.assignedTo?.map((u) => (typeof u === "object" ? u._id : u)) || [],
         priority: task.priority || "medium",
-        startDate: task.startDate ? task.startDate.slice(0, 10) : "",
-        endDate: task.endDate ? task.endDate.slice(0, 10) : "",
+        startDate: toLocalDatetimeInput(task.startDate),
+        endDate: toLocalDatetimeInput(task.endDate),
         status: task.status || "pending",
+        holdReason: task.holdReason || "",
       });
     }
   }, [task]);
@@ -52,13 +55,23 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
     if (!form.name.trim()) return toast.error("Task name required");
     if (form.assignedTo.length === 0) return toast.error("Assign at least one user");
 
+    if (form.status === "hold" && !form.holdReason.trim()) {
+      return toast.error("Please provide a reason why this task is on hold");
+    }
+
     if (form.startDate && form.endDate) {
       if (new Date(form.startDate) > new Date(form.endDate)) {
-        return toast.error("Start Date cannot be later than End Date");
+        return toast.error("Start Date & Time cannot be later than Due Date & Time");
       }
     }
 
-    await onSubmit(form);
+    const payload = {
+      ...form,
+      startDate: fromLocalDatetimeInput(form.startDate),
+      endDate: fromLocalDatetimeInput(form.endDate),
+    };
+
+    await onSubmit(payload);
   };
 
   return (
@@ -113,9 +126,9 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
 
       <div className={styles.rowGrid}>
         <div className={styles.inputGroup}>
-          <label>Start Date</label>
+          <label>Start Date & Time</label>
           <input
-            type="date"
+            type="datetime-local"
             value={form.startDate}
             onChange={(e) => updateField("startDate", e.target.value)}
             className={styles.input}
@@ -123,9 +136,9 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
         </div>
 
         <div className={styles.inputGroup}>
-          <label>End Date</label>
+          <label>Due Date & Time (Deadline)</label>
           <input
-            type="date"
+            type="datetime-local"
             value={form.endDate}
             min={form.startDate}
             onChange={(e) => updateField("endDate", e.target.value)}
@@ -154,6 +167,21 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
           </select>
         </div>
       </div>
+
+      {form.status === "hold" && (
+        <div className={styles.inputGroup} style={{ marginTop: "4px" }}>
+          <label style={{ color: "#b45309", fontWeight: "700" }}>
+            Reason for Hold <span style={{ color: "#dc2626" }}>*</span>
+          </label>
+          <textarea
+            placeholder="Explain why this task is being put on hold..."
+            value={form.holdReason}
+            onChange={(e) => updateField("holdReason", e.target.value)}
+            className={styles.textarea}
+            style={{ borderColor: "#fde68a", background: "#fffbeb" }}
+          />
+        </div>
+      )}
 
       <div className={styles.actionsRow}>
         <button type="button" onClick={onCancel} className={styles.cancelButton}>
