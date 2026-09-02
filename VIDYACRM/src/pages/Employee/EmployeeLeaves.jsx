@@ -3,6 +3,7 @@ import {
   applyLeaveAPI,
   getMyLeavesAPI,
   cancelLeaveAPI,
+  getLeaveBalanceAPI,
 } from "../../api/leave.api";
 import styles from "./EmployeeLeaves.module.css";
 import toast from "react-hot-toast";
@@ -16,13 +17,22 @@ export default function EmployeeLeaves() {
   const [isHalfDay, setIsHalfDay] = useState(false);
   const [reason, setReason] = useState("");
   const [leaves, setLeaves] = useState([]);
+  const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const todayStr = new Date().toISOString().split("T")[0];
   
   const fetchLeaves = async () => {
-    const res = await getMyLeavesAPI();
-    setLeaves(res.data || []);
+    try {
+      const [leavesRes, balanceRes] = await Promise.all([
+        getMyLeavesAPI(),
+        getLeaveBalanceAPI()
+      ]);
+      setLeaves(leavesRes.data || []);
+      setBalance(balanceRes.data || null);
+    } catch (error) {
+      console.error("Error fetching leaves:", error);
+    }
   };
 
   useEffect(() => {
@@ -78,6 +88,26 @@ export default function EmployeeLeaves() {
         <p className={styles.subtitle}>Apply for leaves and track your history.</p>
       </div>
 
+      {balance && (
+        <div className={styles.balanceContainer}>
+          <div className={`${styles.balanceCard} ${styles.primary}`}>
+            <span className={styles.balanceTitle}>Pending Balance</span>
+            <span className={styles.balanceValue}>{balance.pending}</span>
+            <span className={styles.balanceSub}>Available leaves</span>
+          </div>
+          <div className={`${styles.balanceCard} ${styles.neutral}`}>
+            <span className={styles.balanceTitle}>Total Allowed</span>
+            <span className={styles.balanceValue}>{balance.accrued.total}</span>
+            <span className={styles.balanceSub}>{balance.accrued.sick} Sick, {balance.accrued.casual} Casual, {balance.accrued.earned} Earned (inc. {balance.carryForward} CF)</span>
+          </div>
+          <div className={`${styles.balanceCard} ${styles.secondary}`}>
+            <span className={styles.balanceTitle}>Total Taken</span>
+            <span className={styles.balanceValue}>{balance.taken.total}</span>
+            <span className={styles.balanceSub}>{balance.taken.sick} Sick, {balance.taken.casual} Casual, {balance.taken.earned} Earned</span>
+          </div>
+        </div>
+      )}
+
       <div className={styles.contentGrid}>
         
         {/* APPLY LEAVE FORM */}
@@ -119,7 +149,7 @@ export default function EmployeeLeaves() {
                 <select value={type} onChange={(e) => setType(e.target.value)} className={styles.select}>
                   <option value="CASUAL">Casual Leave</option>
                   <option value="SICK">Sick Leave</option>
-                  <option value="UNPAID">Unpaid Leave</option>
+                  <option value="EARNED">Earned Leave</option>
                 </select>
               </div>
 

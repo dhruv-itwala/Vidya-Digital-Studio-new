@@ -4,26 +4,29 @@ import {
   approveLeaveAPI,
   declineLeaveAPI,
   cancelLeaveAPI,
+  getAllUsersLeaveAnalyticsAPI,
 } from "../../api/leave.api";
 
 import styles from "./LeaveApproval.module.css";
 import Loader from "../../components/Loader/Loader";
 import LeaveCalendar from "../../components/LeaveCalendar/LeaveCalendar";
-import { FiChevronDown, FiChevronUp, FiCheckCircle, FiXCircle, FiClock } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiCheckCircle, FiXCircle, FiClock, FiFileText } from "react-icons/fi";
 
 const PAGE_SIZE = 25;
 
 export default function LeaveApproval() {
   const [leaves, setLeaves] = useState([]);
+  const [analytics, setAnalytics] = useState([]);
   const [pendingPage, setPendingPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
   /* ================= ACCORDION ================= */
   const [open, setOpen] = useState({
-    pending: true, // open by default
+    pending: true,
     history: false,
     calendar: false,
+    balances: false,
   });
 
   const toggle = (key) => {
@@ -42,8 +45,14 @@ export default function LeaveApproval() {
   const fetchLeaves = async () => {
     try {
       setLoading(true);
-      const res = await getAllLeavesAPI();
-      setLeaves(res.data);
+      const [leavesRes, analyticsRes] = await Promise.all([
+        getAllLeavesAPI(),
+        getAllUsersLeaveAnalyticsAPI(),
+      ]);
+      setLeaves(leavesRes.data);
+      setAnalytics(analyticsRes.data);
+    } catch(err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -277,6 +286,73 @@ export default function LeaveApproval() {
           {open.calendar && (
             <div className={styles.accordionBody}>
               <LeaveCalendar />
+            </div>
+          )}
+        </div>
+
+        {/* ================= BALANCES ================= */}
+        <div className={styles.accordion}>
+          <div className={styles.accordionHeader} onClick={() => toggle("balances")}>
+            <div className={styles.headerLeft}>
+              <div className={styles.iconWrapperOrange}>
+                <FiFileText />
+              </div>
+              <h3>Employee Leave Balances</h3>
+            </div>
+            <div className={styles.headerRight}>
+              {open.balances ? <FiChevronUp /> : <FiChevronDown />}
+            </div>
+          </div>
+
+          {open.balances && (
+            <div className={styles.accordionBody}>
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Employee</th>
+                      <th>Total Accrued</th>
+                      <th>Total Taken</th>
+                      <th>Pending Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {analytics.length === 0 ? (
+                      <tr>
+                        <td colSpan="4">
+                          <div className={styles.emptyState}>No balance data found.</div>
+                        </td>
+                      </tr>
+                    ) : (
+                      analytics.map((a) => (
+                        <tr key={a.user._id}>
+                          <td data-label="Employee">
+                            <div className={styles.employeeInfo}>
+                              <span className={styles.empName}>{a.user.name}</span>
+                              <span className={styles.empEmail} style={{ display: "block", fontSize: "0.8rem", color: "gray" }}>{a.user.email}</span>
+                            </div>
+                          </td>
+                          <td data-label="Total Accrued">
+                            <span className={styles.duration}>
+                              {a.summary.totalAllowed} (inc. {a.summary.carryForward || 0} CF)
+                            </span>
+                          </td>
+                          <td data-label="Total Taken">
+                            <span className={styles.duration}>
+                              {a.summary.used} (S: {a.taken.sick || 0} / C: {a.taken.casual || 0} / E: {a.taken.earned || 0})
+                            </span>
+                          </td>
+                          <td data-label="Pending Balance">
+                            <span className={styles.statusBadge} style={{ background: '#ecfdf5', color: '#059669', fontSize: '1rem', padding: '6px 12px' }}>
+                              {a.summary.remaining}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

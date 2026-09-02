@@ -86,9 +86,12 @@ export const leaveSummary = asyncHandler(async (req, res) => {
 
 // ---------- LEAVE ANALYTICS ----------
 export const allUsersLeaveAnalytics = asyncHandler(async (req, res) => {
-  const year = req.query.year || new Date().getFullYear();
-
-  const data = await service.allUsersLeaveAnalyticsService(year);
-
+  const data = await service.allUsersLeaveAnalyticsService();
   res.json(data);
+});
+
+// ---------- LEAVE BALANCE ----------
+export const getLeaveBalance = asyncHandler(async (req, res) => {
+  const balance = await service.getLeaveBalanceService(req.user.id);
+  res.json(balance);
 });

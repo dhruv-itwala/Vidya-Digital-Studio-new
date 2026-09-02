@@ -31,17 +31,68 @@ export const getMyAttendanceService = async (userId, from, to) => {
 
   const fromDate = new Date(from);
   const toDate = new Date(to);
+  const nowDay = todayISTUTC();
 
   if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
     throw new AppError("Invalid date range", 400);
   }
 
-  return Attendance.find({
-    user: userId,
-    date: { $gte: fromDate, $lte: toDate },
-  })
-    .sort({ date: 1 })
-    .lean();
+  const [attendances, holidays, leaves] = await Promise.all([
+    Attendance.find({
+      user: userId,
+      date: { $gte: fromDate, $lte: toDate },
+    }).lean(),
+    Holiday.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
+    Leave.find({
+      user: userId,
+      status: "APPROVED",
+      fromDate: { $lte: toDate },
+      toDate: { $gte: fromDate },
+    }).lean(),
+  ]);
+
+  const attMap = new Map();
+  attendances.forEach((a) => attMap.set(a.date.getTime(), a));
+
+  const holMap = new Map();
+  holidays.forEach((h) => holMap.set(h.date.getTime(), h));
+
+  const records = [];
+  let current = new Date(fromDate);
+  
+  while (current <= toDate) {
+    const time = current.getTime();
+    let status = null;
+    let remarks = null;
+    
+    if (attMap.has(time)) {
+      status = attMap.get(time).status;
+      remarks = attMap.get(time).remarks || "";
+    } else {
+      const isHol = holMap.has(time) || current.getDay() === 0;
+      const isLeave = leaves.some(l => current >= l.fromDate && current <= l.toDate);
+      
+      if (current > nowDay) {
+        if (isHol) status = "HOLIDAY";
+        else if (isLeave) status = "LEAVE";
+      } else {
+        if (isHol) status = "HOLIDAY";
+        else if (isLeave) status = "LEAVE";
+        else status = "ABSENT";
+      }
+    }
+    
+    if (status) {
+      records.push({
+        date: new Date(current),
+        status,
+        remarks,
+      });
+    }
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  return records;
 };
 
 // ================= PUNCH IN ================= */
@@ -200,29 +251,22 @@ export const getAllEmployeesAttendanceService = async (date) => {
   if (!date) throw new AppError("Date is required", 400);
 
   const day = parseISTDateOnly(date);
+  const nowDay = todayISTUTC();
 
-  const [users, records, holiday] = await Promise.all([
+  const [users, records, holiday, leaves] = await Promise.all([
     User.find({ isActive: true })
       .select("name email role")
       .lean(),
-
     Attendance.find({ date: day }).lean(),
-
     Holiday.findOne({ date: day }).lean(),
+    Leave.find({ status: "APPROVED", fromDate: { $lte: day }, toDate: { $gte: day } }).lean(),
   ]);
 
   const recordMap = new Map();
   records.forEach((r) => recordMap.set(String(r.user), r));
 
-  // ROLE PRIORITY
-  const priority = {
-    admin: 1,
-    hr: 2,
-    employee: 3,
-    intern: 4,
-  };
+  const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
 
-  // SORT USERS
   users.sort(
     (a, b) =>
       (priority[a.role] || 99) - (priority[b.role] || 99) ||
@@ -231,13 +275,30 @@ export const getAllEmployeesAttendanceService = async (date) => {
 
   return users.map((u) => {
     const att = recordMap.get(String(u._id));
+    let status = null;
+
+    if (att) {
+      status = att.status;
+    } else {
+      const isHol = holiday || day.getDay() === 0;
+      const isLeave = leaves.some(l => String(l.user) === String(u._id));
+      
+      if (day > nowDay) {
+        if (isHol) status = "HOLIDAY";
+        else if (isLeave) status = "LEAVE";
+      } else {
+        if (isHol) status = "HOLIDAY";
+        else if (isLeave) status = "LEAVE";
+        else status = "ABSENT";
+      }
+    }
 
     return {
       _id: u._id,
       name: u.name,
       email: u.email,
       role: u.role,
-      status: att ? att.status : holiday ? "HOLIDAY" : "ABSENT",
+      status: status || "ABSENT", // Fallback
     };
   });
 };
@@ -316,73 +377,82 @@ export const getUserAttendanceByDateService = async (userId, date) => {
 export const getAllAttendanceByDateRangeService = async (from, to) => {
   const fromDate = parseISTDateOnly(from);
   const toDate = parseISTDateOnly(to);
+  const nowDay = todayISTUTC();
 
-  const [attendance, workRecords] = await Promise.all([
-    Attendance.find({ date: { $gte: fromDate, $lte: toDate } })
-      .sort({ date: 1 })
-      .populate("user", "name email role")
-      .lean(),
-
-    WorkRecord.find({ date: { $gte: fromDate, $lte: toDate } })
-      .sort({ date: 1 })
-      .lean(),
+  const [users, attendance, workRecords, holidays, leaves] = await Promise.all([
+    User.find({ isActive: true }).select("name email role").lean(),
+    Attendance.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
+    WorkRecord.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
+    Holiday.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
+    Leave.find({ status: "APPROVED", fromDate: { $lte: toDate }, toDate: { $gte: fromDate } }).lean(),
   ]);
+
+  const attMap = new Map();
+  attendance.forEach((a) => {
+    attMap.set(`${a.user}_${a.date.getTime()}`, a);
+  });
 
   const workMap = new Map();
   workRecords.forEach((w) => {
     workMap.set(`${w.user}_${w.date.getTime()}`, w);
   });
+  
+  const holMap = new Map();
+  holidays.forEach((h) => {
+    holMap.set(h.date.getTime(), h);
+  });
 
-  const priority = {
-    admin: 1,
-    hr: 2,
-    employee: 3,
-    intern: 4,
-  };
-  return attendance
-    .filter((a) => a.user) // ✅ MUST BE FIRST
-    .sort(
-      (a, b) =>
-        (priority[a.user.role] || 99) - (priority[b.user.role] || 99) ||
-        a.user.name.localeCompare(b.user.name),
-    )
-    .map((att) => {
-      const key = `${att.user._id}_${att.date.getTime()}`;
+  const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
+  users.sort((a, b) => (priority[a.role] || 99) - (priority[b.role] || 99) || a.name.localeCompare(b.name));
+
+  const results = [];
+  let current = new Date(fromDate);
+  
+  while (current <= toDate) {
+    const time = current.getTime();
+    const isHol = holMap.has(time) || current.getDay() === 0;
+    
+    for (const u of users) {
+      const key = `${u._id}_${time}`;
+      const att = attMap.get(key);
       const work = workMap.get(key);
+      
+      let status = null;
+      if (att) {
+        status = att.status;
+      } else {
+        if (current > nowDay) {
+          if (isHol) status = "HOLIDAY";
+          else {
+            const isLeave = leaves.some(l => String(l.user) === String(u._id) && current >= l.fromDate && current <= l.toDate);
+            if (isLeave) status = "LEAVE";
+          }
+        } else {
+          if (isHol) status = "HOLIDAY";
+          else {
+            const isLeave = leaves.some(l => String(l.user) === String(u._id) && current >= l.fromDate && current <= l.toDate);
+            status = isLeave ? "LEAVE" : "ABSENT";
+          }
+        }
+      }
 
-      return {
-        userId: att.user._id,
-        name: att.user.name,
-        email: att.user.email,
-        role: att.user.role,
-        date: att.date,
-        status: att.status,
-        punchIn: work?.punchIn || null,
-        punchOut: work?.punchOut || null,
-      };
-    });
+      if (status) {
+        results.push({
+          userId: u._id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          date: new Date(current),
+          status,
+          punchIn: work?.punchIn || null,
+          punchOut: work?.punchOut || null,
+        });
+      }
+    }
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
 
-  // return attendance
-  //   .sort(
-  //     (a, b) =>
-  //       (priority[a.user.role] || 99) - (priority[b.user.role] || 99) ||
-  //       a.user.name.localeCompare(b.user.name),
-  //   )
-  //   .map((att) => {
-  //     const key = `${att.user._id}_${att.date.getTime()}`;
-  //     const work = workMap.get(key);
-
-  //     return {
-  //       userId: att.user._id,
-  //       name: att.user.name,
-  //       email: att.user.email,
-  //       role: att.user.role,
-  //       date: att.date,
-  //       status: att.status,
-  //       punchIn: work?.punchIn || null,
-  //       punchOut: work?.punchOut || null,
-  //     };
-  //   });
+  return results;
 };
 
 // ================= LIVE EMPLOYEES STATUS ================= */

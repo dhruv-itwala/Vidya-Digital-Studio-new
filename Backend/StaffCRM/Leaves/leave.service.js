@@ -7,9 +7,9 @@ import { getISTDayRange, normalizeDate } from "../utils/date.utils.js";
 import {
   notifyLeaveApplied,
   notifyLeaveApproved,
-  notifyLeaveDeclined,
   notifyLeaveCancelled,
 } from "../Notifications/notificationEvent.service.js";
+import User from "../Users/user.model.js";
 
 
 // ---------- HELPERS ----------
@@ -57,6 +57,26 @@ export const applyLeaveService = async (userId, data) => {
 
   if (overlapping) {
     throw new AppError("Leave already exists in this date range", 409);
+  }
+
+  // ❌ Balance check
+  const requestedDays = data.isHalfDay ? 0.5 : getDateRange(fromDate, toDate).length;
+  const user = await User.findById(userId);
+  const nowIST = new Date(new Date().getTime() + (330 * 60000));
+  const targetYear = fromDate.getFullYear();
+  const balance = await calculateLeaveBalance(user, targetYear, true); // Include pending for applying
+
+  if (balance.pending < requestedDays) {
+    throw new AppError(`Insufficient total leave balance. You have ${balance.pending} days left.`, 400);
+  }
+
+  const typeLower = data.type.toLowerCase();
+  const quota = balance.quotas[typeLower];
+  const taken = balance.taken[typeLower];
+  const availableForType = quota - taken;
+
+  if (availableForType < requestedDays) {
+    throw new AppError(`Insufficient ${data.type} leave balance. You have ${availableForType} days left for this type.`, 400);
   }
 
   const leave = await leavesModel.create({
@@ -221,73 +241,169 @@ export const leaveSummaryService = async (userId) => {
   }, {});
 };
 
-// ---------- LEAVE ANALYTICS  ----------
-export const allUsersLeaveAnalyticsService = async (year) => {
-  const start = new Date(`${year}-01-01`);
-  const end = new Date(`${year}-12-31`);
+// ---------- LEAVE BALANCE CALCULATION HELPER ----------
+const getActiveMonthsInYearUpToMonth = (year, upToMonthIndex, joiningDate) => {
+  const joinY = joiningDate.getFullYear();
+  const joinM = joiningDate.getMonth();
+  if (year < joinY) return 0;
+  const startM = (year === joinY) ? joinM : 0;
+  const endM = upToMonthIndex; // 0 to 11
+  if (startM > endM) return 0;
+  return (endM - startM) + 1;
+};
 
-  const leaves = await leavesModel
-    .find({
-      status: "APPROVED",
-      fromDate: { $lte: end },
-      toDate: { $gte: start },
-    })
-    .populate("user", "name email");
+// Helper to get taken leaves for a specific year and user
+const getTakenLeavesForYear = async (userId, year, includePending = false) => {
+  const startOfYear = new Date(Date.UTC(year, 0, 1));
+  const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
 
-  const userMap = {};
+  const statuses = includePending ? ["APPROVED", "PENDING"] : ["APPROVED"];
+
+  const leaves = await leavesModel.find({
+    user: userId,
+    status: { $in: statuses },
+    fromDate: { $lte: endOfYear },
+    toDate: { $gte: startOfYear },
+  });
+
+  let sick = 0;
+  let casual = 0;
+  let earned = 0;
+  let halfDays = 0;
 
   for (const leave of leaves) {
-    const userId = leave.user._id.toString();
+    // Only count days that fall within this year
+    const overlapStart = leave.fromDate < startOfYear ? startOfYear : leave.fromDate;
+    const overlapEnd = leave.toDate > endOfYear ? endOfYear : leave.toDate;
+    
+    if (overlapStart > overlapEnd) continue;
 
-    if (!userMap[userId]) {
-      userMap[userId] = {
-        user: leave.user,
-        sick: 0,
-        casual: 0,
-        halfDays: 0,
-      };
-    }
-
-    const dates = getDateRange(leave.fromDate, leave.toDate);
+    const dates = getDateRange(overlapStart, overlapEnd);
+    let count = leave.isHalfDay ? 0.5 : 1;
 
     for (const date of dates) {
-      const month = date.getUTCMonth();
-
-      // ❌ Skip November
-      if (month === 10) continue;
-
       if (leave.isHalfDay) {
-        userMap[userId].halfDays += 1;
-        continue;
+        halfDays += 1;
       }
-
-      if (leave.type === "SICK") userMap[userId].sick += 1;
-      if (leave.type === "CASUAL") userMap[userId].casual += 1;
+      if (leave.type === "SICK") sick += count;
+      if (leave.type === "CASUAL") casual += count;
+      if (leave.type === "EARNED") earned += count;
     }
   }
 
-  // ---------- FINAL FORMAT ----------
+  return { sick, casual, earned, halfDays, total: sick + casual + earned };
+};
+
+export const calculateLeaveBalance = async (user, targetYear, includePending = false) => {
+  const joiningDate = new Date(user.joiningDate);
+  const startYear = Math.max(2026, joiningDate.getFullYear()); // Start from 2026 or joining year
+  
+  let carryForward = 0;
+  
+  // Calculate sequentially from startYear to targetYear - 1 to get carryForward
+  for (let y = startYear; y < targetYear; y++) {
+    const monthsActive = getActiveMonthsInYearUpToMonth(y, 11, joiningDate);
+    const accrued = monthsActive * 2;
+    
+    const takenInY = await getTakenLeavesForYear(user._id, y, false); // Carry forward based on APPROVED only
+    const totalAvailable = accrued + carryForward;
+    const unused = Math.max(0, totalAvailable - takenInY.total);
+    
+    carryForward = Math.min(unused, 10);
+  }
+  
+  // Target year
+  const now = new Date();
+  const istTime = now.getTime() + (330 * 60000);
+  const nowIST = new Date(istTime);
+  const currentMonth = nowIST.getUTCMonth();
+  const currentYear = nowIST.getUTCFullYear();
+  
+  let monthsActiveTarget = 0;
+  if (targetYear < startYear) {
+    monthsActiveTarget = 0;
+  } else if (targetYear === currentYear) {
+    monthsActiveTarget = getActiveMonthsInYearUpToMonth(targetYear, currentMonth, joiningDate);
+  } else {
+    monthsActiveTarget = getActiveMonthsInYearUpToMonth(targetYear, 11, joiningDate);
+  }
+  
+  const accruedThisYear = monthsActiveTarget * 2;
+  const takenThisYear = await getTakenLeavesForYear(user._id, targetYear, includePending);
+  
+  const totalAccrued = accruedThisYear + carryForward;
+  const pendingTotal = Math.max(0, totalAccrued - takenThisYear.total);
+  
+  return {
+    year: targetYear,
+    carryForward,
+    accruedThisYear,
+    totalAccrued,
+    taken: takenThisYear,
+    pending: pendingTotal,
+    quotas: {
+      sick: 7,
+      casual: 7,
+      earned: 10 + carryForward
+    }
+  };
+};
+
+// ---------- GET USER LEAVE BALANCE ----------
+export const getLeaveBalanceService = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  const now = new Date();
+  const istTime = now.getTime() + (330 * 60000);
+  const currentYear = new Date(istTime).getUTCFullYear();
+
+  const balance = await calculateLeaveBalance(user, currentYear, false);
+  
+  return {
+    year: balance.year,
+    accrued: {
+      total: balance.totalAccrued,
+      sick: balance.quotas.sick,
+      casual: balance.quotas.casual,
+      earned: balance.quotas.earned,
+    },
+    taken: {
+      sick: balance.taken.sick,
+      casual: balance.taken.casual,
+      earned: balance.taken.earned,
+      halfDays: balance.taken.halfDays,
+      total: balance.taken.total
+    },
+    carryForward: balance.carryForward,
+    pending: balance.pending
+  };
+};
+
+// ---------- LEAVE ANALYTICS ----------
+export const allUsersLeaveAnalyticsService = async () => {
+  const users = await User.find({ isActive: true }).select("name email joiningDate");
   const result = [];
 
-  for (const userId in userMap) {
-    const data = userMap[userId];
+  const now = new Date();
+  const istTime = now.getTime() + (330 * 60000);
+  const currentYear = new Date(istTime).getUTCFullYear();
 
-    const totalAllowed = 22;
-    const used = data.sick + data.casual + data.halfDays * 0.5;
-    const remaining = totalAllowed - used;
-
+  for (const user of users) {
+    const balance = await calculateLeaveBalance(user, currentYear, false);
     result.push({
-      user: data.user,
-      taken: {
-        sick: data.sick,
-        casual: data.casual,
-        halfDays: data.halfDays,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email
       },
+      taken: balance.taken,
       summary: {
-        totalAllowed,
-        used,
-        remaining,
-      },
+        totalAllowed: balance.totalAccrued,
+        used: balance.taken.total,
+        remaining: balance.pending,
+        carryForward: balance.carryForward
+      }
     });
   }
 

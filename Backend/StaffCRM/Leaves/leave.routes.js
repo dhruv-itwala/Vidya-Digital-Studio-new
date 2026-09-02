@@ -13,6 +13,7 @@ LeaveRoutes.post("/apply", ctrl.applyLeave);
 LeaveRoutes.get("/my", ctrl.myLeaves);
 LeaveRoutes.post("/:id/cancel", ctrl.cancelLeave);
 LeaveRoutes.get("/summary", ctrl.leaveSummary);
+LeaveRoutes.get("/balance", ctrl.getLeaveBalance);
 LeaveRoutes.get("/all", ctrl.allLeaves);
 
 // Both Admin and HR can access these routes
