@@ -69,7 +69,7 @@ export const getMyAttendanceService = async (userId, from, to) => {
       status = attMap.get(time).status;
       remarks = attMap.get(time).remarks || "";
     } else {
-      const isHol = holMap.has(time) || current.getDay() === 0;
+      const isHol = holMap.has(time) || new Date(time + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
       const isLeave = leaves.some(l => current >= l.fromDate && current <= l.toDate);
       
       if (current > nowDay) {
@@ -280,7 +280,7 @@ export const getAllEmployeesAttendanceService = async (date) => {
     if (att) {
       status = att.status;
     } else {
-      const isHol = holiday || day.getDay() === 0;
+      const isHol = holiday || new Date(day.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
       const isLeave = leaves.some(l => String(l.user) === String(u._id));
       
       if (day > nowDay) {
@@ -410,7 +410,7 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
   
   while (current <= toDate) {
     const time = current.getTime();
-    const isHol = holMap.has(time) || current.getDay() === 0;
+    const isHol = holMap.has(time) || new Date(time + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
     
     for (const u of users) {
       const key = `${u._id}_${time}`;
@@ -612,7 +612,7 @@ export const getWeeklyProgressService = async (userId) => {
   let holidayCount = 0;
 
   const getISTDay = (date) => {
-    return new Date(date.getTime() + 5.5 * 60 * 60 * 1000).getDay();
+    return new Date(date.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay();
   };
 
   for (const h of holidays) {

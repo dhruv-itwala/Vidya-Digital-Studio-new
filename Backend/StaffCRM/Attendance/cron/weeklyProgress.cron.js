@@ -23,7 +23,7 @@ cron.schedule("59 23 * * *", async () => {
   let holidayCount = 0;
 
   for (const h of holidays) {
-    const day = new Date(h.date).getUTCDay();
+    const day = new Date(h.date.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay();
     if (day !== 0 && day !== 6) {
       holidayCount++;
     }

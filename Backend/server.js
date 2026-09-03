@@ -39,6 +39,8 @@ import systemSettingsRoutes from "./StaffCRM/Settings/SystemSettings.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
 import notificationRoutes from "./StaffCRM/Notifications/notification.routes.js";
+import ticketRoutes from "./StaffCRM/Tickets/ticket.routes.js";
+import payrollRoutes from "./StaffCRM/Payroll/payroll.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -132,6 +134,12 @@ app.use(`/api/${VERSION}/audit-logs`, auditLogRoutes);
 
 //notifications  Routes
 app.use(`/api/${VERSION}/notifications`, notificationRoutes);
+
+// Ticket Routes
+app.use(`/api/${VERSION}/tickets`, ticketRoutes);
+
+// Payroll Routes
+app.use(`/api/${VERSION}/payroll`, payrollRoutes);
 
 app.use(globalErrorHandler);
 

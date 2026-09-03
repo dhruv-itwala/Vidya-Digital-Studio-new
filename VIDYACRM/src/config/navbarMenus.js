@@ -5,6 +5,7 @@ export const NAVBAR_MENUS = {
     { label: "Task List", path: "/admin/task-list" },
     { label: "Profile", path: "/admin/profile" },
     { label: "Leaves", path: "/admin/leaves" },
+    { label: "Helpdesk", path: "/admin/helpdesk" },
     { label: "To Do List", path: "/admin/todo" },
 
     "divider",
@@ -27,6 +28,8 @@ export const NAVBAR_MENUS = {
     { label: "Reports", path: "/admin/reports" },
     { label: "Leave Approvals", path: "/admin/leave-approval" },
     { label: "Settings", path: "/admin/settings" },
+    { label: "Payroll", path: "/admin/payroll" },
+    { label: "HR Helpdesk", path: "/admin/hr-helpdesk" },
     { label: "Notice Board", path: "/admin/notices" },
   ],
   admin: [
@@ -35,6 +38,7 @@ export const NAVBAR_MENUS = {
     { label: "Task List", path: "/admin/task-list" },
     { label: "Profile", path: "/admin/profile" },
     { label: "Leaves", path: "/admin/leaves" },
+    { label: "Helpdesk", path: "/admin/helpdesk" },
     { label: "To Do List", path: "/admin/todo" },
 
     "divider",
@@ -57,6 +61,8 @@ export const NAVBAR_MENUS = {
     { label: "Reports", path: "/admin/reports" },
     { label: "Leave Approvals", path: "/admin/leave-approval" },
     { label: "Settings", path: "/admin/settings" },
+    { label: "Payroll", path: "/admin/payroll" },
+    { label: "HR Helpdesk", path: "/admin/hr-helpdesk" },
     { label: "Notice Board", path: "/admin/notices" },
   ],
 
@@ -69,6 +75,8 @@ export const NAVBAR_MENUS = {
     { label: "To Do List", path: "/employee/todo" },
     { label: "Profile", path: "/employee/profile" },
     { label: "Leaves", path: "/employee/leaves" },
+    { label: "Helpdesk", path: "/employee/helpdesk" },
+    { label: "Payslips", path: "/employee/payslips" },
 
     "divider",
     // Influencers and creators
@@ -83,6 +91,7 @@ export const NAVBAR_MENUS = {
     { label: "Profile", path: "/hr/profile" },
     { label: "Attendance", path: "/hr/attendance" },
     { label: "Leaves", path: "/hr/leaves" },
+    { label: "Helpdesk", path: "/hr/helpdesk" },
     { label: "To Do List", path: "/hr/todo" },
     "divider",
     // Influencers and creators
@@ -102,6 +111,8 @@ export const NAVBAR_MENUS = {
     { label: "Reports", path: "/hr/hrReports" },
     { label: "Leave Approvals", path: "/hr/hrLeaveApproval" },
     { label: "Settings", path: "/hr/settings" },
+    { label: "Payroll", path: "/hr/payroll" },
+    { label: "HR Helpdesk", path: "/hr/hr-helpdesk" },
     { label: "Notice Board", path: "/hr/notices" },
   ],
 
@@ -114,6 +125,8 @@ export const NAVBAR_MENUS = {
     { label: "To Do List", path: "/employee/todo" },
     { label: "Profile", path: "/employee/profile" },
     { label: "Leaves", path: "/employee/leaves" },
+    { label: "Helpdesk", path: "/employee/helpdesk" },
+    { label: "Payslips", path: "/employee/payslips" },
 
     "divider",
     // Influencers and creators

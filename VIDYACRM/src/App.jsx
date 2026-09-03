@@ -80,6 +80,10 @@ const UGCView = React.lazy(() => import("./components/UgcCreatorList/UGCView"));
 const Log = React.lazy(() => import("./components/LogsPage/Log"));
 const AuditLogs = React.lazy(() => import("./components/AuditLogs/AuditLogs"));
 const Settings = React.lazy(() => import("./pages/Settings/Settings"));
+const EmployeeTickets = React.lazy(() => import("./pages/Tickets/EmployeeTickets"));
+const HRTickets = React.lazy(() => import("./pages/Tickets/HRTickets"));
+const PayrollManagement = React.lazy(() => import("./pages/Payroll/PayrollManagement"));
+const MyPayslips = React.lazy(() => import("./pages/Payroll/MyPayslips"));
 
 // Client Portal Lazy Loads
 const ClientDashboard = React.lazy(() => import("./components/ClientPortal/ClientDashboard"));
@@ -144,6 +148,9 @@ export default function App() {
             <Route path="todo" element={<TodoList />} />
             <Route path="settings" element={<Settings />} />
             <Route path="notices" element={<NoticeBoard />} />
+            <Route path="helpdesk" element={<EmployeeTickets />} />
+            <Route path="hr-helpdesk" element={<HRTickets />} />
+            <Route path="payroll" element={<PayrollManagement />} />
 
             <Route path="leads" element={<ViewLeads />} />
             <Route path="leads/:id" element={<DetailLead />} />
@@ -194,6 +201,9 @@ export default function App() {
             <Route path="todo" element={<TodoList />} />
             <Route path="hr" element={<HROverride />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="helpdesk" element={<EmployeeTickets />} />
+            <Route path="hr-helpdesk" element={<HRTickets />} />
+            <Route path="payroll" element={<PayrollManagement />} />
 
             <Route path="hrLeaveApproval" element={<LeaveApproval />} />
             <Route path="hrReports" element={<Reports />} />
@@ -246,6 +256,8 @@ export default function App() {
             <Route path="leaves" element={<EmployeeLeaves />} />
             <Route path="todo" element={<TodoList />} />
             <Route path="tasks" element={<EmployeeTasks />} />
+            <Route path="helpdesk" element={<EmployeeTickets />} />
+            <Route path="payslips" element={<MyPayslips />} />
 
             <Route path="influencers" element={<Influencer />} />
             <Route path="influencers/view" element={<InfluencerView />} />
