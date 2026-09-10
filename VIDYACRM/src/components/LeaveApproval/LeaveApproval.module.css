@@ -223,6 +223,27 @@
   letter-spacing: 0.05em;
 }
 
+.typeBadge.casual {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.typeBadge.sick {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.typeBadge.earned {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.typeBadge.unpaid {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
 .halfDayBadge {
   font-size: 0.75rem;
   font-weight: 800;

@@ -163,7 +163,7 @@ export default function LeaveApproval() {
                           </td>
                           <td data-label="Type & Half Day">
                             <div className={styles.typeGroup}>
-                              <span className={styles.typeBadge}>{l.type}</span>
+                              <span className={`${styles.typeBadge} ${styles[l.type?.toLowerCase()] || ""}`}>{l.type}</span>
                               {l.isHalfDay && <span className={styles.halfDayBadge}>Half Day</span>}
                             </div>
                           </td>
@@ -240,7 +240,7 @@ export default function LeaveApproval() {
                           </td>
                           <td data-label="Type & Half Day">
                             <div className={styles.typeGroup}>
-                              <span className={styles.typeBadge}>{l.type}</span>
+                              <span className={`${styles.typeBadge} ${styles[l.type?.toLowerCase()] || ""}`}>{l.type}</span>
                               {l.isHalfDay && <span className={styles.halfDayBadge}>Half Day</span>}
                             </div>
                           </td>
@@ -339,7 +339,7 @@ export default function LeaveApproval() {
                           </td>
                           <td data-label="Total Taken">
                             <span className={styles.duration}>
-                              {a.summary.used} (S: {a.taken.sick || 0} / C: {a.taken.casual || 0} / E: {a.taken.earned || 0})
+                              {a.summary.used} (S: {a.taken.sick || 0} / C: {a.taken.casual || 0} / E: {a.taken.earned || 0}{a.taken.unpaid ? ` / U: ${a.taken.unpaid}` : ""})
                             </span>
                           </td>
                           <td data-label="Pending Balance">

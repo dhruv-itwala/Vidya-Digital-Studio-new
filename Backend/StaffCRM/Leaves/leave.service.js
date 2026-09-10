@@ -38,15 +38,6 @@ export const applyLeaveService = async (userId, data) => {
     throw new AppError("Half-day leave must be for a single day", 400);
   }
 
-  // ❌ Holiday check (range based)
-  const holiday = await holidayModel.exists({
-    date: { $gte: fromDate, $lte: toDate },
-  });
-
-  if (holiday) {
-    throw new AppError("Leave range contains a holiday", 409);
-  }
-
   // ❌ Overlapping leave check
   const overlapping = await leavesModel.exists({
     user: userId,
@@ -59,24 +50,25 @@ export const applyLeaveService = async (userId, data) => {
     throw new AppError("Leave already exists in this date range", 409);
   }
 
-  // ❌ Balance check
-  const requestedDays = data.isHalfDay ? 0.5 : getDateRange(fromDate, toDate).length;
-  const user = await User.findById(userId);
-  const nowIST = new Date(new Date().getTime() + (330 * 60000));
-  const targetYear = fromDate.getFullYear();
-  const balance = await calculateLeaveBalance(user, targetYear, true); // Include pending for applying
+  // ❌ Balance check (Skip for UNPAID leaves)
+  if (data.type !== "UNPAID") {
+    const requestedDays = data.isHalfDay ? 0.5 : getDateRange(fromDate, toDate).length;
+    const user = await User.findById(userId);
+    const targetYear = fromDate.getFullYear();
+    const balance = await calculateLeaveBalance(user, targetYear, true); // Include pending for applying
 
-  if (balance.pending < requestedDays) {
-    throw new AppError(`Insufficient total leave balance. You have ${balance.pending} days left.`, 400);
-  }
+    if (balance.pending < requestedDays) {
+      throw new AppError(`Insufficient total leave balance. You have ${balance.pending} days left.`, 400);
+    }
 
-  const typeLower = data.type.toLowerCase();
-  const quota = balance.quotas[typeLower];
-  const taken = balance.taken[typeLower];
-  const availableForType = quota - taken;
+    const typeLower = data.type.toLowerCase();
+    const quota = balance.quotas[typeLower];
+    const taken = balance.taken[typeLower] || 0;
+    const availableForType = quota - taken;
 
-  if (availableForType < requestedDays) {
-    throw new AppError(`Insufficient ${data.type} leave balance. You have ${availableForType} days left for this type.`, 400);
+    if (availableForType < requestedDays) {
+      throw new AppError(`Insufficient ${data.type} leave balance. You have ${availableForType} days left for this type.`, 400);
+    }
   }
 
   const leave = await leavesModel.create({
@@ -131,7 +123,8 @@ export const approveLeaveService = async (leaveId, adminId) => {
     await attendanceModel.findOneAndUpdate(
       { user: leave.user, date: { $gte: start, $lt: end } },
       {
-        status: leave.isHalfDay ? "HALF_DAY" : "LEAVE",
+        status: leave.isHalfDay ? "HALF_DAY" : (leave.type === "UNPAID" ? "ABSENT" : "LEAVE"),
+        remarks: leave.type === "UNPAID" ? (leave.isHalfDay ? "Half-day Unpaid Leave" : "Unpaid Leave") : undefined,
       },
       { upsert: true },
     );
@@ -269,6 +262,7 @@ const getTakenLeavesForYear = async (userId, year, includePending = false) => {
   let sick = 0;
   let casual = 0;
   let earned = 0;
+  let unpaid = 0;
   let halfDays = 0;
 
   for (const leave of leaves) {
@@ -288,10 +282,11 @@ const getTakenLeavesForYear = async (userId, year, includePending = false) => {
       if (leave.type === "SICK") sick += count;
       if (leave.type === "CASUAL") casual += count;
       if (leave.type === "EARNED") earned += count;
+      if (leave.type === "UNPAID") unpaid += count;
     }
   }
 
-  return { sick, casual, earned, halfDays, total: sick + casual + earned };
+  return { sick, casual, earned, unpaid, halfDays, total: sick + casual + earned };
 };
 
 export const calculateLeaveBalance = async (user, targetYear, includePending = false) => {
@@ -372,6 +367,7 @@ export const getLeaveBalanceService = async (userId) => {
       sick: balance.taken.sick,
       casual: balance.taken.casual,
       earned: balance.taken.earned,
+      unpaid: balance.taken.unpaid || 0,
       halfDays: balance.taken.halfDays,
       total: balance.taken.total
     },

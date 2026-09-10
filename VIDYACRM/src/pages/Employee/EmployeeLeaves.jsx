@@ -103,7 +103,9 @@ export default function EmployeeLeaves() {
           <div className={`${styles.balanceCard} ${styles.secondary}`}>
             <span className={styles.balanceTitle}>Total Taken</span>
             <span className={styles.balanceValue}>{balance.taken.total}</span>
-            <span className={styles.balanceSub}>{balance.taken.sick} Sick, {balance.taken.casual} Casual, {balance.taken.earned} Earned</span>
+            <span className={styles.balanceSub}>
+              {balance.taken.sick} Sick, {balance.taken.casual} Casual, {balance.taken.earned} Earned{balance.taken.unpaid > 0 ? `, ${balance.taken.unpaid} Unpaid` : ""}
+            </span>
           </div>
         </div>
       )}
@@ -150,7 +152,13 @@ export default function EmployeeLeaves() {
                   <option value="CASUAL">Casual Leave</option>
                   <option value="SICK">Sick Leave</option>
                   <option value="EARNED">Earned Leave</option>
+                  <option value="UNPAID">Unpaid Leave</option>
                 </select>
+                {type === "UNPAID" && (
+                  <span className={styles.unpaidNote}>
+                    ⚡ Does not consume your leave balance
+                  </span>
+                )}
               </div>
 
               <div className={styles.toggleWrap}>
@@ -224,7 +232,7 @@ export default function EmployeeLeaves() {
                         </span>
                       </td>
                       <td data-label="Type">
-                        <span className={styles.typeBadge}>{l.type}</span>
+                        <span className={`${styles.typeBadge} ${styles[l.type?.toLowerCase()] || ""}`}>{l.type}</span>
                       </td>
                       <td data-label="Half Day">
                         <span className={l.isHalfDay ? styles.yesBadge : styles.noBadge}>

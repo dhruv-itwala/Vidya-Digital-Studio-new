@@ -173,6 +173,7 @@
 /* Leave Types */
 .CASUAL { background: #3b82f6; }
 .SICK { background: #ef4444; }
+.EARNED { background: #10b981; }
 .UNPAID { background: #f59e0b; }
 
 .halfDay {

@@ -421,17 +421,16 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
       if (att) {
         status = att.status;
       } else {
+        const matchingLeave = leaves.find(l => String(l.user) === String(u._id) && current >= l.fromDate && current <= l.toDate);
         if (current > nowDay) {
           if (isHol) status = "HOLIDAY";
-          else {
-            const isLeave = leaves.some(l => String(l.user) === String(u._id) && current >= l.fromDate && current <= l.toDate);
-            if (isLeave) status = "LEAVE";
+          else if (matchingLeave) {
+            status = matchingLeave.type === "UNPAID" ? "ABSENT" : "LEAVE";
           }
         } else {
           if (isHol) status = "HOLIDAY";
           else {
-            const isLeave = leaves.some(l => String(l.user) === String(u._id) && current >= l.fromDate && current <= l.toDate);
-            status = isLeave ? "LEAVE" : "ABSENT";
+            status = matchingLeave ? (matchingLeave.type === "UNPAID" ? "ABSENT" : "LEAVE") : "ABSENT";
           }
         }
       }
