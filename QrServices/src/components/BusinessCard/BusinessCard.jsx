@@ -10,16 +10,8 @@ const LINKS = {
     url: "https://www.vidyadigitalstudio.com",
     newTab: true,
   },
-  projects: {
-    url: "https://vidyadigitalstudio.com/projects",
-    newTab: true,
-  },
-  modeling: {
-    url: "https://vidyadigitalstudio.com/projects/3d-modelling",
-    newTab: true,
-  },
   contact: {
-    url: "https://vidyadigitalstudio.com/contact-us",
+    url: "https://vidyadigitalstudio.com/contact",
     newTab: true,
   },
   linkedin: {
