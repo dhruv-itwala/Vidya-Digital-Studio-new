@@ -16,22 +16,38 @@ export const WORK_POLICIES = {
     maxDailyMinutes: 480,
   },
 
+  // intern: {
+  //   weeklyHours: 30,
+  //   dailyHours: 6,
+
+  //   officeHours: {
+  //     start: 9,
+  //     end: 18,
+  //   },
+
+  //   attendance: {
+  //     presentMinutes: 300,
+  //     halfDayMinutes: 180,
+  //   },
+
+  //   maxDailyMinutes: 360,
+  // },
   intern: {
-    weeklyHours: 30,
-    dailyHours: 6,
+  weeklyHours: 20,
+  dailyHours: 4,
 
-    officeHours: {
-      start: 9,
-      end: 18,
-    },
-
-    attendance: {
-      presentMinutes: 300,
-      halfDayMinutes: 180,
-    },
-
-    maxDailyMinutes: 360,
+  officeHours: {
+    start: 9,
+    end: 18,
   },
+
+  attendance: {
+    presentMinutes: 240,
+    halfDayMinutes: 120,
+  },
+
+  maxDailyMinutes: 240,
+},
 };
 
 export const ROLE_WORK_POLICY = {
