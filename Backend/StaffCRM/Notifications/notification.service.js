@@ -57,7 +57,7 @@ export const removeSubscription = async (endpoint) => {
  */
 export const sendNotification = async (
   userId,
-  { title, body, url = "/", icon = "/icon-192.png", badge = "/icon-192.png" },
+  { title, body, url = "/", icon = "/icon-192.png", badge = "/icon-192.png", ttl = 3600 },
 ) => {
   ensureVapidConfigured();
 
@@ -108,6 +108,9 @@ export const sendNotification = async (
           keys: subscription.keys,
         },
         payload,
+        {
+          TTL: ttl || 3600,
+        },
       );
       sentCount++;
     } catch (error) {

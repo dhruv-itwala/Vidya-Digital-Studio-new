@@ -6,9 +6,9 @@ import {
   checkNightPunchOutReminder,
 } from "../attendanceReminder.service.js";
 
-// 1. 10:01 AM IST - Check for users who have not punched in
+// 1. 10:01 AM IST - Check for users who have not punched in (Mon - Sat)
 cron.schedule(
-  "1 10 * * *",
+  "1 10 * * 1-6",
   async () => {
     console.log("[Cron:Reminder] Running 10:01 AM Punch-In check...");
     await checkPunchInReminder();
@@ -29,9 +29,9 @@ cron.schedule(
   },
 );
 
-// 3. 10:00 PM IST - Check for users who did not punch out yet
+// 3. 10:00 PM IST - Check for users who did not punch out yet (Mon - Sat)
 cron.schedule(
-  "0 22 * * *",
+  "0 22 * * 1-6",
   async () => {
     console.log("[Cron:Reminder] Running 10:00 PM Punch-Out check...");
     await checkNightPunchOutReminder();

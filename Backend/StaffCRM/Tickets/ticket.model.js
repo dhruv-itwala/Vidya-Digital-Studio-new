@@ -23,4 +23,8 @@ const ticketSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+ticketSchema.index({ createdBy: 1, createdAt: -1 });
+ticketSchema.index({ status: 1, createdAt: -1 });
+ticketSchema.index({ createdAt: -1 });
+
 export default mongoose.model("Ticket", ticketSchema);

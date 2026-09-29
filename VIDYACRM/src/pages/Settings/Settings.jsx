@@ -13,6 +13,7 @@ export default function Settings() {
     leaves: true,
     reports: true,
     tasks: true,
+    tickets: true,
   });
 
   const [saving, setSaving] = useState(false);
@@ -25,6 +26,7 @@ export default function Settings() {
         leaves: user.notificationPreferences.leaves ?? true,
         reports: user.notificationPreferences.reports ?? true,
         tasks: user.notificationPreferences.tasks ?? true,
+        tickets: user.notificationPreferences.tickets ?? true,
       });
     }
   }, [user]);
@@ -140,6 +142,25 @@ export default function Settings() {
                 <motion.div 
                   className={styles.toggleKnob}
                   animate={{ x: preferences.tasks ? 20 : 2 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              </button>
+            </div>
+
+            {/* Helpdesk / Tickets */}
+            <div className={styles.settingItem}>
+              <div className={styles.settingInfo}>
+                <h3>Helpdesk & Tickets</h3>
+                <p>Get notified when a new complaint or ticket is raised or resolved.</p>
+              </div>
+              <button 
+                className={`${styles.toggle} ${preferences.tickets ? styles.toggleOn : styles.toggleOff}`}
+                onClick={() => handleToggle("tickets")}
+                disabled={saving}
+              >
+                <motion.div 
+                  className={styles.toggleKnob}
+                  animate={{ x: preferences.tickets ? 20 : 2 }}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               </button>

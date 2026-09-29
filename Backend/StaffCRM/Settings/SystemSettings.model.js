@@ -19,6 +19,8 @@ const systemSettingsSchema = new mongoose.Schema(
       hr: {
         leaveApplied: { type: Boolean, default: true },
         leaveStatusChanged: { type: Boolean, default: true },
+        ticketCreated: { type: Boolean, default: true },
+        ticketStatusChanged: { type: Boolean, default: true },
       },
     },
   },

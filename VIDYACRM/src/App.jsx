@@ -5,6 +5,7 @@ import useBackendStatus from "./hooks/useBackendStatus";
 import Login from "./pages/Auth/Login";
 import NavigateBasedOnRole from "./routes/NavigateBasedOnRole";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import NotificationRedirect from "./routes/NotificationRedirect";
 
 import EmployeeLayout from "./layouts/EmployeeLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -119,6 +120,56 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <NavigateBasedOnRole />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* NOTIFICATION REDIRECT ROUTES */}
+          <Route
+            path="/helpdesk"
+            element={
+              <ProtectedRoute>
+                <NotificationRedirect target="helpdesk" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hr-helpdesk"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "administrative", "hr"]}>
+                <NotificationRedirect target="hr-helpdesk" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaves"
+            element={
+              <ProtectedRoute>
+                <NotificationRedirect target="leaves" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <NotificationRedirect target="reports" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <NotificationRedirect target="tasks" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <NotificationRedirect target="dashboard" />
               </ProtectedRoute>
             }
           />

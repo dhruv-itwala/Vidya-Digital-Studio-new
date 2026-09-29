@@ -89,6 +89,7 @@ const userSchema = new mongoose.Schema(
         leaves: true,
         reports: true,
         tasks: true,
+        tickets: true,
       },
     },
   },

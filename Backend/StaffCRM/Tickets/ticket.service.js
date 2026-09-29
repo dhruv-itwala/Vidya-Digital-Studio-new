@@ -1,16 +1,26 @@
 import Ticket from "./ticket.model.js";
 import AppError from "../utils/AppError.js";
+import {
+  notifyTicketCreated,
+  notifyTicketStatusChanged,
+} from "../Notifications/notificationEvent.service.js";
 
 export const createTicketService = async (userId, data) => {
   const { title, description } = data;
   if (!title || !description) {
     throw new AppError("Title and description are required", 400);
   }
-  return Ticket.create({
+  const ticket = await Ticket.create({
     title,
     description,
     createdBy: userId,
   });
+
+  notifyTicketCreated(ticket, userId).catch((err) =>
+    console.error("[Ticket] Error in notifyTicketCreated:", err?.message || err)
+  );
+
+  return ticket;
 };
 
 export const getMyTicketsService = async (userId) => {
@@ -41,5 +51,10 @@ export const updateTicketStatusService = async (ticketId, adminId, status, resol
   if (!ticket) {
     throw new AppError("Ticket not found", 404);
   }
+
+  notifyTicketStatusChanged(ticket, adminId).catch((err) =>
+    console.error("[Ticket] Error in notifyTicketStatusChanged:", err?.message || err)
+  );
+
   return ticket;
 };

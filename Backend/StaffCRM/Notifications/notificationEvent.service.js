@@ -18,9 +18,9 @@ const formatShortISTDate = (dateVal) => {
 
 const getAdminAndHrIds = async (excludeUserId = null, eventType = null) => {
   const users = await User.find({
-    role: { $in: ["admin", "hr"] },
+    role: { $in: ["admin", "hr", "administrative"] },
     isActive: true,
-  }).select("_id notificationPreferences");
+  }).select("_id notificationPreferences").lean();
 
   return users
     .filter((u) => {
@@ -304,3 +304,81 @@ export const notifyAnnouncement = async (announcement, targetUsers) => {
     console.error("[NotificationEvent] Error in notifyAnnouncement:", err?.message || err);
   }
 };
+
+/* =========================================================
+   TICKET / HELPDESK NOTIFICATIONS
+========================================================= */
+
+/**
+ * 9. Notify Admin & HR when a Ticket / Complaint is raised
+ */
+export const notifyTicketCreated = async (ticket, creatorUserId) => {
+  try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.hr?.ticketCreated === false) return;
+
+    const creator = await User.findById(creatorUserId).select("name email").lean();
+    const creatorName = creator?.name || creator?.email || "A team member";
+
+    const title = "🎫 New Ticket / Complaint Raised";
+    const body = `${creatorName} submitted a ticket: "${ticket.title}".`;
+
+    const adminHrIds = await getAdminAndHrIds(creatorUserId, "tickets");
+
+    await Promise.allSettled(
+      adminHrIds.map((id) =>
+        sendNotification(id, {
+          title,
+          body,
+          url: "/hr-helpdesk",
+        }).catch((e) =>
+          console.error(`Failed to notify admin/hr ${id}:`, e?.message || e)
+        )
+      )
+    );
+  } catch (err) {
+    console.error("[NotificationEvent] Error in notifyTicketCreated:", err?.message || err);
+  }
+};
+
+/**
+ * 10. Notify Employee when their Ticket status changes or is resolved
+ */
+export const notifyTicketStatusChanged = async (ticket, updatedByUserId) => {
+  try {
+    const settings = await getGlobalSettings();
+    if (settings.notifications?.hr?.ticketStatusChanged === false) return;
+
+    if (!ticket?.createdBy) return;
+
+    const creatorId = ticket.createdBy._id
+      ? ticket.createdBy._id.toString()
+      : ticket.createdBy.toString();
+
+    // Avoid self notification if updater is the creator
+    if (creatorId === updatedByUserId?.toString()) return;
+
+    const creator = await User.findById(creatorId).select("notificationPreferences").lean();
+    if (creator?.notificationPreferences && creator.notificationPreferences.tickets === false) return;
+
+    let title = "🎫 Ticket Status Updated";
+    let body = `Your ticket "${ticket.title}" status is now ${ticket.status}.`;
+
+    if (ticket.status === "RESOLVED") {
+      title = "✅ Ticket Resolved!";
+      body = `Your ticket "${ticket.title}" has been resolved.${ticket.resolutionNote ? ` Note: ${ticket.resolutionNote}` : ""}`;
+    } else if (ticket.status === "IN_PROGRESS") {
+      title = "⚙️ Ticket In Progress";
+      body = `Your ticket "${ticket.title}" is currently being investigated.`;
+    }
+
+    await sendNotification(creatorId, {
+      title,
+      body,
+      url: "/helpdesk",
+    });
+  } catch (err) {
+    console.error("[NotificationEvent] Error in notifyTicketStatusChanged:", err?.message || err);
+  }
+};
+

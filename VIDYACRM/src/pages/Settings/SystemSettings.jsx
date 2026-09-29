@@ -125,6 +125,8 @@ export default function SystemSettings() {
         <div className={styles.settingList}>
           {renderToggle("hr", "leaveApplied", "Leave Applied", "Send notifications to HR/Admin when someone applies for leave.")}
           {renderToggle("hr", "leaveStatusChanged", "Leave Status Changed", "Send notifications to employees when their leave is approved or declined.")}
+          {renderToggle("hr", "ticketCreated", "New Ticket Raised", "Send notifications to HR/Admin when a ticket or complaint is raised.")}
+          {renderToggle("hr", "ticketStatusChanged", "Ticket Status Changed", "Send notifications to employees when their ticket status changes or is resolved.")}
         </div>
       </div>
     </div>

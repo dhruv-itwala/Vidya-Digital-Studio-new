@@ -1,6 +1,7 @@
-// Backend/StaffCRM/Attendance/attendanceReminder.service.js
 import User from "../Users/user.model.js";
 import WorkRecord from "./workRecord.model.js";
+import Holiday from "../Holidays/holiday.model.js";
+import Leave from "../Leaves/leave.model.js";
 import {
   todayISTUTC,
   calcLiveBreakSeconds,
@@ -13,49 +14,110 @@ import { sendNotification } from "../Notifications/notification.service.js";
  */
 export const checkPunchInReminder = async (force = false) => {
   try {
+    // 1. Guard against Sunday (Weekly off)
+    const istDayOfWeek = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Kolkata",
+      weekday: "short",
+    }).format(new Date());
+
+    if (istDayOfWeek === "Sun") {
+      console.log("[Reminder] Today is Sunday (Weekly off). Skipping punch-in reminders.");
+      return { success: true, notifiedCount: 0, reason: "Sunday" };
+    }
+
+    // 2. Guard against time outside morning shift window (09:00 - 13:00 IST)
+    const istHour = Number(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Kolkata",
+        hour: "numeric",
+        hour12: false,
+      }).format(new Date()),
+    );
+
+    if (!force && (istHour < 9 || istHour >= 13)) {
+      console.log(`[Reminder] Current IST hour (${istHour}) is outside shift start window (09:00 - 13:00). Skipping punch-in reminder.`);
+      return { success: true, notifiedCount: 0, reason: "Outside shift start window" };
+    }
+
     const today = todayISTUTC();
-    const activeUsers = await User.find({
-      isActive: true,
-      role: { $in: ["employee", "hr", "intern"] },
-    }).lean();
+
+    // 3. Guard against Company Holidays
+    const isHoliday = await Holiday.exists({ date: today });
+    if (isHoliday) {
+      console.log("[Reminder] Today is a company holiday. Skipping punch-in reminders.");
+      return { success: true, notifiedCount: 0, reason: "Company holiday" };
+    }
+
+    // 4. Batch query users, leaves, and today's work records concurrently
+    const [activeUsers, leavesToday, recordsToday] = await Promise.all([
+      User.find({
+        isActive: true,
+        role: { $in: ["employee", "hr", "intern"] },
+      }).select("_id name").lean(),
+      Leave.find({
+        status: "APPROVED",
+        fromDate: { $lte: today },
+        toDate: { $gte: today },
+        isHalfDay: false,
+      }).select("user").lean(),
+      WorkRecord.find({
+        date: today,
+      }).select("user punchIn punchInReminderSent").lean(),
+    ]);
+
+    const userIdsOnLeave = new Set(leavesToday.map((l) => l.user.toString()));
+    const recordMap = new Map(recordsToday.map((r) => [r.user.toString(), r]));
+
+    // Filter in-memory: eligible users who haven't punched in and need a reminder
+    const targetUsers = activeUsers.filter((u) => {
+      if (userIdsOnLeave.has(u._id.toString())) return false;
+      const rec = recordMap.get(u._id.toString());
+      return !rec?.punchIn && (!rec?.punchInReminderSent || force);
+    });
+
+    if (targetUsers.length === 0) {
+      console.log("[Reminder] 10:01 AM Punch-In check completed: 0 users need reminder.");
+      return { success: true, notifiedCount: 0 };
+    }
+
+    // Send push notifications concurrently
+    const sendResults = await Promise.allSettled(
+      targetUsers.map((user) =>
+        sendNotification(user._id, {
+          title: "⏰ Shift Has Started!",
+          body: "It is 10:01 AM. Your shift has officially started. Please punch in now to avoid late attendance!",
+          url: "/",
+          ttl: 7200, // Discard after 2 hours if offline/asleep
+        })
+      )
+    );
 
     let notifiedCount = 0;
+    const notifiedUserIds = [];
 
-    for (const user of activeUsers) {
-      try {
-        const record = await WorkRecord.findOne({
-          user: user._id,
-          date: today,
-        });
-
-        // If no record or record has no punchIn and (reminder not sent yet OR force=true)
-        if (!record?.punchIn && (!record?.punchInReminderSent || force)) {
-          const result = await sendNotification(user._id, {
-            title: "⏰ Shift Has Started!",
-            body: "It is 10:01 AM. Your shift has officially started. Please punch in now to avoid late attendance!",
-            url: "/",
-          });
-
-          if (result?.success) {
-            notifiedCount++;
-          }
-
-          // Mark reminder sent so we don't spam if check runs again
-          await WorkRecord.findOneAndUpdate(
-            { user: user._id, date: today },
-            {
-              $set: {
-                user: user._id,
-                date: today,
-                punchInReminderSent: true,
-              },
-            },
-            { upsert: true, new: true, setDefaultsOnInsert: true },
-          );
-        }
-      } catch (err) {
-        console.error(`Error sending punchIn reminder to user ${user._id}:`, err?.message || err);
+    sendResults.forEach((res, index) => {
+      if (res.status === "fulfilled" && res.value?.success) {
+        notifiedCount++;
       }
+      notifiedUserIds.push(targetUsers[index]._id);
+    });
+
+    // Bulk update work records in a single database operation
+    if (notifiedUserIds.length > 0) {
+      const bulkOps = notifiedUserIds.map((userId) => ({
+        updateOne: {
+          filter: { user: userId, date: today },
+          update: {
+            $set: {
+              user: userId,
+              date: today,
+              punchInReminderSent: true,
+            },
+          },
+          upsert: true,
+        },
+      }));
+      await WorkRecord.bulkWrite(bulkOps, { ordered: false });
     }
 
     console.log(`[Reminder] 10:01 AM Punch-In Reminder checked. Notified: ${notifiedCount}`);
@@ -83,6 +145,8 @@ export const checkActiveShiftReminders = async () => {
       punchIn: { $exists: true },
       punchOut: { $exists: false },
     });
+
+    if (!records.length) return { success: true, remindersSent: 0 };
 
     let remindersSent = 0;
 
@@ -113,6 +177,7 @@ export const checkActiveShiftReminders = async () => {
             title: "⏳ 10 Minutes Left in Break!",
             body: "You have 10 minutes remaining in your 1-hour break. Please prepare to resume work.",
             url: "/",
+            ttl: 600, // 10 min TTL
           });
           record.breakReminderSent = true;
           changed = true;
@@ -129,6 +194,7 @@ export const checkActiveShiftReminders = async () => {
             title: "🚨 Break Time is Up!",
             body: "Your 1-hour break has ended. Please end your break and resume work now!",
             url: "/",
+            ttl: 900, // 15 min TTL
           });
           record.breakEndReminderSent = true;
           changed = true;
@@ -146,6 +212,7 @@ export const checkActiveShiftReminders = async () => {
             title: "📝 Submit Your Daily Report",
             body: "30 minutes remaining in your shift! Please submit your work report before punching out.",
             url: "/reports",
+            ttl: 1800, // 30 min TTL
           });
           record.reportReminderSent = true;
           changed = true;
@@ -158,6 +225,7 @@ export const checkActiveShiftReminders = async () => {
             title: "🎉 Shift Completed - Punch Out!",
             body: "You have completed 8 hours of work today. Don't forget to punch out!",
             url: "/",
+            ttl: 3600, // 1 hr TTL
           });
           record.workCompletedSent = true;
           changed = true;
@@ -195,6 +263,8 @@ export const checkNightPunchOutReminder = async () => {
       punchOutReminderSent: { $ne: true },
     });
 
+    if (!records.length) return { success: true, notifiedCount: 0 };
+
     let notifiedCount = 0;
 
     for (const record of records) {
@@ -203,6 +273,7 @@ export const checkNightPunchOutReminder = async () => {
           title: "⚠️ Punch Out Reminder!",
           body: "It is 10:00 PM. Please punch out now! Otherwise your shift will be marked INCOMPLETE at midnight.",
           url: "/",
+          ttl: 7200, // Expires by midnight
         });
 
         record.punchOutReminderSent = true;
@@ -230,51 +301,79 @@ export const checkNightPunchOutReminder = async () => {
  */
 export const sendRemindersToAllUsers = async () => {
   try {
+    const istDayOfWeek = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Kolkata",
+      weekday: "short",
+    }).format(new Date());
+
+    const istHour = Number(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Kolkata",
+        hour: "numeric",
+        hour12: false,
+      }).format(new Date()),
+    );
+
     const today = todayISTUTC();
-    const activeUsers = await User.find({ isActive: true }).lean();
-    let notifiedCount = 0;
+    const [isHoliday, activeUsers, recordsToday] = await Promise.all([
+      Holiday.exists({ date: today }),
+      User.find({ isActive: true }).select("_id").lean(),
+      WorkRecord.find({ date: today }).lean(),
+    ]);
+
+    const recordMap = new Map(recordsToday.map((r) => [r.user.toString(), r]));
+    const tasks = [];
 
     for (const user of activeUsers) {
-      try {
-        const record = await WorkRecord.findOne({
-          user: user._id,
-          date: today,
-        });
+      const record = recordMap.get(user._id.toString());
 
-        let title = "⏰ Shift Reminder";
-        let body = "Please remember to mark your attendance and follow shift timings!";
+      let title = "⏰ Shift Reminder";
+      let body = "Please remember to mark your attendance and follow shift timings!";
 
-        if (!record || !record.punchIn) {
+      if (!record || !record.punchIn) {
+        // If Sunday or holiday, never send shift started reminder
+        if (istDayOfWeek === "Sun" || isHoliday) continue;
+
+        // Only send "Shift Has Started" if during morning/start hours (09:00 - 14:00 IST)
+        if (istHour >= 9 && istHour < 14) {
           title = "⏰ Shift Has Started!";
           body = "Your shift has started. Please punch in now to avoid late attendance!";
-        } else if (record.punchIn && !record.punchOut) {
-          const currentlyOnBreak =
-            record.breaks?.length > 0 &&
-            record.breaks[record.breaks.length - 1].in &&
-            !record.breaks[record.breaks.length - 1].out;
-
-          if (currentlyOnBreak) {
-            title = "⏳ Break Reminder";
-            body = "You are currently on break. Remember your 1-hour break limit and resume work on time.";
-          } else {
-            title = "📋 Active Shift Reminder";
-            body = "You are currently on shift. Remember to submit your work report 30 minutes before punching out!";
-          }
-        } else if (record.punchOut) {
-          title = "✅ Shift Completed";
-          body = "You have completed your shift for today. Have a great evening!";
+        } else {
+          // Afternoon or night: NEVER send "shift has started" to someone who hasn't punched in
+          continue;
         }
+      } else if (record.punchIn && !record.punchOut) {
+        const currentlyOnBreak =
+          record.breaks?.length > 0 &&
+          record.breaks[record.breaks.length - 1].in &&
+          !record.breaks[record.breaks.length - 1].out;
 
-        const res = await sendNotification(user._id, {
+        if (currentlyOnBreak) {
+          title = "⏳ Break Reminder";
+          body = "You are currently on break. Remember your 1-hour break limit and resume work on time.";
+        } else {
+          title = "📋 Active Shift Reminder";
+          body = "You are currently on shift. Remember to submit your work report 30 minutes before punching out!";
+        }
+      } else if (record.punchOut) {
+        title = "✅ Shift Completed";
+        body = "You have completed your shift for today. Have a great evening!";
+      }
+
+      tasks.push(
+        sendNotification(user._id, {
           title,
           body,
           url: "/",
-        });
+          ttl: 3600,
+        })
+      );
+    }
 
-        if (res?.success) notifiedCount++;
-      } catch (e) {
-        console.error(`Error sending reminder to user ${user._id}:`, e?.message);
-      }
+    const results = await Promise.allSettled(tasks);
+    let notifiedCount = 0;
+    for (const res of results) {
+      if (res.status === "fulfilled" && res.value?.success) notifiedCount++;
     }
 
     return { success: true, notifiedCount, totalUsers: activeUsers.length };
