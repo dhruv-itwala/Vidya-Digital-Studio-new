@@ -60,9 +60,12 @@ export const AuthProvider = ({ children }) => {
 
       try {
         await fetchProfile();
-        await fetchAllUsers();
-        await fetchBirthdays();
-      } catch {
+        // Unblock app rendering immediately once user profile is authenticated!
+        setLoading(false);
+        // Load all employees and birthdays in background concurrently
+        Promise.allSettled([fetchAllUsers(), fetchBirthdays()]);
+      } catch (err) {
+        console.error("Auth initialization failed:", err);
         logout();
       } finally {
         setLoading(false);

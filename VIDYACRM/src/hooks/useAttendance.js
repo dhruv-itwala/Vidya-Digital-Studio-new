@@ -126,7 +126,13 @@ export const useAttendance = () => {
     try {
       dispatch({ type: "SET_LOADING", payload: true });
 
-      const holidayRes = await getHolidaysAPI();
+      // Run holidays, today record, reports, and weekly progress concurrently!
+      const [holidayRes, recordRes, reportRes, weeklyRes] = await Promise.all([
+        getHolidaysAPI(),
+        getTodayWorkRecordAPI(),
+        getMyReportsByDateAPI(),
+        getWeeklyProgressAPI(),
+      ]);
 
       const getISTDate = (date) =>
         new Date(date).toLocaleDateString("en-CA", {
@@ -150,16 +156,44 @@ export const useAttendance = () => {
         return;
       }
 
-      await syncFromServer();
+      const record = recordRes?.data?.data;
+      const weekly = weeklyRes?.data?.data;
 
-      dispatch({ type: "SET_LOADING", payload: false });
+      const dailyRequiredSeconds = weekly?.dailyRequiredSeconds || 8 * 3600;
+
+      const breakSecs =
+        record?.breaks?.reduce((sum, b) => {
+          if (!b.in) return sum;
+          const end = b.out ? new Date(b.out) : new Date();
+          return sum + Math.floor((end - new Date(b.in)) / 1000);
+        }, 0) || 0;
+
+      dispatch({
+        type: "SET_STATE",
+        payload: {
+          // daily
+          workSeconds: record?.liveNetSeconds || 0,
+          breakSeconds: breakSecs,
+          isRunning: record?.isRunning || false,
+          onBreak: record?.onBreak || false,
+          punchedOut: !!record?.punchOut,
+          reportSubmitted: Boolean(reportRes?.data?.data),
+
+          // weekly
+          weeklySeconds: weekly?.totalSeconds || 0,
+          weeklyStatus: weekly?.status || "IN_PROGRESS",
+          weeklyRequiredSeconds: (weekly?.requiredMinutes || 2880) * 60,
+          dailyRequiredSeconds,
+          loading: false,
+        },
+      });
     } catch (e) {
       toast.error(`${e?.message || "Failed to load dashboard"}`);
       dispatch({ type: "SET_LOADING", payload: false });
     } finally {
       fetchingRef.current = false;
     }
-  }, [syncFromServer]);
+  }, []);
 
   /* ================= ACTION HANDLER ================= */
   const handleAction = async (api, successMsg) => {
@@ -167,11 +201,35 @@ export const useAttendance = () => {
 
     try {
       dispatch({ type: "SET_ACTION_LOADING", payload: true });
-      await api();
-      await syncFromServer();
+      const res = await api();
+      const record = res?.data?.data;
+
+      if (record) {
+        const breakSecs =
+          record?.breaks?.reduce((sum, b) => {
+            if (!b.in) return sum;
+            const end = b.out ? new Date(b.out) : new Date();
+            return sum + Math.floor((end - new Date(b.in)) / 1000);
+          }, 0) || 0;
+
+        dispatch({
+          type: "SET_STATE",
+          payload: {
+            workSeconds: record.liveNetSeconds ?? state.workSeconds,
+            breakSeconds: breakSecs,
+            isRunning: record.isRunning ?? false,
+            onBreak: record.onBreak ?? false,
+            punchedOut: !!record.punchOut,
+          },
+        });
+      }
+
       toast.success(successMsg);
+
+      // Background sync for weekly hours and report status
+      syncFromServer().catch((err) => console.error("Sync error:", err));
     } catch (err) {
-      toast.error(err?.message || "Something went wrong");
+      toast.error(err?.response?.data?.message || err?.message || "Something went wrong");
     } finally {
       dispatch({ type: "SET_ACTION_LOADING", payload: false });
     }

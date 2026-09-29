@@ -18,9 +18,12 @@ const formatShortISTDate = (dateVal) => {
 
 const getAdminAndHrIds = async (excludeUserId = null, eventType = null) => {
   const users = await User.find({
-    role: { $in: ["admin", "hr", "administrative"] },
+    $or: [
+      { role: { $in: ["admin", "hr", "administrative"] } },
+      ...(eventType ? [{ customPermissions: eventType }] : []),
+    ],
     isActive: true,
-  }).select("_id notificationPreferences").lean();
+  }).select("_id notificationPreferences customPermissions").lean();
 
   return users
     .filter((u) => {

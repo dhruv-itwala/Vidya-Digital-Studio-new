@@ -3,7 +3,7 @@ import axios from "axios";
 
 export default function useBackendStatus() {
   const [isDown, setIsDown] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const checkBackend = async () => {
@@ -14,8 +14,6 @@ export default function useBackendStatus() {
         setIsDown(false);
       } catch {
         setIsDown(true);
-      } finally {
-        setLoading(false);
       }
     };
 
