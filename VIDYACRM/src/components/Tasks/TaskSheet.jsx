@@ -543,7 +543,11 @@ export default function TaskSheet({
                               {onDelete && (
                                 <button
                                   className={`${styles.iconBtn} ${styles.deleteIconBtn}`}
-                                  onClick={() => onDelete(task._id)}
+                                  onClick={() => {
+                                    if (window.confirm("Are you sure you want to delete this task?")) {
+                                      onDelete(task._id);
+                                    }
+                                  }}
                                   title="Delete Task"
                                 >
                                   <FiTrash2 />
@@ -714,7 +718,11 @@ export default function TaskSheet({
                     {onDelete && (
                       <button
                         className={`${styles.iconBtn} ${styles.deleteIconBtn}`}
-                        onClick={() => onDelete(task._id)}
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this task?")) {
+                            onDelete(task._id);
+                          }
+                        }}
                         title="Delete Task"
                       >
                         <FiTrash2 />

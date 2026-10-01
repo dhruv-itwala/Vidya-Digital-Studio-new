@@ -38,8 +38,8 @@ export const useTasks = (role) => {
       const res = await createTaskAPI(data);
       setTasks((prev) => [res.data, ...prev]);
       return { success: true };
-    } catch {
-      return { success: false, message: "Failed to create task" };
+    } catch (err) {
+      return { success: false, message: err?.message || "Failed to create task" };
     }
   };
 
@@ -48,17 +48,16 @@ export const useTasks = (role) => {
       const res = await updateTaskAPI(id, data);
       setTasks((prev) => prev.map((t) => (t._id === id ? res.data : t)));
       return { success: true };
-    } catch {
-      return { success: false, message: "Failed to update task" };
+    } catch (err) {
+      return { success: false, message: err?.message || "Failed to update task" };
     }
   };
 
   const updateStatus = async (id, status, holdReason = "") => {
-    let previous;
+    const previous = tasks;
 
-    setTasks((prev) => {
-      previous = prev;
-      return prev.map((t) =>
+    setTasks((prev) =>
+      prev.map((t) =>
         t._id === id
           ? {
               ...t,
@@ -67,8 +66,8 @@ export const useTasks = (role) => {
               completedAt: status === "complete" ? new Date().toISOString() : null,
             }
           : t
-      );
-    });
+      )
+    );
 
     try {
       const res = await updateTaskStatusAPI(id, status, holdReason);
@@ -76,26 +75,23 @@ export const useTasks = (role) => {
         setTasks((prev) => prev.map((t) => (t._id === id ? res.data : t)));
       }
       return { success: true };
-    } catch {
+    } catch (err) {
       setTasks(previous);
-      return { success: false, message: "Failed to update status" };
+      return { success: false, message: err?.message || "Failed to update status" };
     }
   };
 
   const deleteTask = async (id) => {
-    let previous;
+    const previous = tasks;
 
-    setTasks((prev) => {
-      previous = prev;
-      return prev.filter((t) => t._id !== id);
-    });
+    setTasks((prev) => prev.filter((t) => t._id !== id));
 
     try {
       await deleteTaskAPI(id);
       return { success: true };
-    } catch {
+    } catch (err) {
       setTasks(previous);
-      return { success: false, message: "Failed to delete task" };
+      return { success: false, message: err?.message || "Failed to delete task" };
     }
   };
 

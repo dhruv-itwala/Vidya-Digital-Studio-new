@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Cropper from "react-easy-crop";
 import {
   createUserAPI,
@@ -10,7 +10,7 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "./EmployeeModal.module.css";
 import toast from "react-hot-toast";
 import { FiX, FiUploadCloud, FiUser } from "react-icons/fi";
-import { useEffect } from "react";
+import InlineLoader from "../../components/UI/InlineLoader";
 
 export default function EmployeeModal({ user, onClose, onSaved }) {
   const { user: loggedInUser } = useAuth();
@@ -61,6 +61,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const submit = async () => {
+    if (loading) return;
     setLoading(true);
     try {
       const payload = { ...form };
@@ -90,8 +91,8 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
 
       onSaved();
       toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
-    } catch {
-      toast.error("Failed to save employee");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to save employee");
     } finally {
       setLoading(false);
     }
@@ -139,7 +140,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
 
   // ⬆️ Upload Cropped Image
   const handleUploadCropped = async () => {
-    if (!croppedAreaPixels) return;
+    if (!croppedAreaPixels || uploading) return;
 
     try {
       setUploading(true);
@@ -155,8 +156,8 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
       setImageSrc(null);
 
       toast.success("Photo uploaded");
-    } catch {
-      toast.error("Upload failed");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -230,11 +231,12 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 />
               </div>
               <div className={styles.cropActions}>
-                <button type="button" onClick={() => setImageSrc(null)} className={styles.secondaryBtn}>
+                <button type="button" onClick={() => setImageSrc(null)} className={styles.secondaryBtn} disabled={uploading}>
                   Cancel
                 </button>
-                <button type="button" onClick={handleUploadCropped} className={styles.primaryBtn}>
-                  {uploading ? "Saving..." : "Crop & Save"}
+                <button type="button" onClick={handleUploadCropped} className={styles.primaryBtn} disabled={uploading}>
+                  {uploading && <InlineLoader size={14} />}
+                  <span>{uploading ? "Saving..." : "Crop & Save"}</span>
                 </button>
               </div>
             </div>
@@ -469,6 +471,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 type="button"
                 onClick={onClose}
                 className={styles.secondaryBtn}
+                disabled={loading}
               >
                 Cancel
               </button>
@@ -477,7 +480,8 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 className={styles.primaryBtn}
                 disabled={loading}
               >
-                {loading ? "Saving..." : isEdit ? "Save Changes" : "Create Employee"}
+                {loading && <InlineLoader size={16} />}
+                <span>{loading ? (isEdit ? "Saving..." : "Creating...") : isEdit ? "Save Changes" : "Create Employee"}</span>
               </button>
             </div>
           </form>

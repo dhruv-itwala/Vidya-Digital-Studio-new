@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 import { formatToIST } from "../../utils/date.util";
 import { FiCalendar, FiFileText, FiSend, FiXCircle } from "react-icons/fi";
 
+import Loader from "../../components/Loader/Loader";
+
 export default function EmployeeLeaves() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -19,6 +21,8 @@ export default function EmployeeLeaves() {
   const [leaves, setLeaves] = useState([]);
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState(null);
 
   const todayStr = new Date().toISOString().split("T")[0];
   
@@ -32,6 +36,8 @@ export default function EmployeeLeaves() {
       setBalance(balanceRes.data || null);
     } catch (error) {
       console.error("Error fetching leaves:", error);
+    } finally {
+      setInitialLoading(false);
     }
   };
 
@@ -40,6 +46,8 @@ export default function EmployeeLeaves() {
   }, []);
 
   const applyLeave = async () => {
+    if (loading) return;
+
     if (!fromDate || !toDate) {
       toast.error("Please select a date range.");
       return;
@@ -65,20 +73,28 @@ export default function EmployeeLeaves() {
       setIsHalfDay(false);
       setReason("");
 
-      fetchLeaves();
+      await fetchLeaves();
       toast.success("Leave applied successfully");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to apply leave");
+      toast.error(err?.message || err.response?.data?.message || "Failed to apply leave");
     } finally {
       setLoading(false);
     }
   };
 
   const cancelLeave = async (id) => {
+    if (cancellingId === id) return;
     if (!window.confirm("Are you sure you want to cancel this leave?")) return;
-    await cancelLeaveAPI(id);
-    toast.success("Leave cancelled");
-    fetchLeaves();
+    try {
+      setCancellingId(id);
+      await cancelLeaveAPI(id);
+      toast.success("Leave cancelled");
+      await fetchLeaves();
+    } catch (err) {
+      toast.error(err?.message || "Failed to cancel leave");
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   return (
@@ -215,7 +231,13 @@ export default function EmployeeLeaves() {
                 </tr>
               </thead>
               <tbody>
-                {leaves.length === 0 ? (
+                {initialLoading ? (
+                  <tr>
+                    <td colSpan="5">
+                      <Loader />
+                    </td>
+                  </tr>
+                ) : leaves.length === 0 ? (
                   <tr>
                     <td colSpan="5">
                       <div className={styles.emptyState}>
@@ -249,9 +271,10 @@ export default function EmployeeLeaves() {
                           <button
                             className={styles.cancelBtn}
                             onClick={() => cancelLeave(l._id)}
+                            disabled={cancellingId === l._id}
                             title="Cancel Leave"
                           >
-                            <FiXCircle /> Cancel
+                            <FiXCircle /> {cancellingId === l._id ? "Cancelling..." : "Cancel"}
                           </button>
                         )}
                       </td>

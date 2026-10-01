@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "./AdminEmployees.module.css";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
+import InlineLoader from "../../components/UI/InlineLoader";
 import { FaUserEdit } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import { FiPlus, FiUser } from "react-icons/fi";
@@ -20,6 +21,8 @@ export default function AdminEmployees() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage] = useState(100);
   const [loading, setLoading] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     if (user?.role === "admin" || user?.role === "hr") {
@@ -34,7 +37,7 @@ export default function AdminEmployees() {
       setUsers(res.data.users || []);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load employees");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to load employees");
     } finally {
       setLoading(false);
     }
@@ -128,15 +131,22 @@ export default function AdminEmployees() {
                         <input
                           type="checkbox"
                           checked={u.isActive}
-                          disabled={false}
+                          disabled={togglingId === u._id || deletingId === u._id}
                           onChange={async () => {
                             const action = u.isActive ? "Deactivate" : "Activate";
                             const ok = confirm(`${action} ${u.name}?`);
                             if (!ok) return;
 
-                            await inactiveUserAPI(u._id);
-                            toast.success(`${u.name} ${u.isActive ? "deactivated" : "activated"}`);
-                            load();
+                            try {
+                              setTogglingId(u._id);
+                              await inactiveUserAPI(u._id);
+                              toast.success(`${u.name} ${u.isActive ? "deactivated" : "activated"}`);
+                              await load();
+                            } catch (err) {
+                              toast.error(err?.response?.data?.message || err?.message || `Failed to ${action.toLowerCase()} user`);
+                            } finally {
+                              setTogglingId(null);
+                            }
                           }}
                         />
                         <span className={styles.slider}></span>
@@ -146,7 +156,7 @@ export default function AdminEmployees() {
                     <td>
                       <div className={styles.actionGroup}>
                         <button
-                          disabled={false}
+                          disabled={togglingId === u._id || deletingId === u._id}
                           onClick={() => setEditingUser(u)}
                           className={styles.actionEdit}
                           title="Edit Employee"
@@ -156,17 +166,24 @@ export default function AdminEmployees() {
 
                         {(user.role === "admin" || user.role === "hr") && (
                           <button
-                            disabled={false}
+                            disabled={togglingId === u._id || deletingId === u._id}
                             onClick={async () => {
                               if (!confirm(`Delete ${u.name} permanently?`)) return;
-                              await deleteUserAPI(u._id);
-                              toast.success("User deleted permanently");
-                              load();
+                              try {
+                                setDeletingId(u._id);
+                                await deleteUserAPI(u._id);
+                                toast.success("User deleted permanently");
+                                await load();
+                              } catch (err) {
+                                toast.error(err?.response?.data?.message || err?.message || "Failed to delete user");
+                              } finally {
+                                setDeletingId(null);
+                              }
                             }}
                             className={styles.actionDelete}
                             title="Delete Permanently"
                           >
-                            <MdDeleteForever />
+                            {deletingId === u._id ? <InlineLoader size={14} /> : <MdDeleteForever />}
                           </button>
                         )}
                       </div>

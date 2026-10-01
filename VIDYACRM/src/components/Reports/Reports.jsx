@@ -6,6 +6,7 @@ import {
 } from "../../api/report.api";
 import styles from "./Reports.module.css";
 import Loader from "../../components/Loader/Loader";
+import InlineLoader from "../UI/InlineLoader";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import { FaFilePdf, FaDownload, FaFilter, FaCalendarAlt } from "react-icons/fa";
@@ -22,6 +23,8 @@ export default function Reports() {
   const [reports, setReports] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloadingDaily, setDownloadingDaily] = useState(false);
+  const [downloadingCustom, setDownloadingCustom] = useState(false);
 
   /* ================= FETCH ================= */
   const fetchReports = useCallback(async () => {
@@ -30,7 +33,7 @@ export default function Reports() {
       const res = await getAllReportsByDate(date);
       setReports(res?.data?.data || []);
     } catch (error) {
-      toast.error(error.message || "Failed to load reports");
+      toast.error(error?.response?.data?.message || error.message || "Failed to load reports");
     } finally {
       setLoading(false);
     }
@@ -42,18 +45,23 @@ export default function Reports() {
 
   /* ================= DOWNLOAD DAILY ================= */
   const download = async () => {
+    if (downloadingDaily) return;
+    setDownloadingDaily(true);
     const toastId = toast.loading("Preparing report...");
     try {
       const res = await downloadAllReportsByDatePDF(date);
       downloadBlob(res.data, `${date} Work Report.pdf`);
       toast.success("Report downloaded", { id: toastId });
     } catch (error) {
-      toast.error(error.message || "Download failed", { id: toastId });
+      toast.error(error?.response?.data?.message || error.message || "Download failed", { id: toastId });
+    } finally {
+      setDownloadingDaily(false);
     }
   };
 
   /* ================= DOWNLOAD CUSTOM ================= */
   const downloadCustom = async () => {
+    if (downloadingCustom) return;
     if (!selectedEmployees.length) {
       toast.error("Select at least one employee");
       return;
@@ -64,6 +72,7 @@ export default function Reports() {
       return;
     }
 
+    setDownloadingCustom(true);
     const toastId = toast.loading("Generating custom report...");
     try {
       const res = await downloadCustomReportsPDF(
@@ -74,7 +83,9 @@ export default function Reports() {
       downloadBlob(res.data, `Work_Report_${fromDate}_to_${toDate}.pdf`);
       toast.success("Custom report downloaded", { id: toastId });
     } catch (error) {
-      toast.error(error.message || "Failed to download", { id: toastId });
+      toast.error(error?.response?.data?.message || error.message || "Failed to download", { id: toastId });
+    } finally {
+      setDownloadingCustom(false);
     }
   };
 
@@ -114,9 +125,10 @@ export default function Reports() {
             <button
               className={styles.primaryBtn}
               onClick={download}
-              disabled={loading}
+              disabled={loading || downloadingDaily}
             >
-              <FaDownload /> Download PDF
+              {downloadingDaily ? <InlineLoader size={14} /> : <FaDownload />}
+              <span>{downloadingDaily ? "Downloading..." : "Download PDF"}</span>
             </button>
           </div>
         </div>
@@ -197,8 +209,9 @@ export default function Reports() {
               min={fromDate}
               max={today()}
             />
-            <button className={styles.primaryBtn} onClick={downloadCustom}>
-              <FaFilePdf /> Export Selected
+            <button className={styles.primaryBtn} onClick={downloadCustom} disabled={downloadingCustom}>
+              {downloadingCustom ? <InlineLoader size={14} /> : <FaFilePdf />}
+              <span>{downloadingCustom ? "Exporting..." : "Export Selected"}</span>
             </button>
           </div>
         </div>

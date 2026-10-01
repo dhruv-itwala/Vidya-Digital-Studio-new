@@ -2,7 +2,10 @@ import api from "./axios";
 
 const handleError = (error) => {
   const message =
-    error?.response?.data?.message || "Something went wrong. Please try again.";
+    error?.message ||
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    "Something went wrong. Please try again.";
 
   throw new Error(message);
 };

@@ -11,6 +11,7 @@ import ClientCredentials from "./components/ClientCredentials";
 import ClientPortalSettings from "./components/ClientPortalSettings";
 import ClientContentTasks from "./components/ClientContentTasks";
 import { FiArrowLeft, FiCheckCircle, FiEdit2, FiExternalLink } from "react-icons/fi";
+import InlineLoader from "../UI/InlineLoader";
 
 export default function ClientForm({ mode = "view", initialData = null }) {
   const navigate = useNavigate();
@@ -98,6 +99,8 @@ export default function ClientForm({ mode = "view", initialData = null }) {
   /* ================= SAVE ================= */
   const handleSave = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     const validationError = validateForm();
     if (validationError) {
       toast.error(validationError);
@@ -124,7 +127,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
       setIsDirty(false);
       navigate(`/${pathPrefix}/clients`);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err?.response?.data?.message || err?.message || "Failed to save client");
     } finally {
       setLoading(false);
     }
@@ -202,7 +205,8 @@ export default function ClientForm({ mode = "view", initialData = null }) {
                 disabled={loading}
                 className={styles.primaryBtn}
               >
-                {loading ? "Saving..." : isEdit ? "Update Client" : "Save Client"}
+                {loading && <InlineLoader size={16} />}
+                <span>{loading ? "Saving..." : isEdit ? "Update Client" : "Save Client"}</span>
                 {!loading && <FiCheckCircle />}
               </button>
             )}

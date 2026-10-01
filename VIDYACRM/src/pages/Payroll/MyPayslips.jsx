@@ -2,16 +2,22 @@ import { useState, useEffect } from "react";
 import { getMyPayslipsAPI, sendPayslipAPI } from "../../api/payroll.api";
 import styles from "./Payroll.module.css";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader/Loader";
 
 export default function MyPayslips() {
   const [payslips, setPayslips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sendingId, setSendingId] = useState(null);
 
   const fetchPayslips = async () => {
     try {
+      setLoading(true);
       const res = await getMyPayslipsAPI();
-      setPayslips(res.data.data);
+      setPayslips(res.data.data || []);
     } catch (err) {
-      toast.error("Failed to load payslips");
+      toast.error(err?.message || "Failed to load payslips");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -20,11 +26,15 @@ export default function MyPayslips() {
   }, []);
 
   const handleDownload = async (id) => {
+    if (sendingId === id) return;
     try {
+      setSendingId(id);
       const res = await sendPayslipAPI(id);
       toast.success(res.data.message || "Payslip emailed successfully");
     } catch (err) {
-      toast.error("Failed to process payslip");
+      toast.error(err?.message || "Failed to process payslip");
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -46,7 +56,13 @@ export default function MyPayslips() {
             </tr>
           </thead>
           <tbody>
-            {payslips.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="5">
+                  <Loader />
+                </td>
+              </tr>
+            ) : payslips.length === 0 ? (
               <tr>
                 <td colSpan="5" style={{ textAlign: "center" }}>No payslips available.</td>
               </tr>
@@ -62,8 +78,12 @@ export default function MyPayslips() {
                   <td style={{ color: "red" }}>-₹{p.deductions}</td>
                   <td style={{ fontWeight: 600, color: "green" }}>₹{p.netPay}</td>
                   <td>
-                    <button className={styles.sendBtn} onClick={() => handleDownload(p._id)}>
-                      Email Me
+                    <button
+                      className={styles.sendBtn}
+                      disabled={sendingId === p._id}
+                      onClick={() => handleDownload(p._id)}
+                    >
+                      {sendingId === p._id ? "Sending..." : "Email Me"}
                     </button>
                   </td>
                 </tr>

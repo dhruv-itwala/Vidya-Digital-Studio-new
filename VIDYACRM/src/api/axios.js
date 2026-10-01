@@ -40,11 +40,13 @@ api.interceptors.response.use(
       console.error("Server error");
     }
 
-    return Promise.reject({
-      status,
-      message,
-      data,
-    });
+    const errorObj = new Error(message);
+    errorObj.status = status;
+    errorObj.message = message;
+    errorObj.data = data;
+    errorObj.response = error.response;
+
+    return Promise.reject(errorObj);
   },
 );
 

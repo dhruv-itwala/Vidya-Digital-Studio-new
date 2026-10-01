@@ -19,6 +19,7 @@ export default function ViewClients() {
     rowLoading,
     page,
     totalPages,
+    limit,
     search,
     setSearch,
     status,
@@ -154,7 +155,7 @@ export default function ViewClients() {
                 filteredClients.map((client, index) => (
                   <tr key={client._id}>
                     {/* SR NO */}
-                    <td className={styles.srText}>{(page - 1) * 10 + index + 1}</td>
+                    <td className={styles.srText}>{(page - 1) * (limit || 25) + index + 1}</td>
 
                     {/* CLIENT INFO */}
                     <td>

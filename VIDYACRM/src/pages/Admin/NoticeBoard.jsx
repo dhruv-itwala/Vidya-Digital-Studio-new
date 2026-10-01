@@ -4,11 +4,14 @@ import { getAnnouncementsAPI, createAnnouncementAPI, deleteAnnouncementAPI } fro
 import toast from "react-hot-toast";
 import { FiTrash2, FiPlus } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
+import Loader from "../../components/Loader/Loader";
+import InlineLoader from "../../components/UI/InlineLoader";
 
 const NoticeBoard = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const { allEmployees } = useAuth();
   
@@ -26,7 +29,7 @@ const NoticeBoard = () => {
       const res = await getAnnouncementsAPI();
       setAnnouncements(res.data.announcements || []);
     } catch (err) {
-      toast.error("Failed to load announcements");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to load announcements");
     } finally {
       setLoading(false);
     }
@@ -58,6 +61,7 @@ const NoticeBoard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!form.title || !form.message) return toast.error("Title and message required");
 
     try {
@@ -65,22 +69,26 @@ const NoticeBoard = () => {
       await createAnnouncementAPI(form);
       toast.success("Announcement posted!");
       setForm({ title: "", message: "", type: "info", expiresAt: "", targetUsers: [] });
-      fetchAnnouncements();
+      await fetchAnnouncements();
     } catch (err) {
-      toast.error("Failed to post announcement");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to post announcement");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
+    if (deletingId) return;
     if (!window.confirm("Delete this announcement?")) return;
     try {
+      setDeletingId(id);
       await deleteAnnouncementAPI(id);
       toast.success("Announcement deleted");
-      fetchAnnouncements();
+      await fetchAnnouncements();
     } catch (err) {
-      toast.error("Failed to delete announcement");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete announcement");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -165,7 +173,8 @@ const NoticeBoard = () => {
             </div>
 
             <button type="submit" disabled={isSubmitting} className={styles.submitBtn}>
-              {isSubmitting ? "Posting..." : "Post Announcement"}
+              {isSubmitting && <InlineLoader size={16} />}
+              <span>{isSubmitting ? "Posting..." : "Post Announcement"}</span>
             </button>
           </form>
         </div>
@@ -173,7 +182,7 @@ const NoticeBoard = () => {
         <div className={styles.listCard}>
           <h3>Active Announcements</h3>
           {loading ? (
-            <p className={styles.loading}>Loading...</p>
+            <Loader />
           ) : announcements.length === 0 ? (
             <p className={styles.empty}>No active announcements.</p>
           ) : (
@@ -185,8 +194,13 @@ const NoticeBoard = () => {
                     <p>{ann.message}</p>
                     <span>Posted {new Date(ann.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <button onClick={() => handleDelete(ann._id)} className={styles.deleteBtn}>
-                    <FiTrash2 />
+                  <button
+                    onClick={() => handleDelete(ann._id)}
+                    disabled={deletingId === ann._id}
+                    className={styles.deleteBtn}
+                    title="Delete Announcement"
+                  >
+                    {deletingId === ann._id ? <InlineLoader size={14} /> : <FiTrash2 />}
                   </button>
                 </div>
               ))}

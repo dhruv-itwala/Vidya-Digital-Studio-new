@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import Loader from "../../components/Loader/Loader";
+import InlineLoader from "../../components/UI/InlineLoader";
 import styles from "./AllQuotations.module.css";
 import { getAllQuotesAPI, deleteQuoteAPI } from "../../api/admin.api";
-import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function AllQuotations() {
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const navigate = useNavigate();
   useEffect(() => {
     fetchQuotes();
   }, []);
@@ -21,22 +22,29 @@ export default function AllQuotations() {
       setLoading(true);
       const res = await getAllQuotesAPI();
       setQuotes(res.data.data || []);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to load quotations");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
+    if (deletingId) return;
     const confirm = window.confirm(
       "Are you sure you want to delete this quotation?",
     );
     if (!confirm) return;
 
     try {
+      setDeletingId(id);
       await deleteQuoteAPI(id);
       setQuotes((prev) => prev.filter((q) => q._id !== id));
-    } catch {
-      alert("Failed to delete quotation");
+      toast.success("Quotation deleted successfully");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete quotation");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -55,7 +63,7 @@ export default function AllQuotations() {
           <button
             className={styles.createBtn}
             onClick={() =>
-              navigate("https://quotation.vidyadigitalstudio.com/")
+              window.open("https://quotation.vidyadigitalstudio.com/", "_blank")
             }
           >
             + Create Quotation
@@ -76,59 +84,68 @@ export default function AllQuotations() {
             </thead>
 
             <tbody>
-              {paginated.map((q, index) => {
-                const categories = [
-                  ...new Set(q.items.map((i) => i.category.trim())),
-                ];
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center", padding: "2rem", color: "#64748b" }}>
+                    No quotations found.
+                  </td>
+                </tr>
+              ) : (
+                paginated.map((q, index) => {
+                  const categories = [
+                    ...new Set(q.items.map((i) => i.category.trim())),
+                  ];
 
-                return (
-                  <tr key={q._id}>
-                    <td>{start + index + 1}</td>
-                    <td>{q.client.name}</td>
+                  return (
+                    <tr key={q._id}>
+                      <td>{start + index + 1}</td>
+                      <td>{q.client.name}</td>
 
-                    <td>
-                      <div className={styles.categoryList}>
-                        {categories.map((c) => (
-                          <span key={c} className={styles.categoryPill}>
-                            {c}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
+                      <td>
+                        <div className={styles.categoryList}>
+                          {categories.map((c) => (
+                            <span key={c} className={styles.categoryPill}>
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
 
-                    <td className={styles.amount}>
-                      ₹{q.subtotal.toLocaleString()}
-                    </td>
+                      <td className={styles.amount}>
+                        ₹{q.subtotal.toLocaleString()}
+                      </td>
 
-                    <td>
-                      <a
-                        href={q.pdfUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.downloadBtn}
-                      >
-                        Download
-                      </a>
-                    </td>
+                      <td>
+                        <a
+                          href={q.pdfUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={styles.downloadBtn}
+                        >
+                          Download
+                        </a>
+                      </td>
 
-                    <td>
-                      {new Date(q.createdAt).toLocaleDateString("en-IN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td>
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={() => handleDelete(q._id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                      <td>
+                        {new Date(q.createdAt).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td>
+                        <button
+                          className={styles.deleteBtn}
+                          onClick={() => handleDelete(q._id)}
+                          disabled={deletingId === q._id}
+                        >
+                          {deletingId === q._id ? <InlineLoader size={12} /> : "Delete"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
 
             <tfoot>

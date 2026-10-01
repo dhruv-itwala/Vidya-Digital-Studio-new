@@ -5,11 +5,12 @@ import {
   updateTaskStatusAPI,
   deleteTaskAPI,
 } from "../../api/task.api";
-import TaskKanban from "../../components/Task/TaskKanban";
-import TaskForm from "../../components/Task/TaskForm";
-import TaskAnalytics from "../../components/Task/TaskAnalytics";
-import TaskCompleted from "../../components/Task/TaskCompleted";
+import TaskKanban from "../../components/Tasks/TaskKanban";
+import TaskForm from "../../components/Tasks/TaskForm";
+import TaskAnalytics from "../../components/Tasks/TaskAnalytics";
+import TaskCompleted from "../../components/Tasks/TaskCompleted";
 import { useAuth } from "../../context/AuthContext";
+import Loader from "../../components/Loader/Loader";
 import styles from "./EmployeeTasks.module.css";
 
 export default function EmployeeTasks({
@@ -24,15 +25,20 @@ export default function EmployeeTasks({
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
+  const [loading, setLoading] = useState(false);
+
   /* ================= LOAD TASKS ================= */
 
   const loadTasks = useCallback(async () => {
     try {
+      setLoading(true);
       const res = await getMyTasksAPI();
       setTasks(res.data || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load tasks");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -54,6 +60,7 @@ export default function EmployeeTasks({
   };
 
   const removeTask = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
     try {
       await deleteTaskAPI(id);
       toast.success("Task deleted");
@@ -110,6 +117,7 @@ export default function EmployeeTasks({
   };
 
   if (!showTasks || disableTasksAfterPunchOut) return null;
+  if (loading) return <Loader />;
 
   /* ================= UI ================= */
 

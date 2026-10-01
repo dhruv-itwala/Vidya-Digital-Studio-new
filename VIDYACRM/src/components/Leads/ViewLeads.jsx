@@ -62,6 +62,7 @@ export default function ViewLeads() {
     rowLoading,
     page,
     totalPages,
+    limit,
     search,
     status,
     setStatus,
@@ -297,7 +298,7 @@ export default function ViewLeads() {
               ) : (
                 processedLeads.map((lead, index) => (
                   <tr key={lead._id}>
-                    <td className={styles.srText}>{(page - 1) * 10 + index + 1}</td>
+                    <td className={styles.srText}>{(page - 1) * (limit || 25) + index + 1}</td>
                     
                     <td>
                       <span className={styles.businessName}>{lead.clientName}</span>
@@ -318,7 +319,7 @@ export default function ViewLeads() {
                         value={lead.status}
                         onChange={(e) => handleStatusChange(lead._id, e.target.value)}
                         className={`${styles.statusDropdown} ${getStatusClass(lead.status)}`}
-                        disabled={lead.status === "Transferred"}
+                        disabled={lead.status === "Transferred" || rowLoading === lead._id}
                       >
                         {statusOptions.map((opt) => (
                           <option key={opt} value={opt}>{opt}</option>
@@ -331,7 +332,7 @@ export default function ViewLeads() {
                         value={lead.proposal}
                         onChange={(e) => handleProposalChange(lead._id, e.target.value)}
                         className={`${styles.proposalDropdown} ${getProposalClass(lead.proposal)}`}
-                        disabled={lead.proposal === "Transferred"}
+                        disabled={lead.proposal === "Transferred" || rowLoading === lead._id}
                       >
                         {proposalOptions.map((opt) => (
                           <option key={opt} value={opt}>{opt}</option>

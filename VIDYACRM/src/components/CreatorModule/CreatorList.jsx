@@ -35,6 +35,7 @@ export default function CreatorList({
   const [filterType, setFilterType] = useState("all");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -42,8 +43,8 @@ export default function CreatorList({
       const res = await getAPI({ page, limit: pagelimit });
       setData(res.data.data);
       setTotalPages(res.data.pages);
-    } catch {
-      toast.error(`Failed to load ${title}`);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || `Failed to load ${title}`);
     } finally {
       setLoading(false);
     }
@@ -64,10 +65,18 @@ export default function CreatorList({
   };
 
   const handleDelete = async (id) => {
+    if (deletingId) return;
     if (window.confirm("Are you sure you want to remove this creator?")) {
-      await deleteAPI(id);
-      toast.success(`${title} removed`);
-      fetchData();
+      try {
+        setDeletingId(id);
+        await deleteAPI(id);
+        toast.success(`${title} removed`);
+        await fetchData();
+      } catch (err) {
+        toast.error(err?.response?.data?.message || err?.message || `Failed to remove ${title}`);
+      } finally {
+        setDeletingId(null);
+      }
     }
   };
 
@@ -193,6 +202,7 @@ export default function CreatorList({
               item={item}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              isDeleting={deletingId === item._id}
             />
           ))}
         </div>

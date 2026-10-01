@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./TaskForm.module.css";
 import toast from "react-hot-toast";
 import { toLocalDatetimeInput, fromLocalDatetimeInput } from "../../utils/date.util";
+import { createTaskAPI, updateTaskAPI } from "../../api/task.api";
+import Button from "../UI/Button";
 
-export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
+export default function TaskForm({ users = [], task, onCancel, onSubmit, onCreated }) {
+  const [submitting, setSubmitting] = useState(false);
+  const isExecutingRef = useRef(false);
   const [form, setForm] = useState({
     name: "",
     details: "",
@@ -52,6 +56,8 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
   };
 
   const submit = async () => {
+    if (isExecutingRef.current || submitting) return;
+
     if (!form.name.trim()) return toast.error("Task name required");
     if (form.assignedTo.length === 0) return toast.error("Assign at least one user");
 
@@ -71,7 +77,25 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
       endDate: fromLocalDatetimeInput(form.endDate),
     };
 
-    await onSubmit(payload);
+    try {
+      isExecutingRef.current = true;
+      setSubmitting(true);
+
+      if (onSubmit) {
+        await onSubmit(payload);
+      } else if (task) {
+        await updateTaskAPI(task._id, payload);
+        if (typeof onCreated === "function") onCreated();
+      } else {
+        await createTaskAPI(payload);
+        if (typeof onCreated === "function") onCreated();
+      }
+    } catch (err) {
+      toast.error(err?.message || "Failed to submit task");
+    } finally {
+      isExecutingRef.current = false;
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -184,12 +208,23 @@ export default function TaskForm({ users = [], task, onCancel, onSubmit }) {
       )}
 
       <div className={styles.actionsRow}>
-        <button type="button" onClick={onCancel} className={styles.cancelButton}>
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={onCancel}
+          className={styles.cancelButton}
+        >
           Cancel
         </button>
-        <button type="button" onClick={submit} className={styles.submitButton}>
+        <Button
+          type="button"
+          loading={submitting}
+          loadingText={task ? "Updating Task..." : "Creating Task..."}
+          onClick={submit}
+          className={styles.submitButton}
+        >
           {task ? "Update Task" : "Create Task"}
-        </button>
+        </Button>
       </div>
     </div>
   );

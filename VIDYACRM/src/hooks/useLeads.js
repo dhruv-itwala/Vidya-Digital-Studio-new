@@ -62,9 +62,9 @@ export const useLeads = () => {
     try {
       await updateLeadStatusAPI(id, status);
       return { success: true };
-    } catch {
+    } catch (err) {
       setLeads(previous);
-      return { success: false, message: "Failed to update status" };
+      return { success: false, message: err?.response?.data?.message || err?.message || "Failed to update status" };
     } finally {
       setRowLoading(null);
     }
@@ -83,9 +83,9 @@ export const useLeads = () => {
     try {
       await updateLeadProposalAPI(id, proposal);
       return { success: true };
-    } catch {
+    } catch (err) {
       setLeads(previous);
-      return { success: false, message: "Failed to update proposal" };
+      return { success: false, message: err?.response?.data?.message || err?.message || "Failed to update proposal" };
     } finally {
       setRowLoading(null);
     }
@@ -104,9 +104,9 @@ export const useLeads = () => {
     try {
       await deleteLeadAPI(id);
       return { success: true };
-    } catch {
+    } catch (err) {
       setLeads(previous);
-      return { success: false, message: "Failed to delete lead" };
+      return { success: false, message: err?.response?.data?.message || err?.message || "Failed to delete lead" };
     } finally {
       setRowLoading(null);
     }
@@ -128,9 +128,9 @@ export const useLeads = () => {
     try {
       await convertLeadAPI(id);
       return { success: true };
-    } catch {
+    } catch (err) {
       setLeads(previous);
-      return { success: false, message: "Failed to convert lead" };
+      return { success: false, message: err?.response?.data?.message || err?.message || "Failed to convert lead" };
     } finally {
       setRowLoading(null);
     }
@@ -143,6 +143,7 @@ export const useLeads = () => {
     rowLoading,
     page,
     totalPages,
+    limit,
     search,
     status,
     proposal,

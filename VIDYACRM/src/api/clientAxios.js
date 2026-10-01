@@ -25,11 +25,14 @@ clientApi.interceptors.response.use(
       window.location.href = "/client-login";
     }
 
-    return Promise.reject({
-      status,
-      message: data?.message || data?.error || error.message || "Something went wrong",
-      data,
-    });
+    const message = data?.message || data?.error || error.message || "Something went wrong";
+    const errorObj = new Error(message);
+    errorObj.status = status;
+    errorObj.message = message;
+    errorObj.data = data;
+    errorObj.response = error.response;
+
+    return Promise.reject(errorObj);
   }
 );
 

@@ -3,10 +3,12 @@ import styles from "./Settings.module.css";
 import { getSystemSettingsAPI, updateSystemSettingsAPI } from "../../api/systemSettings.api";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
+import Loader from "../../components/Loader/Loader";
 
 export default function SystemSettings() {
   const [settings, setSettings] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [togglingKey, setTogglingKey] = useState(null);
 
   useEffect(() => {
     fetchSettings();
@@ -14,47 +16,61 @@ export default function SystemSettings() {
 
   const fetchSettings = async () => {
     try {
+      setLoading(true);
       const res = await getSystemSettingsAPI();
       if (res.settings) {
         setSettings(res.settings);
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load system settings");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to load system settings");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleToggle = async (category, key) => {
-    if (!settings) return;
+    if (!settings || togglingKey) return;
 
-    const newValue = !settings.notifications[category][key];
-    
-    // Optimistic update
-    const newSettings = { ...settings };
-    newSettings.notifications[category][key] = newValue;
+    const currentCat = settings.notifications?.[category] || {};
+    const newValue = !currentCat[key];
+    const keyId = `${category}-${key}`;
+    const previousSettings = settings;
+
+    // Immutable optimistic update
+    const newSettings = {
+      ...settings,
+      notifications: {
+        ...settings.notifications,
+        [category]: {
+          ...currentCat,
+          [key]: newValue,
+        },
+      },
+    };
     setSettings(newSettings);
-    
+    setTogglingKey(keyId);
+
     try {
-      setSaving(true);
       await updateSystemSettingsAPI({
         notifications: {
           [category]: {
-            [key]: newValue
-          }
-        }
+            [key]: newValue,
+          },
+        },
       });
       toast.success("System setting updated");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update system setting");
-      // Revert
-      fetchSettings();
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update system setting");
+      // Revert to snapshot
+      setSettings(previousSettings);
     } finally {
-      setSaving(false);
+      setTogglingKey(null);
     }
   };
 
-  if (!settings) return <div>Loading settings...</div>;
+  if (loading && !settings) return <Loader />;
 
   const renderToggle = (category, key, title, desc) => {
     const isOn = settings.notifications[category]?.[key] ?? true;
@@ -68,7 +84,7 @@ export default function SystemSettings() {
         <button 
           className={`${styles.toggle} ${isOn ? styles.toggleOn : styles.toggleOff}`}
           onClick={() => handleToggle(category, key)}
-          disabled={saving}
+          disabled={togglingKey !== null}
         >
           <motion.div 
             className={styles.toggleKnob}

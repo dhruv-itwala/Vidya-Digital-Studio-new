@@ -9,22 +9,25 @@ import styles from "./HRHoliday.module.css";
 import { holidayFormatDate, holidayGetDayName } from "../../utils/date.util";
 import { FaCalendarAlt, FaPlus } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
+import Loader from "../../components/Loader/Loader";
+import InlineLoader from "../../components/UI/InlineLoader";
 
 export default function HRHoliday() {
   const [holidays, setHolidays] = useState([]);
   const [newHoliday, setNewHoliday] = useState({ date: "", name: "" });
-  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [addingHoliday, setAddingHoliday] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   /* ================= FETCH ================= */
   const fetchHolidays = useCallback(async () => {
     try {
-      setLoading(true);
       const res = await getHolidaysAPI();
       setHolidays(res?.data?.data || []);
-    } catch {
-      toast.error("Failed to fetch holidays");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to fetch holidays");
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
     }
   }, []);
 
@@ -34,6 +37,7 @@ export default function HRHoliday() {
 
   /* ================= ADD ================= */
   const addHoliday = async () => {
+    if (addingHoliday) return;
     if (!newHoliday.date || !newHoliday.name.trim()) {
       toast.error("Please fill all fields");
       return;
@@ -45,29 +49,33 @@ export default function HRHoliday() {
     }
 
     try {
-      setLoading(true);
+      setAddingHoliday(true);
       await createHolidayAPI(newHoliday);
       toast.success("Holiday added successfully");
       setNewHoliday({ date: "", name: "" });
-      fetchHolidays();
-    } catch {
-      toast.error("Failed to add holiday");
+      await fetchHolidays();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to add holiday");
     } finally {
-      setLoading(false);
+      setAddingHoliday(false);
     }
   };
 
   /* ================= DELETE ================= */
   const deleteHoliday = async (id) => {
+    if (deletingId) return;
     if (!window.confirm("Delete this holiday?")) return;
 
     try {
-      setHolidays((prev) => prev.filter((h) => h._id !== id));
+      setDeletingId(id);
       await deleteHolidayAPI(id);
+      setHolidays((prev) => prev.filter((h) => h._id !== id));
       toast.success("Holiday deleted");
-    } catch {
-      toast.error("Failed to delete holiday");
-      fetchHolidays(); // rollback
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to delete holiday");
+      await fetchHolidays(); // reload ground truth
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -111,59 +119,65 @@ export default function HRHoliday() {
           />
           <button
             onClick={addHoliday}
-            disabled={loading}
+            disabled={addingHoliday || !newHoliday.date || !newHoliday.name.trim()}
             className={styles.addBtn}
           >
-            <FaPlus /> {loading ? "Adding..." : "Add Holiday"}
+            {addingHoliday ? <InlineLoader size={14} /> : <FaPlus />}
+            <span>{addingHoliday ? "Adding..." : "Add Holiday"}</span>
           </button>
         </div>
 
         {/* HOLIDAY TABLE */}
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Day</th>
-                <th>Date</th>
-                <th>Holiday Name</th>
-                <th style={{width: '80px', textAlign: 'center'}}>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {sortedHolidays.length === 0 ? (
+        {initialLoading ? (
+          <Loader />
+        ) : (
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
                 <tr>
-                  <td colSpan="4">
-                    <div className={styles.emptyState}>No holidays scheduled for this year.</div>
-                  </td>
+                  <th>Day</th>
+                  <th>Date</th>
+                  <th>Holiday Name</th>
+                  <th style={{width: '80px', textAlign: 'center'}}>Action</th>
                 </tr>
-              ) : (
-                sortedHolidays.map((h) => (
-                  <tr key={h._id}>
-                    <td>
-                      <span className={styles.holidayDay}>{holidayGetDayName(h.date)}</span>
-                    </td>
-                    <td>
-                      <span className={styles.holidayDate}>{holidayFormatDate(h.date)}</span>
-                    </td>
-                    <td>
-                      <span className={styles.holidayName}>{h.name}</span>
-                    </td>
-                    <td style={{display: 'flex', justifyContent: 'center'}}>
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={() => deleteHoliday(h._id)}
-                        title="Delete Holiday"
-                      >
-                        <MdDeleteForever />
-                      </button>
+              </thead>
+
+              <tbody>
+                {sortedHolidays.length === 0 ? (
+                  <tr>
+                    <td colSpan="4">
+                      <div className={styles.emptyState}>No holidays scheduled for this year.</div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  sortedHolidays.map((h) => (
+                    <tr key={h._id}>
+                      <td>
+                        <span className={styles.holidayDay}>{holidayGetDayName(h.date)}</span>
+                      </td>
+                      <td>
+                        <span className={styles.holidayDate}>{holidayFormatDate(h.date)}</span>
+                      </td>
+                      <td>
+                        <span className={styles.holidayName}>{h.name}</span>
+                      </td>
+                      <td style={{display: 'flex', justifyContent: 'center'}}>
+                        <button
+                          className={styles.deleteBtn}
+                          onClick={() => deleteHoliday(h._id)}
+                          disabled={deletingId === h._id}
+                          title="Delete Holiday"
+                        >
+                          {deletingId === h._id ? <InlineLoader size={14} /> : <MdDeleteForever />}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

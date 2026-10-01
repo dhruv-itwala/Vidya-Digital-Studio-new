@@ -102,7 +102,7 @@ export const useClients = () => {
       return { success: true };
     } catch (err) {
       setClients(previous);
-      return { success: false, message: err.message };
+      return { success: false, message: err?.response?.data?.message || err?.message || "Failed to toggle client status" };
     } finally {
       setRowLoading(null);
     }
@@ -110,12 +110,15 @@ export const useClients = () => {
 
   /* ================= DELETE CLIENT ================= */
   const deleteClient = async (id) => {
+    setRowLoading(id);
     try {
       await deleteClientAPI(id);
       await fetchClients();
       return { success: true };
     } catch (err) {
-      return { success: false, message: err.message };
+      return { success: false, message: err?.response?.data?.message || err?.message || "Failed to delete client" };
+    } finally {
+      setRowLoading(null);
     }
   };
 
@@ -231,6 +234,7 @@ export const useClients = () => {
     rowLoading,
     page,
     totalPages,
+    limit,
     search,
     status,
     setStatus,

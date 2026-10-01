@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import toast from "react-hot-toast";
 import {
   getAllLeavesAPI,
   approveLeaveAPI,
@@ -19,7 +20,9 @@ export default function LeaveApproval() {
   const [analytics, setAnalytics] = useState([]);
   const [pendingPage, setPendingPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState({});
+  const isFetchingRef = useRef(false);
 
   /* ================= ACCORDION ================= */
   const [open, setOpen] = useState({
@@ -42,25 +45,29 @@ export default function LeaveApproval() {
     });
 
   /* ================= FETCH ================= */
-  const fetchLeaves = async () => {
+  const fetchLeaves = async (showInitialLoader = false) => {
+    if (isFetchingRef.current) return;
     try {
-      setLoading(true);
+      isFetchingRef.current = true;
+      if (showInitialLoader) setInitialLoading(true);
       const [leavesRes, analyticsRes] = await Promise.all([
         getAllLeavesAPI(),
         getAllUsersLeaveAnalyticsAPI(),
       ]);
-      setLeaves(leavesRes.data);
-      setAnalytics(analyticsRes.data);
+      setLeaves(leavesRes.data || []);
+      setAnalytics(analyticsRes.data || []);
     } catch(err) {
       console.error(err);
+      toast.error(err?.message || "Failed to load leave records");
     } finally {
-      setLoading(false);
+      isFetchingRef.current = false;
+      setInitialLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLeaves();
-    const interval = setInterval(fetchLeaves, 10000);
+    fetchLeaves(true);
+    const interval = setInterval(() => fetchLeaves(false), 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -87,23 +94,71 @@ export default function LeaveApproval() {
   };
 
   const approve = async (id) => {
+    if (actionLoading[id]) return;
+    const previous = [...leaves];
     updateOptimistic(id, "APPROVED");
-    await approveLeaveAPI(id);
+    setActionLoading((prev) => ({ ...prev, [id]: "approving" }));
+    try {
+      await approveLeaveAPI(id);
+      toast.success("Leave approved");
+      fetchLeaves(false);
+    } catch (err) {
+      setLeaves(previous);
+      toast.error(err?.message || "Failed to approve leave");
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [id]: null }));
+    }
   };
 
   const decline = async (id) => {
+    if (actionLoading[id]) return;
+    const previous = [...leaves];
     updateOptimistic(id, "DECLINED");
-    await declineLeaveAPI(id);
+    setActionLoading((prev) => ({ ...prev, [id]: "declining" }));
+    try {
+      await declineLeaveAPI(id);
+      toast.success("Leave declined");
+      fetchLeaves(false);
+    } catch (err) {
+      setLeaves(previous);
+      toast.error(err?.message || "Failed to decline leave");
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [id]: null }));
+    }
   };
 
   const cancel = async (id) => {
+    if (actionLoading[id]) return;
     if (!window.confirm("Cancel this leave?")) return;
+    const previous = [...leaves];
     updateOptimistic(id, "CANCELLED");
-    await cancelLeaveAPI(id);
+    setActionLoading((prev) => ({ ...prev, [id]: "cancelling" }));
+    try {
+      await cancelLeaveAPI(id);
+      toast.success("Leave cancelled");
+      fetchLeaves(false);
+    } catch (err) {
+      setLeaves(previous);
+      toast.error(err?.message || "Failed to cancel leave");
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [id]: null }));
+    }
   };
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  if (initialLoading) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>Leave Approvals</h2>
+          <p className={styles.subtitle}>Manage and review employee leave requests.</p>
+        </div>
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageContainer}>
@@ -170,11 +225,21 @@ export default function LeaveApproval() {
                           <td data-label="Reason"><span className={styles.reasonText}>{l.reason || "—"}</span></td>
                           <td data-label="Actions">
                             <div className={styles.actionGroup}>
-                              <button className={styles.approveBtn} onClick={() => approve(l._id)} title="Approve">
-                                <FiCheckCircle /> Approve
+                              <button
+                                className={styles.approveBtn}
+                                onClick={() => approve(l._id)}
+                                disabled={Boolean(actionLoading[l._id])}
+                                title="Approve"
+                              >
+                                {actionLoading[l._id] === "approving" ? "Approving..." : <><FiCheckCircle /> Approve</>}
                               </button>
-                              <button className={styles.declineBtn} onClick={() => decline(l._id)} title="Decline">
-                                <FiXCircle /> Decline
+                              <button
+                                className={styles.declineBtn}
+                                onClick={() => decline(l._id)}
+                                disabled={Boolean(actionLoading[l._id])}
+                                title="Decline"
+                              >
+                                {actionLoading[l._id] === "declining" ? "Declining..." : <><FiXCircle /> Decline</>}
                               </button>
                             </div>
                           </td>
@@ -250,8 +315,12 @@ export default function LeaveApproval() {
                                 {l.status}
                               </span>
                               {l.status === "APPROVED" && new Date(l.toDate) >= today && (
-                                <button className={styles.cancelLink} onClick={() => cancel(l._id)}>
-                                  Revoke
+                                <button
+                                  className={styles.cancelLink}
+                                  disabled={Boolean(actionLoading[l._id])}
+                                  onClick={() => cancel(l._id)}
+                                >
+                                  {actionLoading[l._id] === "cancelling" ? "Revoking..." : "Revoke"}
                                 </button>
                               )}
                             </div>

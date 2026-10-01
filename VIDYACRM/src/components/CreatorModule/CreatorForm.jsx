@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { FiX, FiCheck, FiSave } from "react-icons/fi";
 import styles from "./Creator.module.css";
 import { CONTENT_TYPES, TYPE_COLORS } from "./constants";
+import toast from "react-hot-toast";
+import InlineLoader from "../UI/InlineLoader";
 
 // ─── Content Pill ───────────────────────────────────────────────────────────
 
@@ -80,10 +82,11 @@ export default function CreatorForm({
       if (editItem) await updateAPI(editItem._id, data);
       else await createAPI(data);
 
+      toast.success(`${title} saved successfully`);
       onSaved();
       onClose();
     } catch (err) {
-      console.error("Save failed", err);
+      toast.error(err?.response?.data?.message || err?.message || `Failed to save ${title}`);
     }
   };
 
@@ -200,7 +203,8 @@ export default function CreatorForm({
             disabled={isSubmitting}
             className={styles.btnSave}
           >
-            {isSubmitting ? "Saving..." : editItem ? "Update Profile" : "Save Profile"}
+            {isSubmitting && <InlineLoader size={16} />}
+            <span>{isSubmitting ? "Saving..." : editItem ? "Update Profile" : "Save Profile"}</span>
             {!isSubmitting && <FiSave />}
           </button>
         </div>

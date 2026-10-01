@@ -3,6 +3,7 @@ import { FiEdit2, FiTrash2, FiCopy, FiInstagram, FiMail, FiPhone } from "react-i
 import toast from "react-hot-toast";
 import { AVATAR_PALETTES } from "./constants";
 import styles from "./Creator.module.css";
+import InlineLoader from "../UI/InlineLoader";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -76,7 +77,7 @@ function ContentPill({ type }) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
-export default function CreatorCard({ item, onEdit, onDelete }) {
+export default function CreatorCard({ item, onEdit, onDelete, isDeleting = false }) {
   const { handle, url } = getInstagramData(item.instagramId);
 
   const handleCopy = async (text, label) => {
@@ -117,15 +118,16 @@ export default function CreatorCard({ item, onEdit, onDelete }) {
         </div>
 
         <div className={styles.cardActions}>
-          <button onClick={() => onEdit(item)} className={styles.btnEdit} title="Edit Creator">
+          <button onClick={() => onEdit(item)} disabled={isDeleting} className={styles.btnEdit} title="Edit Creator">
             <FiEdit2 />
           </button>
           <button
             onClick={() => onDelete(item._id)}
+            disabled={isDeleting}
             className={styles.btnDelete}
             title="Delete Creator"
           >
-            <FiTrash2 />
+            {isDeleting ? <InlineLoader size={14} /> : <FiTrash2 />}
           </button>
         </div>
       </div>

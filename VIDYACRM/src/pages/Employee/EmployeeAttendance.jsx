@@ -3,10 +3,11 @@ import { getMyAttendanceAPI } from "../../api/attendance.api";
 import Loader from "../../components/Loader/Loader";
 import AttendanceCalendar from "../../components/Attendance/AttendanceCalendar";
 import styles from "./EmployeeAttendance.module.css";
+import toast from "react-hot-toast";
 
 export default function EmployeeAttendance() {
   const [records, setRecords] = useState([]);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   /* ================= FETCH ================= */
@@ -15,18 +16,31 @@ export default function EmployeeAttendance() {
       return;
     }
 
+    let isMounted = true;
     const loadAttendance = async () => {
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth();
+      setLoading(true);
+      try {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
 
-      const from = new Date(year, month, 1).toISOString();
-      const to = new Date(year, month + 1, 0).toISOString();
+        const from = new Date(year, month, 1).toISOString();
+        const to = new Date(year, month + 1, 0).toISOString();
 
-      const res = await getMyAttendanceAPI({ from, to });
-      setRecords(res.data.data || []);
+        const res = await getMyAttendanceAPI({ from, to });
+        if (isMounted) setRecords(res.data.data || []);
+      } catch (err) {
+        if (isMounted) {
+          toast.error(err?.response?.data?.message || err?.message || "Failed to load attendance");
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     };
 
     loadAttendance();
+    return () => {
+      isMounted = false;
+    };
   }, [currentMonth]);
 
   return (

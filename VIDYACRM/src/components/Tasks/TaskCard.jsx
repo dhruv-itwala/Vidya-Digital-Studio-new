@@ -92,7 +92,11 @@ export default function TaskCard({ task, onStatusChange, onDelete, onEdit }) {
             {canDelete && (
               <button
                 className={`${styles.iconBtn} ${styles.deleteBtn}`}
-                onClick={() => onDelete(task._id)}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this task?")) {
+                    onDelete(task._id);
+                  }
+                }}
                 title="Delete"
               >
                 <FiTrash2 />

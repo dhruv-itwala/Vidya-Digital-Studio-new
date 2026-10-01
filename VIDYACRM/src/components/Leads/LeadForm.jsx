@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiCheckCircle } from "react-icons/fi";
+import InlineLoader from "../UI/InlineLoader";
 
 const statusOptions = [
   "Raw Lead",
@@ -115,6 +116,7 @@ export default function LeadForm({ mode = "create", initialData = null }) {
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
 
     if (!form.clientName.trim()) {
       return toast.error("Business name is required");
@@ -133,7 +135,7 @@ export default function LeadForm({ mode = "create", initialData = null }) {
 
       navigate(`/${role}/leads`);
     } catch (err) {
-      toast.error(err?.message || "Something went wrong");
+      toast.error(err?.response?.data?.message || err?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -165,7 +167,8 @@ export default function LeadForm({ mode = "create", initialData = null }) {
           </div>
           
           <button type="submit" disabled={loading} className={styles.submitBtn}>
-            {loading ? "Saving..." : isEdit ? "Update Lead" : "Save Lead"}
+            {loading && <InlineLoader size={16} />}
+            <span>{loading ? (isEdit ? "Updating Lead..." : "Saving Lead...") : isEdit ? "Update Lead" : "Save Lead"}</span>
             {!loading && <FiCheckCircle />}
           </button>
         </div>

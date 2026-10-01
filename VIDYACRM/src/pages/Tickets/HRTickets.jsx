@@ -2,18 +2,25 @@ import { useState, useEffect } from "react";
 import { getAllTicketsAPI, updateTicketStatusAPI } from "../../api/ticket.api";
 import styles from "./Tickets.module.css";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader/Loader";
+import Button from "../../components/UI/Button";
 
 export default function HRTickets() {
   const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [resolving, setResolving] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [resolutionNote, setResolutionNote] = useState("");
 
   const fetchTickets = async () => {
     try {
+      setLoading(true);
       const res = await getAllTicketsAPI();
-      setTickets(res.data.data);
+      setTickets(res.data.data || []);
     } catch (err) {
-      toast.error("Failed to load tickets");
+      toast.error(err?.message || "Failed to load tickets");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,21 +39,25 @@ export default function HRTickets() {
     try {
       await updateTicketStatusAPI(id, { status });
       toast.success("Status updated");
-      fetchTickets();
+      await fetchTickets();
     } catch (err) {
-      toast.error("Failed to update status");
+      toast.error(err?.message || "Failed to update status");
     }
   };
 
   const handleResolveSubmit = async (e) => {
     e.preventDefault();
+    if (resolving) return;
     try {
+      setResolving(true);
       await updateTicketStatusAPI(selectedTicket._id, { status: "RESOLVED", resolutionNote });
       toast.success("Ticket resolved");
       setSelectedTicket(null);
-      fetchTickets();
+      await fetchTickets();
     } catch (err) {
-      toast.error("Failed to resolve ticket");
+      toast.error(err?.message || "Failed to resolve ticket");
+    } finally {
+      setResolving(false);
     }
   };
 
@@ -57,7 +68,9 @@ export default function HRTickets() {
       </div>
 
       <div className={styles.ticketList}>
-        {tickets.length === 0 ? (
+        {loading ? (
+          <Loader />
+        ) : tickets.length === 0 ? (
           <p>No tickets found.</p>
         ) : (
           tickets.map((t) => (
@@ -105,12 +118,22 @@ export default function HRTickets() {
                 />
               </div>
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelBtn} onClick={() => setSelectedTicket(null)}>
+                <button
+                  type="button"
+                  disabled={resolving}
+                  className={styles.cancelBtn}
+                  onClick={() => setSelectedTicket(null)}
+                >
                   Cancel
                 </button>
-                <button type="submit" className={styles.createBtn}>
+                <Button
+                  type="submit"
+                  loading={resolving}
+                  loadingText="Resolving..."
+                  className={styles.createBtn}
+                >
                   Mark Resolved
-                </button>
+                </Button>
               </div>
             </form>
           </div>

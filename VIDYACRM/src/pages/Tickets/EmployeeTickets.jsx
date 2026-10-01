@@ -2,19 +2,26 @@ import { useState, useEffect } from "react";
 import { getMyTicketsAPI, createTicketAPI } from "../../api/ticket.api";
 import styles from "./Tickets.module.css";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader/Loader";
+import Button from "../../components/UI/Button";
 
 export default function EmployeeTickets() {
   const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
   const fetchTickets = async () => {
     try {
+      setLoading(true);
       const res = await getMyTicketsAPI();
-      setTickets(res.data.data);
+      setTickets(res.data.data || []);
     } catch (err) {
-      toast.error("Failed to load tickets");
+      toast.error(err?.message || "Failed to load tickets");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -24,15 +31,19 @@ export default function EmployeeTickets() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     try {
+      setSubmitting(true);
       await createTicketAPI({ title, description });
       toast.success("Ticket created!");
       setShowModal(false);
       setTitle("");
       setDescription("");
-      fetchTickets();
+      await fetchTickets();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create ticket");
+      toast.error(err?.message || err.response?.data?.message || "Failed to create ticket");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -46,7 +57,9 @@ export default function EmployeeTickets() {
       </div>
 
       <div className={styles.ticketList}>
-        {tickets.length === 0 ? (
+        {loading ? (
+          <Loader />
+        ) : tickets.length === 0 ? (
           <p>No tickets found.</p>
         ) : (
           tickets.map((t) => (
@@ -92,12 +105,22 @@ export default function EmployeeTickets() {
                 />
               </div>
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  className={styles.cancelBtn}
+                  onClick={() => setShowModal(false)}
+                >
                   Cancel
                 </button>
-                <button type="submit" className={styles.createBtn}>
+                <Button
+                  type="submit"
+                  loading={submitting}
+                  loadingText="Submitting..."
+                  className={styles.createBtn}
+                >
                   Submit
-                </button>
+                </Button>
               </div>
             </form>
           </div>

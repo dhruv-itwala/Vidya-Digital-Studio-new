@@ -4,6 +4,8 @@ import autoTable from "jspdf-autotable";
 import { BiSearch, BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import styles from "./Creator.module.css";
 import Loader from "../Loader/Loader";
+import InlineLoader from "../UI/InlineLoader";
+import toast from "react-hot-toast";
 import { CONTENT_TYPES } from "./constants";
 
 export default function ViewList({ title = "Creators", getAPI }) {
@@ -11,6 +13,7 @@ export default function ViewList({ title = "Creators", getAPI }) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -41,10 +44,11 @@ export default function ViewList({ title = "Creators", getAPI }) {
       setTotalPages(res.data.pages);
     } catch (err) {
       console.error("Fetch failed", err);
+      toast.error(err?.response?.data?.message || err?.message || `Failed to load ${title}`);
     } finally {
       setLoading(false);
     }
-  }, [page, getAPI]);
+  }, [page, getAPI, title]);
 
   useEffect(() => {
     fetchData();
@@ -75,77 +79,87 @@ export default function ViewList({ title = "Creators", getAPI }) {
     });
 
   const downloadPDF = () => {
-    const doc = new jsPDF();
+    if (downloading) return;
+    try {
+      setDownloading(true);
+      const doc = new jsPDF();
 
-    const handles = [];
+      const handles = [];
 
-    const rows = filteredData.map((item) => {
-      const handle = getInstagramHandle(item.instagramId);
-      const url = item.instagramId?.startsWith("http")
-        ? item.instagramId
-        : `https://instagram.com/${handle}`;
+      const rows = filteredData.map((item) => {
+        const handle = getInstagramHandle(item.instagramId);
+        const url = item.instagramId?.startsWith("http")
+          ? item.instagramId
+          : `https://instagram.com/${handle}`;
 
-      handles.push({ handle, url });
+        handles.push({ handle, url });
 
-      return [
-        item.name,
-        `@${handle}`,
-        formatFollowers(item.followers),
-        item.contentTypes?.join(", ") || "—",
-        item.priceDetails || "—",
-      ];
-    });
+        return [
+          item.name,
+          `@${handle}`,
+          formatFollowers(item.followers),
+          item.contentTypes?.join(", ") || "—",
+          item.priceDetails || "—",
+        ];
+      });
 
-    autoTable(doc, {
-      head: [["Name", "Instagram", "Followers", "Content", "Rate"]],
-      body: rows,
+      autoTable(doc, {
+        head: [["Name", "Instagram", "Followers", "Content", "Rate"]],
+        body: rows,
 
-      styles: {
-        fontSize: 9,
-        cellPadding: 3,
-        overflow: "linebreak",
-      },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          overflow: "linebreak",
+        },
 
-      columnStyles: {
-        0: { cellWidth: 35 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 55 },
-        4: { cellWidth: 40 },
-      },
+        columnStyles: {
+          0: { cellWidth: 35 },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 55 },
+          4: { cellWidth: 40 },
+        },
 
-      didDrawCell: (data) => {
-        // 🔥 Attach real clickable link
-        if (data.column.index === 1 && data.cell.section === "body") {
-          const rowIndex = data.row.index;
-          const link = handles[rowIndex];
+        didDrawCell: (data) => {
+          // 🔥 Attach real clickable link
+          if (data.column.index === 1 && data.cell.section === "body") {
+            const rowIndex = data.row.index;
+            const link = handles[rowIndex];
 
-          if (link) {
-            doc.link(
-              data.cell.x,
-              data.cell.y,
-              data.cell.width,
-              data.cell.height,
-              { url: link.url },
-            );
+            if (link) {
+              doc.link(
+                data.cell.x,
+                data.cell.y,
+                data.cell.width,
+                data.cell.height,
+                { url: link.url },
+              );
+            }
           }
-        }
-      },
+        },
 
-      headStyles: {
-        fillColor: [40, 116, 166],
-        textColor: 255,
-        fontStyle: "bold",
-      },
+        headStyles: {
+          fillColor: [40, 116, 166],
+          textColor: 255,
+          fontStyle: "bold",
+        },
 
-      alternateRowStyles: {
-        fillColor: [245, 245, 245],
-      },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245],
+        },
 
-      margin: { top: 20 },
-    });
+        margin: { top: 20 },
+      });
 
-    doc.save(`${title}.pdf`);
+      doc.save(`${title}.pdf`);
+      toast.success("PDF downloaded successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate PDF");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const formatFollowers = (n) => {
@@ -181,8 +195,9 @@ export default function ViewList({ title = "Creators", getAPI }) {
             {title}{" "}
             <span className={styles.totalCount}>{data.length} Showing</span>
           </h2>
-          <button onClick={downloadPDF} className={styles.addButton}>
-            Download PDF
+          <button onClick={downloadPDF} disabled={downloading} className={styles.addButton}>
+            {downloading && <InlineLoader size={14} />}
+            <span>{downloading ? "Downloading..." : "Download PDF"}</span>
           </button>
           {/* Filters */}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

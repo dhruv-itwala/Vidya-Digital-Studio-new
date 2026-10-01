@@ -3,11 +3,12 @@ import styles from "./HROverride.module.css";
 import {
   hrOverrideAttendanceAPI,
   getWorkRecordByDateAPI,
-  getMyAttendanceByDateAPI,
+  getAllEmployeesAttendanceAPI,
 } from "../../api/attendance.api";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import Loader from "../Loader/Loader";
+import InlineLoader from "../UI/InlineLoader";
 
 const HROverride = () => {
   const { allEmployees } = useAuth();
@@ -34,11 +35,14 @@ const HROverride = () => {
 
       const [workRes, attRes] = await Promise.all([
         getWorkRecordByDateAPI(selectedUser, date),
-        getMyAttendanceByDateAPI(date), // ⚠️ replace with admin version if needed
+        getAllEmployeesAttendanceAPI(date),
       ]);
 
       const work = workRes?.data?.data;
-      const att = attRes?.data?.data;
+      const allAtt = attRes?.data?.data || [];
+      const userAtt = allAtt.find(
+        (a) => a.userId === selectedUser || a._id === selectedUser
+      );
 
       setForm({
         punchIn: toDatetimeLocal(work?.punchIn),
@@ -48,11 +52,11 @@ const HROverride = () => {
             in: toDatetimeLocal(b.in),
             out: toDatetimeLocal(b.out),
           })) || [],
-        status: att?.status || "ABSENT",
+        status: userAtt?.status || "ABSENT",
       });
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch records for this date");
+      toast.error(err?.response?.data?.message || err?.message || "Failed to fetch records for this date");
     } finally {
       setFetching(false);
     }
@@ -88,6 +92,7 @@ const HROverride = () => {
   };
 
   const handleSubmit = async () => {
+    if (loading) return;
     try {
       setLoading(true);
 
@@ -105,7 +110,7 @@ const HROverride = () => {
 
       toast.success("Updated successfully");
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message);
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update attendance");
     } finally {
       setLoading(false);
     }
@@ -246,7 +251,8 @@ const HROverride = () => {
               disabled={loading}
               className={styles.saveBtn}
             >
-              {loading ? "Saving..." : "Save Changes"}
+              {loading && <InlineLoader size={16} />}
+              <span>{loading ? "Saving..." : "Save Changes"}</span>
             </button>
           </div>
         ) : null}

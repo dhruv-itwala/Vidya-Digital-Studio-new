@@ -12,6 +12,7 @@ import { FaUsers, FaCalendarDay, FaCalendarAlt, FaChartBar, FaDownload } from "r
 import styles from "./Attendance.module.css";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
+import InlineLoader from "../UI/InlineLoader";
 
 export default function Attendance() {
   /* ================= DATES (IST SAFE) ================= */
@@ -27,6 +28,7 @@ export default function Attendance() {
   /* ================= STATE ================= */
   const [daily, setDaily] = useState([]);
   const [dailyLoading, setDailyLoading] = useState(false);
+  const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
   const [live, setLive] = useState([]);
 
@@ -34,6 +36,7 @@ export default function Attendance() {
   const [toDate, setToDate] = useState("");
   const [range, setRange] = useState([]);
   const [rangeLoading, setRangeLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const liveFetchRef = useRef(null);
   const liveTickRef = useRef(null);
@@ -74,12 +77,16 @@ export default function Attendance() {
   }, [date, activeTab, fetchDaily]);
 
   const updateStatus = async (id, status) => {
+    if (updatingStatusId) return;
     try {
+      setUpdatingStatusId(id);
       await markAttendanceStatusAPI({ userId: id, date, status });
       setDaily((p) => p.map((e) => (e._id === id ? { ...e, status } : e)));
       toast.success("Updated");
-    } catch {
-      toast.error("Update failed");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Update failed");
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -122,6 +129,7 @@ export default function Attendance() {
   /* ================= RANGE ================= */
   const fetchRange = async () => {
     if (!fromDate || !toDate) return toast.error("Select both dates");
+    if (rangeLoading) return;
     try {
       setRangeLoading(true);
       const res = await getAllEmployeesAttendanceByDateRangeAPI(
@@ -129,6 +137,8 @@ export default function Attendance() {
         toDate,
       );
       setRange(res.data?.data || []);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to load summary");
     } finally {
       setRangeLoading(false);
     }
@@ -137,13 +147,14 @@ export default function Attendance() {
   /* ================= WEEKLY PROGRESS ================= */
   const fetchWeekly = async () => {
     if (!weeklyFrom) return toast.error("Select a week");
+    if (weeklyLoading) return;
 
     try {
       setWeeklyLoading(true);
       const res = await getAllUsersWeeklyProgressAPI(weeklyFrom);
       setWeekly(res.data?.data || []);
-    } catch {
-      toast.error("Failed to load weekly progress");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to load weekly progress");
     } finally {
       setWeeklyLoading(false);
     }
@@ -183,14 +194,23 @@ export default function Attendance() {
   /* ================= DOWNLOAD ================= */
   const download = async () => {
     if (!fromDate || !toDate) return toast.error("Select both dates");
-    const api = downloadAttendancePDFAPI;
-
-    const res = await api(fromDate, toDate);
-    const url = URL.createObjectURL(new Blob([res.data]));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Attendance ${fromDate} to ${toDate}.pdf`;
-    a.click();
+    if (downloading) return;
+    try {
+      setDownloading(true);
+      const api = downloadAttendancePDFAPI;
+      const res = await api(fromDate, toDate);
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Attendance ${fromDate} to ${toDate}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Download started");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to download attendance PDF");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   /* ================= UI ================= */
@@ -342,6 +362,7 @@ export default function Attendance() {
                         <td>
                           <select
                             value={e.status}
+                            disabled={updatingStatusId === e._id}
                             className={`${styles.tableSelect} ${styles['select_' + e.status?.toLowerCase()] || styles.select_default}`}
                             onChange={(ev) => updateStatus(e._id, ev.target.value)}
                           >
@@ -386,11 +407,13 @@ export default function Attendance() {
                 onChange={(e) => setToDate(e.target.value)}
                 className={styles.dateInput}
               />
-              <button onClick={fetchRange} className={styles.primaryBtn}>
-                Generate Report
+              <button onClick={fetchRange} className={styles.primaryBtn} disabled={rangeLoading || downloading}>
+                {rangeLoading && <InlineLoader size={14} />}
+                <span>{rangeLoading ? "Generating..." : "Generate Report"}</span>
               </button>
-              <button onClick={() => download(true)} className={styles.secondaryBtn}>
-                <FaDownload /> Download PDF
+              <button onClick={download} className={styles.secondaryBtn} disabled={rangeLoading || downloading}>
+                {downloading ? <InlineLoader size={14} /> : <FaDownload />}
+                <span>{downloading ? "Downloading..." : "Download PDF"}</span>
               </button>
             </div>
           </div>
@@ -458,8 +481,9 @@ export default function Attendance() {
                 onChange={(e) => setWeeklyFrom(e.target.value)}
                 className={styles.dateInput}
               />
-              <button onClick={fetchWeekly} className={styles.primaryBtn}>
-                Get Progress
+              <button onClick={fetchWeekly} className={styles.primaryBtn} disabled={weeklyLoading}>
+                {weeklyLoading && <InlineLoader size={14} />}
+                <span>{weeklyLoading ? "Loading..." : "Get Progress"}</span>
               </button>
             </div>
           </div>
