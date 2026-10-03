@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import clientApi from "../../api/clientAxios";
+import { getBackendErrorMessage } from "../../utils/errorHandler";
 import styles from "./ClientLogin.module.css";
 import { FiLock, FiMail, FiArrowRight } from "react-icons/fi";
 
@@ -21,7 +22,7 @@ const ClientLogin = () => {
       toast.success("Login successful!");
       navigate("/client-portal");
     } catch (error) {
-      toast.error(error.message || "Login failed");
+      toast.error(getBackendErrorMessage(error, "Login failed"));
     } finally {
       setLoading(false);
     }

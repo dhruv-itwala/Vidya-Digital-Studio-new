@@ -13,6 +13,8 @@ import styles from "./Attendance.module.css";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
 import InlineLoader from "../UI/InlineLoader";
+import { useQuery } from "../../hooks/useQuery";
+import { getBackendErrorMessage } from "../../utils/errorHandler";
 
 export default function Attendance() {
   /* ================= DATES (IST SAFE) ================= */
@@ -90,41 +92,48 @@ export default function Attendance() {
     }
   };
 
-  /* ================= LIVE ================= */
-  const fetchLive = useCallback(async () => {
-    try {
-      const res = await getLiveEmployeesStatusAPI(liveDate);
-      setLive(res.data.data || []);
-    } catch {
-      toast.error("Failed to load live status");
-    }
-  }, [liveDate]);
+  /* ================= LIVE (TANSTACK QUERY POLLING) ================= */
+  const { data: liveData } = useQuery({
+    queryKey: ["attendance-live", liveDate],
+    queryFn: async () => {
+      try {
+        const res = await getLiveEmployeesStatusAPI(liveDate);
+        return res.data?.data || [];
+      } catch (err) {
+        toast.error(getBackendErrorMessage(err, "Failed to load live status"));
+        return [];
+      }
+    },
+    enabled: activeTab === "live",
+    refetchInterval: 60000, // 60s tab-aware polling
+  });
 
+  useEffect(() => {
+    if (liveData) {
+      setLive(liveData);
+    }
+  }, [liveData]);
+
+  // Local 1-second display ticker
   useEffect(() => {
     if (activeTab !== "live") return;
 
-    fetchLive();
-
-    liveFetchRef.current = setInterval(fetchLive, 60000);
-    liveTickRef.current = setInterval(() => {
+    const tickInterval = setInterval(() => {
       setLive((prev) =>
         prev.map((e) => {
           if (e.status === "WORKING") {
-            return { ...e, workedSeconds: e.workedSeconds + 1 };
+            return { ...e, workedSeconds: (e.workedSeconds || 0) + 1 };
           }
           if (e.status === "ON_BREAK") {
-            return { ...e, breakSeconds: e.breakSeconds + 1 };
+            return { ...e, breakSeconds: (e.breakSeconds || 0) + 1 };
           }
           return e;
         }),
       );
     }, 1000);
 
-    return () => {
-      clearInterval(liveFetchRef.current);
-      clearInterval(liveTickRef.current);
-    };
-  }, [activeTab, liveDate, fetchLive]);
+    return () => clearInterval(tickInterval);
+  }, [activeTab]);
 
   /* ================= RANGE ================= */
   const fetchRange = async () => {
@@ -450,10 +459,37 @@ export default function Attendance() {
                               {rec[e.id]?.status || "—"}
                             </span>
                             <br />
-                            <small style={{color: 'var(--color-text-muted)'}}>
+                            <small
+                              style={{ color: 'var(--color-text-muted)' }}
+                              title={
+                                rec[e.id]?.punches?.length > 1
+                                  ? rec[e.id].punches
+                                      .map(
+                                        (p, idx) =>
+                                          `Session ${idx + 1}: ${formatTime(p.in)} - ${p.out ? formatTime(p.out) : 'Active'}`
+                                      )
+                                      .join('\n')
+                                  : undefined
+                              }
+                            >
                               {rec[e.id]?.punchIn ? formatTime(rec[e.id].punchIn) : "--"} 
                               {" - "}
-                              {rec[e.id]?.punchOut ? formatTime(rec[e.id].punchOut) : "--"}
+                              {rec[e.id]?.punchOut ? formatTime(rec[e.id].punchOut) : (rec[e.id]?.punchIn ? "Active" : "--")}
+                              {rec[e.id]?.punches?.length > 1 && (
+                                <span
+                                  style={{
+                                    marginLeft: '4px',
+                                    padding: '1px 4px',
+                                    fontSize: '0.65rem',
+                                    borderRadius: '4px',
+                                    background: 'rgba(59, 130, 246, 0.1)',
+                                    color: '#2563eb',
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {rec[e.id].punches.length}x
+                                </span>
+                              )}
                             </small>
                           </td>
                         ))}

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import styles from "../ClientForm.module.css";
 import { FiUser } from "react-icons/fi";
+import { validateFile } from "../../../utils/fileValidator";
 
 export default function ClientBasicInfo({
   form,
@@ -53,6 +54,17 @@ export default function ClientBasicInfo({
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (!file) return;
+
+                const isValid = validateFile(file, {
+                  maxSizeMB: 2,
+                  allowedTypes: ["image/*"],
+                  allowedExtensions: [".jpg", ".jpeg", ".png", ".webp"],
+                  fileLabel: "Profile photo",
+                });
+                if (!isValid) {
+                  e.target.value = "";
+                  return;
+                }
 
                 setForm((prev) => ({ ...prev, profilePhoto: file }));
                 setPhotoPreview(URL.createObjectURL(file));

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   getAllLeavesAPI,
@@ -7,6 +7,8 @@ import {
   cancelLeaveAPI,
   getAllUsersLeaveAnalyticsAPI,
 } from "../../api/leave.api";
+import { useQuery, queryClient } from "../../hooks/useQuery";
+import { getBackendErrorMessage } from "../../utils/errorHandler";
 
 import styles from "./LeaveApproval.module.css";
 import Loader from "../../components/Loader/Loader";
@@ -20,9 +22,7 @@ export default function LeaveApproval() {
   const [analytics, setAnalytics] = useState([]);
   const [pendingPage, setPendingPage] = useState(1);
   const [historyPage, setHistoryPage] = useState(1);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
-  const isFetchingRef = useRef(false);
 
   /* ================= ACCORDION ================= */
   const [open, setOpen] = useState({
@@ -44,32 +44,28 @@ export default function LeaveApproval() {
       year: "numeric"
     });
 
-  /* ================= FETCH ================= */
-  const fetchLeaves = async (showInitialLoader = false) => {
-    if (isFetchingRef.current) return;
-    try {
-      isFetchingRef.current = true;
-      if (showInitialLoader) setInitialLoading(true);
+  /* ================= TANSTACK QUERY POLLING ================= */
+  const { data: queryData, isLoading, refetch } = useQuery({
+    queryKey: ["leave-approvals"],
+    queryFn: async () => {
       const [leavesRes, analyticsRes] = await Promise.all([
         getAllLeavesAPI(),
         getAllUsersLeaveAnalyticsAPI(),
       ]);
-      setLeaves(leavesRes.data || []);
-      setAnalytics(analyticsRes.data || []);
-    } catch(err) {
-      console.error(err);
-      toast.error(err?.message || "Failed to load leave records");
-    } finally {
-      isFetchingRef.current = false;
-      setInitialLoading(false);
-    }
-  };
+      return {
+        leaves: leavesRes.data || [],
+        analytics: analyticsRes.data || [],
+      };
+    },
+    refetchInterval: 15000, // Smart tab-aware interval
+  });
 
   useEffect(() => {
-    fetchLeaves(true);
-    const interval = setInterval(() => fetchLeaves(false), 15000);
-    return () => clearInterval(interval);
-  }, []);
+    if (queryData) {
+      setLeaves(queryData.leaves || []);
+      setAnalytics(queryData.analytics || []);
+    }
+  }, [queryData]);
 
   /* ================= DERIVED ================= */
   const pendingLeaves = useMemo(
@@ -101,10 +97,10 @@ export default function LeaveApproval() {
     try {
       await approveLeaveAPI(id);
       toast.success("Leave approved");
-      fetchLeaves(false);
+      queryClient.invalidateQueries(["leave-approvals"]);
     } catch (err) {
       setLeaves(previous);
-      toast.error(err?.message || "Failed to approve leave");
+      toast.error(getBackendErrorMessage(err, "Failed to approve leave"));
     } finally {
       setActionLoading((prev) => ({ ...prev, [id]: null }));
     }
@@ -118,10 +114,10 @@ export default function LeaveApproval() {
     try {
       await declineLeaveAPI(id);
       toast.success("Leave declined");
-      fetchLeaves(false);
+      queryClient.invalidateQueries(["leave-approvals"]);
     } catch (err) {
       setLeaves(previous);
-      toast.error(err?.message || "Failed to decline leave");
+      toast.error(getBackendErrorMessage(err, "Failed to decline leave"));
     } finally {
       setActionLoading((prev) => ({ ...prev, [id]: null }));
     }
@@ -136,10 +132,10 @@ export default function LeaveApproval() {
     try {
       await cancelLeaveAPI(id);
       toast.success("Leave cancelled");
-      fetchLeaves(false);
+      queryClient.invalidateQueries(["leave-approvals"]);
     } catch (err) {
       setLeaves(previous);
-      toast.error(err?.message || "Failed to cancel leave");
+      toast.error(getBackendErrorMessage(err, "Failed to cancel leave"));
     } finally {
       setActionLoading((prev) => ({ ...prev, [id]: null }));
     }
@@ -148,7 +144,7 @@ export default function LeaveApproval() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  if (initialLoading) {
+  if (isLoading && leaves.length === 0) {
     return (
       <div className={styles.pageContainer}>
         <div className={styles.header}>

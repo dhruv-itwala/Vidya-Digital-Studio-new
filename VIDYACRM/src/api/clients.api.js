@@ -68,10 +68,17 @@ export const deleteTransactionAPI = (clientId, txnId) =>
   api.delete(`/clients/${clientId}/transactions/${txnId}`);
 
 /* ================= DOCUMENTS ================= */
-export const uploadDocumentAPI = (id, file) => {
+export const uploadDocumentAPI = (id, file, onProgress) => {
   const formData = new FormData();
   formData.append("document", file);
-  return api.post(`/clients/${id}/documents`, formData);
+  return api.post(`/clients/${id}/documents`, formData, {
+    onUploadProgress: (progressEvent) => {
+      if (onProgress && progressEvent.total) {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress(percent);
+      }
+    },
+  });
 };
 
 export const deleteDocumentAPI = (id, publicId) =>

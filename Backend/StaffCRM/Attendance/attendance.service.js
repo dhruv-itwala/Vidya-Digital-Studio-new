@@ -109,23 +109,44 @@ export const punchInService = async (userId) => {
     throw new AppError("Today is a holiday", 400);
   }
 
-  if (existing && existing.punchIn) {
-    if (!existing.punchOut) {
-      throw new AppError("Already punched in", 400);
-    } else {
-      throw new AppError("Shift already completed for today", 400);
+  // If already punched in and NOT punched out, cannot punch in again
+  if (existing && existing.punchIn && !existing.punchOut) {
+    throw new AppError("Already punched in", 400);
+  }
+
+  let punches = [];
+  let punchIn = now;
+
+  if (existing) {
+    punchIn = existing.punchIn || now;
+    if (Array.isArray(existing.punches) && existing.punches.length > 0) {
+      punches = existing.punches.map((p) => ({
+        in: p.in,
+        out: p.out,
+      }));
+    } else if (existing.punchIn) {
+      punches = [{ in: existing.punchIn, out: existing.punchOut || now }];
     }
   }
 
+  punches.push({ in: now, out: null });
+
   const record = await WorkRecord.findOneAndUpdate(
     { user: userId, date },
-    { $set: { punchIn: now } },
+    {
+      $set: {
+        punchIn,
+        punches,
+        punchOutReminderSent: false,
+      },
+      $unset: { punchOut: 1 },
+    },
     { upsert: true, new: true, lean: true },
   );
 
   return {
     ...record,
-    liveNetSeconds: 0,
+    liveNetSeconds: calcLiveNetSeconds(record, now),
     serverNow: now,
     isRunning: true,
     onBreak: false,
@@ -144,12 +165,16 @@ export const punchOutService = async (userId) => {
       user: userId,
       date: yesterday,
       punchIn: { $exists: true },
-      punchOut: { $exists: false },
+      $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
     });
   }
 
   if (!record || !record.punchIn) {
     throw new AppError("Punch in first", 400);
+  }
+
+  if (record.punchOut) {
+    throw new AppError("Already punched out", 400);
   }
 
   const [attendance, user] = await Promise.all([
@@ -170,6 +195,17 @@ export const punchOutService = async (userId) => {
   const now = nowUTC();
   record.punchOut = now;
   record.breaks.forEach((b) => !b.out && (b.out = record.punchOut));
+
+  if (!record.punches || record.punches.length === 0) {
+    record.punches = [{ in: record.punchIn, out: now }];
+  } else {
+    const lastPunch = record.punches.at(-1);
+    if (lastPunch && !lastPunch.out) {
+      lastPunch.out = now;
+    } else {
+      record.punches.push({ in: record.punchIn, out: now });
+    }
+  }
 
   calcWorkMinutes(record);
   const policy = getWorkPolicy(user?.role || "employee");
@@ -210,7 +246,7 @@ export const punchOutService = async (userId) => {
   const raw = record.toObject ? record.toObject() : record;
   return {
     ...raw,
-    liveNetSeconds: calcLiveNetSeconds(raw),
+    liveNetSeconds: calcLiveNetSeconds(raw, now),
     serverNow: now,
     isRunning: false,
     onBreak: false,
@@ -472,6 +508,7 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
           status,
           punchIn: work?.punchIn || null,
           punchOut: work?.punchOut || null,
+          punches: work?.punches || [],
         });
       }
     }
@@ -545,6 +582,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
       breakSeconds: calcLiveBreakSeconds(record),
       punchIn: record.punchIn,
       punchOut: record.punchOut,
+      punches: record.punches || [],
     };
   });
 };
@@ -573,13 +611,14 @@ export const getTodayWorkRecordService = async (userId) => {
     record = await WorkRecord.findOne({
       user: userId,
       date: yesterday,
-      punchOut: { $exists: false },
+      punchIn: { $exists: true },
+      $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
     }).lean();
   }
 
   if (!record) return null;
 
-  const lastBreak = record.breaks.at(-1);
+  const lastBreak = record.breaks?.at(-1);
   const onBreak = lastBreak && !lastBreak.out;
 
   return {
@@ -614,10 +653,7 @@ export const getWeeklyProgressService = async (userId) => {
   let totalSeconds = 0;
   for (const record of records) {
     if (!record.punchIn) continue;
-
-    const endTime = record.punchOut ?? new Date();
-    const workedSeconds = Math.floor((new Date(endTime) - new Date(record.punchIn)) / 1000);
-    totalSeconds += workedSeconds;
+    totalSeconds += calcLiveNetSeconds(record, new Date());
   }
 
   const getISTDay = (date) => {
@@ -734,6 +770,7 @@ export const hrOverrideAttendanceService = async ({
   punchIn,
   punchOut,
   breaks = [],
+  punches = [],
   status,
 }) => {
   const day = parseISTDateOnly(date);
@@ -754,6 +791,23 @@ export const hrOverrideAttendanceService = async ({
   // APPLY OVERRIDES
   if (punchIn) targetRecord.punchIn = new Date(punchIn);
   if (punchOut) targetRecord.punchOut = new Date(punchOut);
+
+  if (punches && punches.length) {
+    targetRecord.punches = punches.map((p) => ({
+      in: new Date(p.in),
+      out: p.out ? new Date(p.out) : null,
+    }));
+    if (!punchIn && targetRecord.punches[0]?.in) {
+      targetRecord.punchIn = targetRecord.punches[0].in;
+    }
+    if (!punchOut && targetRecord.punches.at(-1)?.out) {
+      targetRecord.punchOut = targetRecord.punches.at(-1).out;
+    }
+  } else if (targetRecord.punchIn && targetRecord.punchOut) {
+    targetRecord.punches = [
+      { in: targetRecord.punchIn, out: targetRecord.punchOut },
+    ];
+  }
 
   if (breaks.length) {
     targetRecord.breaks = breaks.map((b) => ({

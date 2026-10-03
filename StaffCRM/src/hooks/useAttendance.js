@@ -24,6 +24,7 @@ const initialState = {
   isRunning: false,
   onBreak: false,
   punchedOut: false,
+  punches: [],
   reportSubmitted: false,
 
   // weekly
@@ -91,6 +92,7 @@ export const useAttendance = () => {
         isRunning: record?.isRunning || false,
         onBreak: record?.onBreak || false,
         punchedOut: !!record?.punchOut,
+        punches: record?.punches || [],
         reportSubmitted: Boolean(reportRes?.data?.data),
 
         // weekly

@@ -18,6 +18,7 @@ export default function DailyTimer({ attendance }) {
     breakIn,
     breakOut,
     reportSubmitted,
+    punches = [],
   } = attendance;
 
   /* ================= LOCAL LIVE TIMER ================= */
@@ -59,6 +60,12 @@ export default function DailyTimer({ attendance }) {
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
+  const formatSessionTime = (dateStr) => {
+    if (!dateStr) return "--";
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+  };
+
   const remainingWork = Math.max(WORK_TARGET_SECONDS - liveWorkSeconds, 0);
   const remainingBreak = Math.max(BREAK_LIMIT_SECONDS - liveBreakSeconds, 0);
 
@@ -71,8 +78,8 @@ export default function DailyTimer({ attendance }) {
   let statusClass = styles.notWorking;
 
   if (punchedOut) {
-    statusText = "SHIFT CLOSED";
-    statusClass = styles.shiftClosed;
+    statusText = "PUNCHED OUT (PAUSED)";
+    statusClass = styles.punchedOut;
   } else if (onBreak) {
     statusText = "ON BREAK (WORK PAUSED)";
     statusClass = styles.onBreak;
@@ -146,6 +153,29 @@ export default function DailyTimer({ attendance }) {
         </div>
       </div>
 
+      {punches && punches.length > 0 && (
+        <div className={styles.sessionsTracker}>
+          <div className={styles.sessionsHeader}>
+            <span className={styles.sessionsTitle}>Today's Punch Sessions ({punches.length})</span>
+          </div>
+          <div className={styles.sessionsList}>
+            {punches.map((p, idx) => {
+              const inStr = formatSessionTime(p.in);
+              const outStr = p.out ? formatSessionTime(p.out) : (isRunning ? "Active Now" : "--");
+              const isCurrent = !p.out && isRunning;
+              return (
+                <div key={idx} className={`${styles.sessionItem} ${isCurrent ? styles.activeSession : ""}`}>
+                  <span className={styles.sessionBadge}>Session #{idx + 1}</span>
+                  <span className={styles.sessionTimes}>
+                    {inStr} → {outStr}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {showReportWarning && (
         <p className={styles.warning}>
           ⚠ Please submit your daily report before punching out.
@@ -153,13 +183,13 @@ export default function DailyTimer({ attendance }) {
       )}
 
       <div className={styles.actions}>
-        {!isRunning && !punchedOut && (
+        {!isRunning && !onBreak && (
           <button
             className={styles.punchInBtn}
             disabled={actionLoading}
             onClick={punchIn}
           >
-            PUNCH IN
+            {punchedOut ? "PUNCH IN AGAIN" : "PUNCH IN"}
           </button>
         )}
 
@@ -167,7 +197,7 @@ export default function DailyTimer({ attendance }) {
           <>
             <button
               className={styles.punchOutBtn}
-              disabled={actionLoading || !reportSubmitted}
+              disabled={actionLoading}
               onClick={punchOut}
             >
               <FiSquare className={styles.btnIcon} /> PUNCH OUT

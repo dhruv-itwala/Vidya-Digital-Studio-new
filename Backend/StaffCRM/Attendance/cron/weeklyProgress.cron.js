@@ -4,7 +4,7 @@ import weeklyWork from "../weeklyWork.model.js";
 import User from "../../Users/user.model.js";
 import Holiday from "../../Holidays/holiday.model.js";
 
-import { getCurrentWeekRangeIST } from "../utils/attendance.utils.js";
+import { getCurrentWeekRangeIST, calcLiveNetSeconds } from "../utils/attendance.utils.js";
 
 cron.schedule("59 23 * * *", async () => {
   console.log("Running Weekly Progress Cron");
@@ -47,12 +47,7 @@ cron.schedule("59 23 * * *", async () => {
 
         for (const record of records) {
           if (!record.punchIn) continue;
-
-          const endTime = record.punchOut ?? new Date();
-
-          const workedSeconds = Math.floor((endTime - record.punchIn) / 1000);
-
-          totalSeconds += workedSeconds;
+          totalSeconds += calcLiveNetSeconds(record, new Date());
         }
 
         const weekFinished = new Date() > weekEndUTC;

@@ -11,6 +11,9 @@ import styles from "./EmployeeModal.module.css";
 import toast from "react-hot-toast";
 import { FiX, FiUploadCloud, FiUser } from "react-icons/fi";
 import InlineLoader from "../../components/UI/InlineLoader";
+import UploadProgressBar from "../../components/UI/UploadProgressBar";
+import { validateFile } from "../../utils/fileValidator";
+import { getBackendErrorMessage } from "../../utils/errorHandler";
 
 export default function EmployeeModal({ user, onClose, onSaved }) {
   const { user: loggedInUser } = useAuth();
@@ -21,6 +24,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState(0);
 
   const isEdit = Boolean(user?._id);
   const [loading, setLoading] = useState(false);
@@ -103,6 +107,17 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const isValid = validateFile(file, {
+      maxSizeMB: 2,
+      allowedTypes: ["image/*"],
+      allowedExtensions: [".jpg", ".jpeg", ".png", ".webp", ".gif"],
+      fileLabel: "Profile photo",
+    });
+    if (!isValid) {
+      e.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => setImageSrc(reader.result);
     reader.readAsDataURL(file);
@@ -144,22 +159,31 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
 
     try {
       setUploading(true);
+      setUploadPercent(0);
 
       const blob = await getCroppedImg(imageSrc, croppedAreaPixels);
 
       const formData = new FormData();
       formData.append("profile", blob, "profile.jpg");
 
-      const res = await uploadProfilePhotoAPI(user._id, formData);
+      const res = await uploadProfilePhotoAPI(user._id, formData, {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            setUploadPercent(Math.round((progressEvent.loaded * 100) / progressEvent.total));
+          }
+        },
+      });
 
       setPhoto(res.data.profilePicture);
       setImageSrc(null);
+      setUploadPercent(0);
 
       toast.success("Photo uploaded");
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Upload failed");
+      toast.error(getBackendErrorMessage(err, "Upload failed"));
     } finally {
       setUploading(false);
+      setUploadPercent(0);
     }
   };
 
@@ -230,14 +254,19 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                   onCropComplete={(area, pixels) => setCroppedAreaPixels(pixels)}
                 />
               </div>
-              <div className={styles.cropActions}>
-                <button type="button" onClick={() => setImageSrc(null)} className={styles.secondaryBtn} disabled={uploading}>
-                  Cancel
-                </button>
-                <button type="button" onClick={handleUploadCropped} className={styles.primaryBtn} disabled={uploading}>
-                  {uploading && <InlineLoader size={14} />}
-                  <span>{uploading ? "Saving..." : "Crop & Save"}</span>
-                </button>
+              <div className={styles.cropActions} style={{ flexDirection: "column", gap: "8px" }}>
+                {uploading && uploadPercent > 0 && (
+                  <UploadProgressBar percent={uploadPercent} label="Uploading photo..." />
+                )}
+                <div style={{ display: "flex", gap: "8px", width: "100%", justifyContent: "flex-end" }}>
+                  <button type="button" onClick={() => setImageSrc(null)} className={styles.secondaryBtn} disabled={uploading}>
+                    Cancel
+                  </button>
+                  <button type="button" onClick={handleUploadCropped} className={styles.primaryBtn} disabled={uploading}>
+                    {uploading && <InlineLoader size={14} />}
+                    <span>{uploading ? "Saving..." : "Crop & Save"}</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -19,6 +19,7 @@ export default function DailyTimer({ attendance }) {
     breakIn,
     breakOut,
     reportSubmitted,
+    punches = [],
   } = attendance;
 
   /* ================= LOCAL LIVE TIMER ================= */
@@ -68,6 +69,12 @@ export default function DailyTimer({ attendance }) {
     )}:${String(s).padStart(2, "0")}`;
   };
 
+  const formatSessionTime = (dateStr) => {
+    if (!dateStr) return "--";
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+  };
+
   const remainingWork = Math.max(WORK_TARGET_SECONDS - liveWorkSeconds, 0);
   const remainingBreak = Math.max(BREAK_LIMIT_SECONDS - liveBreakSeconds, 0);
 
@@ -101,7 +108,7 @@ export default function DailyTimer({ attendance }) {
 
         <div className={styles.status}>
           {punchedOut
-            ? "✅ Shift Closed"
+            ? "⏸ Punched Out (Paused)"
             : shiftComplete
               ? "🎉 Shift Complete"
               : onBreak
@@ -123,12 +130,32 @@ export default function DailyTimer({ attendance }) {
         </div>
       </div>
 
+      {punches && punches.length > 0 && (
+        <div className={styles.sessionsTracker}>
+          <div className={styles.sessionsTitle}>
+            Today's Sessions ({punches.length})
+          </div>
+          <div className={styles.sessionsList}>
+            {punches.map((p, idx) => {
+              const inStr = formatSessionTime(p.in);
+              const outStr = p.out ? formatSessionTime(p.out) : (isRunning ? "Active" : "--");
+              return (
+                <div key={idx} className={styles.sessionItem}>
+                  <span>#{idx + 1}</span>
+                  <span>{inStr} - {outStr}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className={styles.actions}>
         <button
-          disabled={actionLoading || isRunning || onBreak || punchedOut}
+          disabled={actionLoading || isRunning || onBreak}
           onClick={punchIn}
         >
-          Punch In
+          {punchedOut ? "Punch In Again" : "Punch In"}
         </button>
 
         <button
@@ -148,9 +175,7 @@ export default function DailyTimer({ attendance }) {
         <button
           disabled={
             actionLoading ||
-            punchedOut ||
-            (!isRunning && !onBreak) ||
-            !reportSubmitted
+            (!isRunning && !onBreak)
           }
           onClick={punchOut}
         >

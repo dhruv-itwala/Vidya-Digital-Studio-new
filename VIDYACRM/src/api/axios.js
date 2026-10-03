@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getBackendErrorMessage } from "../utils/errorHandler";
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_BACKEND_URL}/api/${import.meta.env.VITE_VERSION}`,
@@ -19,25 +20,32 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const data = error.response?.data;
 
-    // Normalize message
-    const message =
-      data?.message || data?.error || error.message || "Something went wrong";
+    // Normalize error message from any backend structure
+    const message = getBackendErrorMessage(error, "Something went wrong");
 
-    // Handle auth errors
+    // Handle auth errors (Prevent infinite reload loop if already on /login)
     if (status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login"; // optional
+
+      const isLoginRoute =
+        typeof window !== "undefined" &&
+        (window.location.pathname === "/login" ||
+          window.location.pathname.startsWith("/login"));
+
+      if (!isLoginRoute) {
+        window.location.href = "/login";
+      }
     }
 
     // Optional: Handle forbidden
     if (status === 403) {
-      console.warn("Forbidden access");
+      console.warn("Forbidden access:", message);
     }
 
     // Optional: Handle server crash
     if (status >= 500) {
-      console.error("Server error");
+      console.error("Server error:", message);
     }
 
     const errorObj = new Error(message);

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getBackendErrorMessage } from "../utils/errorHandler";
 
 const clientApi = axios.create({
   baseURL: `${import.meta.env.VITE_BACKEND_URL}/api/${import.meta.env.VITE_VERSION}`,
@@ -19,13 +20,23 @@ clientApi.interceptors.response.use(
     const status = error.response?.status;
     const data = error.response?.data;
 
+    // Normalize error message from any backend structure
+    const message = getBackendErrorMessage(error, "Something went wrong");
+
     if (status === 401) {
       localStorage.removeItem("clientToken");
       localStorage.removeItem("clientData");
-      window.location.href = "/client-login";
+
+      const isClientLoginRoute =
+        typeof window !== "undefined" &&
+        (window.location.pathname === "/client-login" ||
+          window.location.pathname.startsWith("/client-login"));
+
+      if (!isClientLoginRoute) {
+        window.location.href = "/client-login";
+      }
     }
 
-    const message = data?.message || data?.error || error.message || "Something went wrong";
     const errorObj = new Error(message);
     errorObj.status = status;
     errorObj.message = message;

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
+import { getBackendErrorMessage } from "../utils/errorHandler";
 
 /**
  * Hook to safeguard async button clicks from multiple rapid submissions
@@ -22,7 +23,7 @@ export function useAsyncHandler(asyncFn, options = {}) {
         }
         return result;
       } catch (err) {
-        const msg = err?.message || err?.response?.data?.message || options.errorMessage || "Operation failed";
+        const msg = getBackendErrorMessage(err, options.errorMessage || "Operation failed");
         if (options.showToast !== false) {
           toast.error(msg);
         }

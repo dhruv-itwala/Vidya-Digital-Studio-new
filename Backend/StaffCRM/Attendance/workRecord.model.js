@@ -8,6 +8,14 @@ const breakSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const punchSchema = new mongoose.Schema(
+  {
+    in: Date,
+    out: Date,
+  },
+  { _id: false },
+);
+
 const workRecordSchema = new mongoose.Schema(
   {
     user: {
@@ -27,6 +35,7 @@ const workRecordSchema = new mongoose.Schema(
 
     punchIn: Date,
     punchOut: Date,
+    punches: [punchSchema],
 
     /* ======================
        BREAKS

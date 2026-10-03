@@ -3,6 +3,9 @@ import styles from "../ClientForm.module.css";
 import toast from "react-hot-toast";
 import { formatFileSize } from "../../../utils/time.util";
 import { FiFileText, FiPlus, FiTrash2, FiUploadCloud, FiX } from "react-icons/fi";
+import { validateFile } from "../../../utils/fileValidator";
+import { getBackendErrorMessage } from "../../../utils/errorHandler";
+import UploadProgressBar from "../../UI/UploadProgressBar";
 
 export default function ClientDocuments({
   form,
@@ -13,6 +16,7 @@ export default function ClientDocuments({
   deleteDocument,
 }) {
   const [loadingIndex, setLoadingIndex] = useState(null);
+  const [uploadPercent, setUploadPercent] = useState(0);
 
   const handleAddRow = () => {
     setForm((prev) => ({
@@ -31,16 +35,27 @@ export default function ClientDocuments({
   const handleUpload = async (doc, index) => {
     if (!doc.file) return toast.error("Select file");
 
+    const isValid = validateFile(doc.file, {
+      maxSizeMB: 10,
+      allowedExtensions: [".pdf", ".doc", ".docx", ".txt", ".xls", ".xlsx", ".png", ".jpg", ".jpeg", ".webp"],
+      fileLabel: "Document",
+    });
+    if (!isValid) return;
+
     try {
       setLoadingIndex(index);
-      const res = await uploadDocument(form._id, doc.file);
+      setUploadPercent(0);
+      const res = await uploadDocument(form._id, doc.file, (percent) => {
+        setUploadPercent(percent);
+      });
       if (!res.success) throw new Error(res.message);
       toast.success("Uploaded successfully");
       setForm(res.data);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(getBackendErrorMessage(err, "Failed to upload document"));
     } finally {
       setLoadingIndex(null);
+      setUploadPercent(0);
     }
   };
 
@@ -94,23 +109,38 @@ export default function ClientDocuments({
                 
                 <div className={styles.rowText}>
                   {doc.isNew ? (
-                    <input
-                      type="file"
-                      className={styles.fileInput}
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
+                    <div>
+                      <input
+                        type="file"
+                        className={styles.fileInput}
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
 
-                        const updated = [...form.documents];
-                        updated[index].file = file;
-                        updated[index].name = file.name;
+                          const isValid = validateFile(file, {
+                            maxSizeMB: 10,
+                            allowedExtensions: [".pdf", ".doc", ".docx", ".txt", ".xls", ".xlsx", ".png", ".jpg", ".jpeg", ".webp"],
+                            fileLabel: "Document",
+                          });
+                          if (!isValid) {
+                            e.target.value = "";
+                            return;
+                          }
 
-                        setForm((prev) => ({
-                          ...prev,
-                          documents: updated,
-                        }));
-                      }}
-                    />
+                          const updated = [...form.documents];
+                          updated[index].file = file;
+                          updated[index].name = file.name;
+
+                          setForm((prev) => ({
+                            ...prev,
+                            documents: updated,
+                          }));
+                        }}
+                      />
+                      {loadingIndex === index && uploadPercent > 0 && (
+                        <UploadProgressBar percent={uploadPercent} label="Uploading..." />
+                      )}
+                    </div>
                   ) : (
                     <>
                       <h4>

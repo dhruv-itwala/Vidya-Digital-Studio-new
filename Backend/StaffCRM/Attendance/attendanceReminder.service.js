@@ -143,7 +143,7 @@ export const checkActiveShiftReminders = async () => {
     const records = await WorkRecord.find({
       date: today,
       punchIn: { $exists: true },
-      punchOut: { $exists: false },
+      $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
     });
 
     if (!records.length) return { success: true, remindersSent: 0 };
@@ -259,7 +259,7 @@ export const checkNightPunchOutReminder = async () => {
     const records = await WorkRecord.find({
       date: today,
       punchIn: { $exists: true },
-      punchOut: { $exists: false },
+      $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
       punchOutReminderSent: { $ne: true },
     });
 

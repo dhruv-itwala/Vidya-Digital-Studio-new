@@ -411,14 +411,40 @@ export default function Attendance() {
                             <td key={e.id}>
                               {rec[e.id]?.status || "—"}
                               <br />
-                              <small>
+                              <small
+                                title={
+                                  rec[e.id]?.punches?.length > 1
+                                    ? rec[e.id].punches
+                                        .map(
+                                          (p, idx) =>
+                                            `Session ${idx + 1}: ${formatTime(p.in)} - ${p.out ? formatTime(p.out) : 'Active'}`
+                                        )
+                                        .join('\n')
+                                    : undefined
+                                }
+                              >
                                 {rec[e.id]?.punchIn
                                   ? formatTime(rec[e.id].punchIn)
                                   : "--"}{" "}
-                                -
+                                -{" "}
                                 {rec[e.id]?.punchOut
                                   ? formatTime(rec[e.id].punchOut)
-                                  : "--"}
+                                  : (rec[e.id]?.punchIn ? "Active" : "--")}
+                                {rec[e.id]?.punches?.length > 1 && (
+                                  <span
+                                    style={{
+                                      marginLeft: '4px',
+                                      padding: '1px 4px',
+                                      fontSize: '0.65rem',
+                                      borderRadius: '4px',
+                                      background: 'rgba(59, 130, 246, 0.1)',
+                                      color: '#2563eb',
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    {rec[e.id].punches.length}x
+                                  </span>
+                                )}
                               </small>
                             </td>
                           ))}

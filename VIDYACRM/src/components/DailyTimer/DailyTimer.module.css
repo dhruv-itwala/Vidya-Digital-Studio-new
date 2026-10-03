@@ -94,6 +94,82 @@
   margin-bottom: 24px;
 }
 
+.working {
+  color: #166534;
+}
+
+.onBreak {
+  color: #ca8a04;
+}
+
+.punchedOut {
+  color: #ea580c;
+}
+
+.notWorking {
+  color: #6b7280;
+}
+
+/* ================= SESSIONS TRACKER ================= */
+.sessionsTracker {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 20px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.sessionsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.sessionsTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sessionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sessionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+}
+
+.activeSession {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.sessionBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.sessionTimes {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
 /* ================= STATS PILL ================= */
 .statsPill {
   display: flex;

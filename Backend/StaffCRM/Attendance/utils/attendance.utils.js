@@ -39,11 +39,28 @@ export const isWithinOfficeHoursIST = (dateUTC, role = "employee") => {
 };
 
 export const calcWorkMinutes = (record) => {
-  if (!record.punchIn || !record.punchOut) return;
+  if (!record.punchIn) return;
 
-  const total = (record.punchOut - record.punchIn) / 60000;
-  const breaks = record.breaks.reduce(
-    (sum, b) => sum + (b.out && b.in ? (b.out - b.in) / 60000 : 0),
+  let total = 0;
+  if (record.punches && record.punches.length > 0) {
+    total = record.punches.reduce((sum, p) => {
+      if (!p.in) return sum;
+      const end = p.out ? new Date(p.out) : (record.punchOut ? new Date(record.punchOut) : null);
+      if (!end) return sum;
+      return sum + Math.max(0, (end.getTime() - new Date(p.in).getTime()) / 60000);
+    }, 0);
+  } else if (record.punchOut) {
+    total = Math.max(0, (new Date(record.punchOut).getTime() - new Date(record.punchIn).getTime()) / 60000);
+  } else {
+    return;
+  }
+
+  const breaks = (record.breaks || []).reduce(
+    (sum, b) =>
+      sum +
+      (b.out && b.in
+        ? Math.max(0, (new Date(b.out).getTime() - new Date(b.in).getTime()) / 60000)
+        : 0),
     0,
   );
 
@@ -67,14 +84,24 @@ export const suggestAttendanceStatus = (minutes, role = "employee") => {
 export const calcLiveNetSeconds = (record, now = new Date()) => {
   if (!record?.punchIn) return 0;
 
-  const endTime = record.punchOut ?? now;
+  const currentNow = new Date(now);
+  let totalSeconds = 0;
 
-  const totalSeconds = Math.floor((endTime - record.punchIn) / 1000);
+  if (record.punches && record.punches.length > 0) {
+    totalSeconds = record.punches.reduce((sum, p) => {
+      if (!p.in) return sum;
+      const end = p.out ? new Date(p.out) : (record.punchOut ? new Date(record.punchOut) : currentNow);
+      return sum + Math.max(0, Math.floor((end.getTime() - new Date(p.in).getTime()) / 1000));
+    }, 0);
+  } else {
+    const endTime = record.punchOut ? new Date(record.punchOut) : currentNow;
+    totalSeconds = Math.max(0, Math.floor((endTime.getTime() - new Date(record.punchIn).getTime()) / 1000));
+  }
 
-  const breakSeconds = record.breaks.reduce((sum, b) => {
+  const breakSeconds = (record.breaks || []).reduce((sum, b) => {
     if (!b.in) return sum;
-    const breakEnd = b.out ?? endTime;
-    return sum + Math.floor((breakEnd - b.in) / 1000);
+    const breakEnd = b.out ? new Date(b.out) : (record.punchOut ? new Date(record.punchOut) : currentNow);
+    return sum + Math.max(0, Math.floor((breakEnd.getTime() - new Date(b.in).getTime()) / 1000));
   }, 0);
 
   return Math.max(totalSeconds - breakSeconds, 0);

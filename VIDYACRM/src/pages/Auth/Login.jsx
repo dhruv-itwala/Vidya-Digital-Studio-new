@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { loginAPI } from "../../api/auth.api";
 import { useAuth } from "../../context/AuthContext";
 import { Images } from "../../assets/Data/images";
+import { getBackendErrorMessage } from "../../utils/errorHandler";
 import styles from "./Login.module.css";
 
 export default function Login() {
@@ -29,7 +30,7 @@ export default function Login() {
       navigate("/");
     } catch (err) {
       setServerError(
-        err.response?.data?.message || "Invalid email or password"
+        getBackendErrorMessage(err, "Invalid email or password")
       );
     }
   };

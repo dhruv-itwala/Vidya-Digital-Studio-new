@@ -202,9 +202,9 @@ export const useClients = () => {
   };
 
   /* ================= UPLOAD DOCUMENT ================= */
-  const uploadDocument = async (id, file) => {
+  const uploadDocument = async (id, file, onProgress) => {
     try {
-      const res = await uploadDocumentAPI(id, file);
+      const res = await uploadDocumentAPI(id, file, onProgress);
 
       setClients((prev) => prev.map((c) => (c._id === id ? res.data.data : c)));
 

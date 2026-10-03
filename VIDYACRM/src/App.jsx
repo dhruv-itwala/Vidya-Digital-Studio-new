@@ -12,6 +12,8 @@ import AdminLayout from "./layouts/AdminLayout";
 import HRLayout from "./layouts/HRLayout";
 import Maintenance from "./components/Maintenance/Maintenance";
 import Loader from "./components/Loader/Loader";
+import ErrorBoundary from "./components/UI/ErrorBoundary";
+import VersionWatermark from "./components/UI/VersionWatermark";
 import { Toaster } from "react-hot-toast";
 
 import "./App.css";
@@ -108,7 +110,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <Suspense fallback={<Loader />}>
         <Routes>
           {/* LOGIN */}
@@ -342,7 +344,8 @@ export default function App() {
           <Route path="/maintenance" element={<Maintenance />} />
         </Routes>
       </Suspense>
+      <VersionWatermark />
       <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-    </>
+    </ErrorBoundary>
   );
 }

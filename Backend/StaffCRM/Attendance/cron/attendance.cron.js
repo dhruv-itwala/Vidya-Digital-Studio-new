@@ -15,7 +15,7 @@ cron.schedule("0 0 * * *", async () => {
   const records = await WorkRecord.find({
     date: yesterday,
     punchIn: { $exists: true },
-    punchOut: { $exists: false },
+    $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
   }).lean();
 
   if (records.length === 0) return;
@@ -29,6 +29,11 @@ cron.schedule("0 0 * * *", async () => {
 
     record.autoClosed = true;
     record.breaks.forEach((b) => !b.out && (b.out = record.punchOut));
+    if (record.punches?.length) {
+      record.punches.forEach((p) => !p.out && (p.out = record.punchOut));
+    } else {
+      record.punches = [{ in: record.punchIn, out: record.punchOut }];
+    }
 
     calcWorkMinutes(record);
 
