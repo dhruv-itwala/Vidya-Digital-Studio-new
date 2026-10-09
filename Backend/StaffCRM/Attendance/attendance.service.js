@@ -499,6 +499,47 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
       }
 
       if (status) {
+        let punches = [];
+        if (work?.punches && work.punches.length > 0) {
+          punches = work.punches;
+        } else if (work?.punchIn) {
+          punches = [{ in: work.punchIn, out: work.punchOut || null }];
+        }
+
+        let formalBreakMinutes = 0;
+        if (work?.breaks?.length) {
+          formalBreakMinutes = work.breaks.reduce((sum, b) => {
+            if (!b.in) return sum;
+            const end = b.out ? new Date(b.out) : (work.punchOut ? new Date(work.punchOut) : new Date());
+            return sum + Math.max(0, Math.floor((end.getTime() - new Date(b.in).getTime()) / 60000));
+          }, 0);
+        } else if (work?.totalBreakMinutes) {
+          formalBreakMinutes = work.totalBreakMinutes;
+        }
+
+        let punchGapMinutes = 0;
+        if (punches.length > 1) {
+          for (let i = 1; i < punches.length; i++) {
+            const prevOut = punches[i - 1].out ? new Date(punches[i - 1].out) : null;
+            const curIn = punches[i].in ? new Date(punches[i].in) : null;
+            if (prevOut && curIn && curIn > prevOut) {
+              punchGapMinutes += Math.max(0, Math.floor((curIn.getTime() - prevOut.getTime()) / 60000));
+            }
+          }
+        }
+
+        const totalBreakMinutes = formalBreakMinutes + punchGapMinutes;
+
+        let netWorkMinutes = work?.netWorkMinutes || 0;
+        if (!netWorkMinutes && punches.length > 0) {
+          const totalPunchMins = punches.reduce((sum, p) => {
+            if (!p.in) return sum;
+            const end = p.out ? new Date(p.out) : (work?.punchOut ? new Date(work.punchOut) : new Date());
+            return sum + Math.max(0, Math.floor((end.getTime() - new Date(p.in).getTime()) / 60000));
+          }, 0);
+          netWorkMinutes = Math.max(0, totalPunchMins - formalBreakMinutes);
+        }
+
         results.push({
           userId: u._id,
           name: u.name,
@@ -508,7 +549,13 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
           status,
           punchIn: work?.punchIn || null,
           punchOut: work?.punchOut || null,
-          punches: work?.punches || [],
+          punches,
+          breaks: work?.breaks || [],
+          totalBreakMinutes,
+          formalBreakMinutes,
+          punchGapMinutes,
+          totalWorkMinutes: work?.totalWorkMinutes || 0,
+          netWorkMinutes,
         });
       }
     }

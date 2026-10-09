@@ -49,12 +49,25 @@ export default function Attendance() {
 
   /* ================= HELPERS ================= */
 
-  const formatTime = (d) =>
-    new Date(d).toLocaleTimeString("en-IN", {
+  const formatTime = (d) => {
+    if (!d) return "--";
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return "--";
+    return dt.toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
       timeZone: "Asia/Kolkata",
     });
+  };
+
+  const formatMinutes = (m = 0) => {
+    if (!m || m <= 0) return "0m";
+    const h = Math.floor(m / 60);
+    const mins = Math.round(m % 60);
+    if (h === 0) return `${mins}m`;
+    if (mins === 0) return `${h}h`;
+    return `${h}h ${mins}m`;
+  };
 
   const formatDuration = (s = 0) =>
     `${String(Math.floor(s / 3600)).padStart(2, "0")}h ${String(
@@ -62,15 +75,15 @@ export default function Attendance() {
     ).padStart(2, "0")}m`;
 
   /* ================= DAILY ================= */
-  const fetchDaily = useCallback(async () => {
+  const fetchDaily = useCallback(async (silent = false) => {
     try {
-      setDailyLoading(true);
+      if (!silent) setDailyLoading(true);
       const res = await getAllEmployeesAttendanceAPI(date);
       setDaily(res.data?.data || []);
     } catch {
-      toast.error("Failed to load attendance");
+      if (!silent) toast.error("Failed to load attendance");
     } finally {
-      setDailyLoading(false);
+      if (!silent) setDailyLoading(false);
     }
   }, [date]);
 
@@ -93,7 +106,7 @@ export default function Attendance() {
   };
 
   /* ================= LIVE (TANSTACK QUERY POLLING) ================= */
-  const { data: liveData } = useQuery({
+  const { data: liveData, refetch: refetchLive } = useQuery({
     queryKey: ["attendance-live", liveDate],
     queryFn: async () => {
       try {
@@ -119,55 +132,93 @@ export default function Attendance() {
     if (activeTab !== "live") return;
 
     const tickInterval = setInterval(() => {
-      setLive((prev) =>
-        prev.map((e) => {
-          if (e.status === "WORKING") {
-            return { ...e, workedSeconds: (e.workedSeconds || 0) + 1 };
-          }
-          if (e.status === "ON_BREAK") {
-            return { ...e, breakSeconds: (e.breakSeconds || 0) + 1 };
-          }
-          return e;
-        }),
-      );
+      if (document.visibilityState === "visible") {
+        setLive((prev) =>
+          prev.map((e) => {
+            if (e.status === "WORKING") {
+              return { ...e, workedSeconds: (e.workedSeconds || 0) + 1 };
+            }
+            if (e.status === "ON_BREAK") {
+              return { ...e, breakSeconds: (e.breakSeconds || 0) + 1 };
+            }
+            return e;
+          }),
+        );
+      }
     }, 1000);
 
     return () => clearInterval(tickInterval);
   }, [activeTab]);
 
   /* ================= RANGE ================= */
-  const fetchRange = async () => {
-    if (!fromDate || !toDate) return toast.error("Select both dates");
+  const fetchRange = async (silent = false) => {
+    if (!fromDate || !toDate) {
+      if (!silent) toast.error("Select both dates");
+      return;
+    }
     if (rangeLoading) return;
     try {
-      setRangeLoading(true);
+      if (!silent) setRangeLoading(true);
       const res = await getAllEmployeesAttendanceByDateRangeAPI(
         fromDate,
         toDate,
       );
       setRange(res.data?.data || []);
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Failed to load summary");
+      if (!silent) toast.error(err?.response?.data?.message || err?.message || "Failed to load summary");
     } finally {
-      setRangeLoading(false);
+      if (!silent) setRangeLoading(false);
     }
   };
 
   /* ================= WEEKLY PROGRESS ================= */
-  const fetchWeekly = async () => {
-    if (!weeklyFrom) return toast.error("Select a week");
+  const fetchWeekly = async (silent = false) => {
+    if (!weeklyFrom) {
+      if (!silent) toast.error("Select a week");
+      return;
+    }
     if (weeklyLoading) return;
 
     try {
-      setWeeklyLoading(true);
+      if (!silent) setWeeklyLoading(true);
       const res = await getAllUsersWeeklyProgressAPI(weeklyFrom);
       setWeekly(res.data?.data || []);
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Failed to load weekly progress");
+      if (!silent) toast.error(err?.response?.data?.message || err?.message || "Failed to load weekly progress");
     } finally {
-      setWeeklyLoading(false);
+      if (!silent) setWeeklyLoading(false);
     }
   };
+
+  /* ================= AUTO-REFRESH ON TAB WAKE UP ================= */
+  useEffect(() => {
+    let lastWake = 0;
+    const handleWakeUp = () => {
+      if (document.visibilityState === "visible") {
+        const now = Date.now();
+        if (now - lastWake > 2500) {
+          lastWake = now;
+          if (activeTab === "live") {
+            refetchLive?.();
+          } else if (activeTab === "daily") {
+            fetchDaily(true);
+          } else if (activeTab === "range" && fromDate && toDate) {
+            fetchRange(true);
+          } else if (activeTab === "weekly" && weeklyFrom) {
+            fetchWeekly(true);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("focus", handleWakeUp);
+    document.addEventListener("visibilitychange", handleWakeUp);
+
+    return () => {
+      window.removeEventListener("focus", handleWakeUp);
+      document.removeEventListener("visibilitychange", handleWakeUp);
+    };
+  }, [activeTab, fetchDaily, fromDate, toDate, weeklyFrom, refetchLive]);
 
   const employees = useMemo(() => {
     return Array.from(
@@ -199,6 +250,16 @@ export default function Attendance() {
       return acc;
     }, {});
   }, [range]);
+
+  const sortedDateEntries = useMemo(() => {
+    return Object.entries(byDate).sort(([, recA], [, recB]) => {
+      const sampleA = Object.values(recA)[0];
+      const sampleB = Object.values(recB)[0];
+      const timeA = sampleA?.date ? new Date(sampleA.date).getTime() : 0;
+      const timeB = sampleB?.date ? new Date(sampleB.date).getTime() : 0;
+      return timeA - timeB;
+    });
+  }, [byDate]);
 
   /* ================= DOWNLOAD ================= */
   const download = async () => {
@@ -444,55 +505,79 @@ export default function Attendance() {
                   {Object.keys(byDate).length === 0 ? (
                      <tr><td colSpan={employees.length + 1}><div className={styles.emptyState}>No report data. Select dates and generate.</div></td></tr>
                   ) : (
-                    Object.entries(byDate).map(([d, rec]) => (
+                    sortedDateEntries.map(([d, rec]) => (
                       <tr key={d}>
                         <td style={{fontWeight: 700, color: 'var(--color-text)'}}>{d}</td>
-                        {employees.map((e) => (
-                          <td key={e.id}>
-                            <span style={{
-                              fontWeight: 700, 
-                              color: rec[e.id]?.status === 'PRESENT' ? '#16a34a' 
-                                   : rec[e.id]?.status === 'ABSENT' ? '#dc2626'
-                                   : rec[e.id]?.status === 'LEAVE' ? '#ea580c'
-                                   : '#475569'
-                            }}>
-                              {rec[e.id]?.status || "—"}
-                            </span>
-                            <br />
-                            <small
-                              style={{ color: 'var(--color-text-muted)' }}
-                              title={
-                                rec[e.id]?.punches?.length > 1
-                                  ? rec[e.id].punches
-                                      .map(
-                                        (p, idx) =>
-                                          `Session ${idx + 1}: ${formatTime(p.in)} - ${p.out ? formatTime(p.out) : 'Active'}`
-                                      )
-                                      .join('\n')
-                                  : undefined
-                              }
-                            >
-                              {rec[e.id]?.punchIn ? formatTime(rec[e.id].punchIn) : "--"} 
-                              {" - "}
-                              {rec[e.id]?.punchOut ? formatTime(rec[e.id].punchOut) : (rec[e.id]?.punchIn ? "Active" : "--")}
-                              {rec[e.id]?.punches?.length > 1 && (
-                                <span
-                                  style={{
-                                    marginLeft: '4px',
-                                    padding: '1px 4px',
-                                    fontSize: '0.65rem',
-                                    borderRadius: '4px',
-                                    background: 'rgba(59, 130, 246, 0.1)',
-                                    color: '#2563eb',
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {rec[e.id].punches.length}x
+                        {employees.map((e) => {
+                          const item = rec[e.id];
+                          if (!item) {
+                            return (
+                              <td key={e.id} className={styles.summaryCell}>
+                                <span className={styles.emptyDash}>—</span>
+                              </td>
+                            );
+                          }
+
+                          const status = item.status;
+                          const punches =
+                            item.punches && item.punches.length > 0
+                              ? item.punches
+                              : item.punchIn
+                              ? [{ in: item.punchIn, out: item.punchOut }]
+                              : [];
+                          const totalBreakMins = item.totalBreakMinutes || 0;
+                          const netWorkMins = item.netWorkMinutes || 0;
+
+                          const statusClass = status
+                            ? styles[`status_${status.toLowerCase()}`] || styles.status_default
+                            : styles.status_default;
+
+                          return (
+                            <td key={e.id} className={styles.summaryCell}>
+                              <div className={styles.cellHeaderRow}>
+                                <span className={`${styles.statusPill} ${statusClass}`}>
+                                  {status || "—"}
                                 </span>
+                                {netWorkMins > 0 && (
+                                  <span
+                                    className={styles.netWorkBadge}
+                                    title={`Net Work Time: ${formatMinutes(netWorkMins)}`}
+                                  >
+                                    ⏱️ {formatMinutes(netWorkMins)}
+                                  </span>
+                                )}
+                              </div>
+
+                              {punches.length > 0 && (
+                                <div className={styles.punchList}>
+                                  {punches.map((p, idx) => (
+                                    <div key={idx} className={styles.punchItem}>
+                                      {punches.length > 1 && (
+                                        <span className={styles.punchIdx}>#{idx + 1}</span>
+                                      )}
+                                      <span className={styles.punchTimes}>
+                                        {formatTime(p.in)} - {p.out ? formatTime(p.out) : "Active"}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
                               )}
-                            </small>
-                          </td>
-                        ))}
+
+                              {(totalBreakMins > 0 || (punches.length > 0 && status === "PRESENT")) && (
+                                <div
+                                  className={totalBreakMins > 0 ? styles.breakBadge : styles.breakBadgeZero}
+                                  title={
+                                    item.formalBreakMinutes && item.punchGapMinutes
+                                      ? `Total Break: ${formatMinutes(totalBreakMins)} (Breaks: ${formatMinutes(item.formalBreakMinutes)}, Between Sessions: ${formatMinutes(item.punchGapMinutes)})`
+                                      : `Total Break Duration: ${formatMinutes(totalBreakMins)}`
+                                  }
+                                >
+                                  ☕ Break: {formatMinutes(totalBreakMins)}
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))
                   )}

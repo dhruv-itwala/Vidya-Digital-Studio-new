@@ -76,7 +76,7 @@ export const NAVBAR_MENUS = {
     { label: "Profile", path: "/employee/profile" },
     { label: "Leaves", path: "/employee/leaves" },
     { label: "Helpdesk", path: "/employee/helpdesk" },
-    { label: "Payslips", path: "/employee/payslips" },
+    // { label: "Payslips", path: "/employee/payslips" },
 
     "divider",
     // Influencers and creators
@@ -112,6 +112,7 @@ export const NAVBAR_MENUS = {
     { label: "Leave Approvals", path: "/hr/hrLeaveApproval" },
     { label: "Settings", path: "/hr/settings" },
     { label: "Payroll", path: "/hr/payroll" },
+    {label:"hr",path:"/hr/hr"},
     { label: "HR Helpdesk", path: "/hr/hr-helpdesk" },
     { label: "Notice Board", path: "/hr/notices" },
   ],

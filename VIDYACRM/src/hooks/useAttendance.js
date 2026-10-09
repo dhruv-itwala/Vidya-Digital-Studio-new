@@ -245,6 +245,28 @@ export const useAttendance = () => {
     return () => abort?.abort();
   }, [fetchDashboardStatus]);
 
+  /* ================= AUTO-SYNC ON TAB WAKE UP ================= */
+  useEffect(() => {
+    let lastSync = 0;
+    const handleWakeUp = () => {
+      if (document.visibilityState === "visible") {
+        const now = Date.now();
+        if (now - lastSync > 2500) {
+          lastSync = now;
+          syncFromServer().catch((err) => console.error("Tab wake-up sync error:", err));
+        }
+      }
+    };
+
+    window.addEventListener("focus", handleWakeUp);
+    document.addEventListener("visibilitychange", handleWakeUp);
+
+    return () => {
+      window.removeEventListener("focus", handleWakeUp);
+      document.removeEventListener("visibilitychange", handleWakeUp);
+    };
+  }, [syncFromServer]);
+
   return {
     ...state,
     WORK_TARGET_SECONDS: state.dailyRequiredSeconds,

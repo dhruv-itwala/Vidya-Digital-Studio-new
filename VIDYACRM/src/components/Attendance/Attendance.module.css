@@ -348,3 +348,147 @@
     align-items: stretch;
   }
 }
+
+/* ================= ATTENDANCE SUMMARY CELLS ================= */
+.summaryCell {
+  vertical-align: top !important;
+  min-width: 175px;
+  padding: 10px 14px !important;
+  background: inherit;
+}
+
+.cellHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.statusPill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status_present {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status_absent {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status_half_day {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.status_leave {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status_holiday {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.status_wfh {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status_default {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.netWorkBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0f5c44;
+  background: rgba(15, 92, 68, 0.09);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.punchList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.punchItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--color-text, #1f2937);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
+.punchIdx {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.punchTimes {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #334155;
+  letter-spacing: -0.01em;
+}
+
+.breakBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.breakBadgeZero {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: #f8fafc;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.emptyDash {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+

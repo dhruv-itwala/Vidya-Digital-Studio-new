@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import styles from "./DailyTimer.module.css";
 import Loader from "../Loader/Loader";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
@@ -20,43 +20,90 @@ export default function DailyTimer({ attendance }) {
     breakOut,
     reportSubmitted,
     punches = [],
+    refresh,
   } = attendance;
 
   /* ================= LOCAL LIVE TIMER ================= */
   const [liveWorkSeconds, setLiveWorkSeconds] = useState(workSeconds);
-
   const [liveBreakSeconds, setLiveBreakSeconds] = useState(breakSeconds);
+
+  // Wall-clock anchors to prevent timer drift when tab is inactive/throttled
+  const workAnchorRef = useRef({ seconds: workSeconds, timestamp: Date.now() });
+  const breakAnchorRef = useRef({ seconds: breakSeconds, timestamp: Date.now() });
 
   // Sync when server updates
   useEffect(() => {
+    workAnchorRef.current = { seconds: workSeconds, timestamp: Date.now() };
     setLiveWorkSeconds(workSeconds);
   }, [workSeconds]);
 
   useEffect(() => {
+    breakAnchorRef.current = { seconds: breakSeconds, timestamp: Date.now() };
     setLiveBreakSeconds(breakSeconds);
   }, [breakSeconds]);
 
-  // Work ticking
+  // Work ticking using elapsed wall-clock seconds
   useEffect(() => {
     if (!isRunning || onBreak || punchedOut) return;
 
+    workAnchorRef.current = { seconds: liveWorkSeconds, timestamp: Date.now() };
+
     const interval = setInterval(() => {
-      setLiveWorkSeconds((prev) => prev + 1);
+      const elapsed = Math.floor((Date.now() - workAnchorRef.current.timestamp) / 1000);
+      setLiveWorkSeconds(workAnchorRef.current.seconds + elapsed);
     }, 1000);
 
     return () => clearInterval(interval);
   }, [isRunning, onBreak, punchedOut]);
 
-  // Break ticking
+  // Break ticking using elapsed wall-clock seconds
   useEffect(() => {
     if (!onBreak || punchedOut) return;
 
+    breakAnchorRef.current = { seconds: liveBreakSeconds, timestamp: Date.now() };
+
     const interval = setInterval(() => {
-      setLiveBreakSeconds((prev) => prev + 1);
+      const elapsed = Math.floor((Date.now() - breakAnchorRef.current.timestamp) / 1000);
+      setLiveBreakSeconds(breakAnchorRef.current.seconds + elapsed);
     }, 1000);
 
     return () => clearInterval(interval);
   }, [onBreak, punchedOut]);
+
+  // Auto-sync & catch-up when tab becomes active / visible again
+  useEffect(() => {
+    let lastWake = 0;
+    const handleWakeUp = () => {
+      if (document.visibilityState === "visible") {
+        const now = Date.now();
+        // Immediately catch-up local live timers to real-time wall-clock
+        if (isRunning && !onBreak && !punchedOut && workAnchorRef.current) {
+          const elapsed = Math.floor((now - workAnchorRef.current.timestamp) / 1000);
+          setLiveWorkSeconds(workAnchorRef.current.seconds + elapsed);
+        }
+        if (onBreak && !punchedOut && breakAnchorRef.current) {
+          const elapsed = Math.floor((now - breakAnchorRef.current.timestamp) / 1000);
+          setLiveBreakSeconds(breakAnchorRef.current.seconds + elapsed);
+        }
+
+        // Throttle server refresh to avoid double-calling on simultaneous focus + visibilitychange
+        if (now - lastWake > 2500) {
+          lastWake = now;
+          if (typeof refresh === "function") {
+            refresh();
+          }
+        }
+      }
+    };
+
+    window.addEventListener("focus", handleWakeUp);
+    document.addEventListener("visibilitychange", handleWakeUp);
+
+    return () => {
+      window.removeEventListener("focus", handleWakeUp);
+      document.removeEventListener("visibilitychange", handleWakeUp);
+    };
+  }, [isRunning, onBreak, punchedOut, refresh]);
 
   /* ================= HELPERS ================= */
   const formatTime = (secs) => {

@@ -65,12 +65,23 @@ function buildAttendanceMatrixWithPunch(data = []) {
 
     const existing = dateMap[dateKey][empKey];
 
+    const cellData = {
+      status,
+      punchIn,
+      punchOut,
+      punches: att.punches || [],
+      totalBreakMinutes: att.totalBreakMinutes || 0,
+      formalBreakMinutes: att.formalBreakMinutes || 0,
+      punchGapMinutes: att.punchGapMinutes || 0,
+      netWorkMinutes: att.netWorkMinutes || 0,
+    };
+
     if (!existing) {
-      dateMap[dateKey][empKey] = { status, punchIn, punchOut };
+      dateMap[dateKey][empKey] = cellData;
     } else {
       // Prevent LEAVE overwriting PRESENT / HALF_DAY / IC
       if (existing.status === "L" && status !== "L") {
-        dateMap[dateKey][empKey] = { status, punchIn, punchOut };
+        dateMap[dateKey][empKey] = cellData;
       }
     }
   });
