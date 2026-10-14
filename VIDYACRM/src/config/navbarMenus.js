@@ -18,6 +18,7 @@ export const NAVBAR_MENUS = {
     { label: "Quotations", path: "/admin/quotations" },
     { label: "Leads", path: "/admin/leads" },
     { label: "Clients", path: "/admin/clients" },
+    { label: "WhatsApp Chats", path: "/admin/whatsapp-chats" },
 
     "divider",
     // general HR tools
@@ -51,6 +52,7 @@ export const NAVBAR_MENUS = {
     { label: "Quotations", path: "/admin/quotations" },
     { label: "Leads", path: "/admin/leads" },
     { label: "Clients", path: "/admin/clients" },
+    { label: "WhatsApp Chats", path: "/admin/whatsapp-chats" },
 
     "divider",
     // general HR tools
@@ -102,6 +104,7 @@ export const NAVBAR_MENUS = {
     { label: "Quotations", path: "/hr/quotations" },
     { label: "Leads", path: "/hr/leads" },
     { label: "Clients", path: "/hr/clients" },
+    { label: "WhatsApp Chats", path: "/hr/whatsapp-chats" },
     "divider",
     // general HR tools
     { label: "Mark Attendance", path: "/hr/mark-attendance" },

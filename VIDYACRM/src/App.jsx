@@ -87,6 +87,7 @@ const EmployeeTickets = React.lazy(() => import("./pages/Tickets/EmployeeTickets
 const HRTickets = React.lazy(() => import("./pages/Tickets/HRTickets"));
 const PayrollManagement = React.lazy(() => import("./pages/Payroll/PayrollManagement"));
 const MyPayslips = React.lazy(() => import("./pages/Payroll/MyPayslips"));
+const WhatsAppChats = React.lazy(() => import("./pages/WhatsApp/WhatsAppChats"));
 
 // Client Portal Lazy Loads
 const ClientDashboard = React.lazy(() => import("./components/ClientPortal/ClientDashboard"));
@@ -228,6 +229,7 @@ export default function App() {
               <Route path="transactions" element={<ClientTransactions />} />
             </Route>
             <Route path="quotations" element={<AllQuotations />} />
+            <Route path="whatsapp-chats" element={<WhatsAppChats />} />
           </Route>
 
           {/* HR ROUTES */}
@@ -288,6 +290,7 @@ export default function App() {
             </Route>
             <Route path="quotations" element={<AllQuotations />} />
             <Route path="notices" element={<NoticeBoard />} />
+            <Route path="whatsapp-chats" element={<WhatsAppChats />} />
           </Route>
 
           {/* EMPLOYEE ROUTES */}

@@ -10,9 +10,13 @@ export const createLeadService = async (data, userId) => {
   data.createdBy = userId;
 
   // Optional duplicate prevention (email + phone)
-  if (data.email || data.phone) {
+  const duplicateConditions = [];
+  if (data.email) duplicateConditions.push({ email: data.email });
+  if (data.phone) duplicateConditions.push({ phone: data.phone });
+
+  if (duplicateConditions.length > 0) {
     const existing = await Lead.exists({
-      $or: [{ email: data.email || null }, { phone: data.phone || null }],
+      $or: duplicateConditions,
     });
 
     if (existing) {
