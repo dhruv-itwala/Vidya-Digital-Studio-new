@@ -382,15 +382,15 @@ export default function WhatsAppChats() {
                     {activeChat?.staffUser && (
                       <span
                         className={`${styles.tagBadge} ${
-                          activeChat.staffUser.role === "admin" ||
-                          activeChat.staffUser.role === "administrative"
+                          activeChat?.staffUser?.role === "admin" ||
+                          activeChat?.staffUser?.role === "administrative"
                             ? styles.badgeAdmin
-                            : activeChat.staffUser.role === "hr"
+                            : activeChat?.staffUser?.role === "hr"
                             ? styles.badgeHR
                             : styles.badgeEmployee
                         }`}
                       >
-                        {activeChat.staffUser.role}
+                        {activeChat?.staffUser?.role}
                       </span>
                     )}
                   </div>
@@ -423,18 +423,18 @@ export default function WhatsAppChats() {
 
             {/* Messages Body */}
             <div className={styles.messagesContainer}>
-              {messagesLoading ? (
+              {messagesLoading && !activeChat ? (
                 <div style={{ textAlign: "center", padding: "40px" }}>
                   <Loader />
                 </div>
-              ) : activeChat?.messages?.length === 0 ? (
+              ) : !activeChat?.messages || activeChat.messages.length === 0 ? (
                 <div className={styles.emptyConversations}>
-                  <p>No messages recorded for this phone yet.</p>
+                  <p>{messagesLoading ? "Loading conversation..." : "No messages recorded for this phone yet."}</p>
                 </div>
               ) : (
                 (() => {
                   let lastDate = "";
-                  return activeChat.messages.map((m, idx) => {
+                  return (activeChat?.messages || []).map((m, idx) => {
                     const messageDate = formatDate(m.createdAt);
                     const showDateDivider = messageDate !== lastDate;
                     lastDate = messageDate;
@@ -458,7 +458,7 @@ export default function WhatsAppChats() {
                           <div className={styles.bubble}>
                             {isInbound && (
                               <span className={styles.senderLabel}>
-                                {m.senderName || activeChat.staffUser?.name || m.from}
+                                {m.senderName || activeChat?.staffUser?.name || m.from}
                               </span>
                             )}
 
