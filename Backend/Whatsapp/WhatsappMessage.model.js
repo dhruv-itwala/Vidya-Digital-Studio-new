@@ -32,6 +32,22 @@ const whatsappMessageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    mediaUrl: {
+      type: String,
+      trim: true,
+    },
+    mediaId: {
+      type: String,
+      trim: true,
+    },
+    mimeType: {
+      type: String,
+      trim: true,
+    },
+    caption: {
+      type: String,
+      trim: true,
+    },
     buttonReplyId: {
       type: String,
     },

@@ -17,6 +17,13 @@ import {
   FiCheck,
   FiClock,
   FiMessageSquare,
+  FiImage,
+  FiFileText,
+  FiMaximize2,
+  FiDownload,
+  FiExternalLink,
+  FiX,
+  FiVideo,
 } from "react-icons/fi";
 import { IoLogoWhatsapp } from "react-icons/io5";
 
@@ -30,8 +37,42 @@ export default function WhatsAppChats() {
   const [searchQuery, setSearchQuery] = useState("");
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
 
   const messagesEndRef = useRef(null);
+
+  // Close modal on Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && modalImage) {
+        setModalImage(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalImage]);
+
+  // Media type detection helpers
+  const isImageMsg = (m) => {
+    if (m?.type === "image") return true;
+    if (m?.mimeType?.startsWith("image/")) return true;
+    if (m?.mediaUrl && /\.(jpeg|jpg|png|webp|gif|svg)($|\?)/i.test(m.mediaUrl)) return true;
+    return false;
+  };
+
+  const isDocMsg = (m) => {
+    if (m?.type === "document") return true;
+    if (m?.mimeType && (m.mimeType.includes("pdf") || m.mimeType.includes("document") || m.mimeType.includes("sheet") || m.mimeType.includes("zip"))) return true;
+    if (m?.mediaUrl && /\.(pdf|doc|docx|xls|xlsx|csv|zip)($|\?)/i.test(m.mediaUrl)) return true;
+    return false;
+  };
+
+  const isVideoMsg = (m) => {
+    if (m?.type === "video") return true;
+    if (m?.mimeType?.startsWith("video/")) return true;
+    if (m?.mediaUrl && /\.(mp4|mov|webm)($|\?)/i.test(m.mediaUrl)) return true;
+    return false;
+  };
 
   // Scroll to bottom helper
   const scrollToBottom = () => {
@@ -285,8 +326,39 @@ export default function WhatsAppChats() {
 
                     <div className={styles.convBottom}>
                       <p className={styles.lastMsgPreview}>
-                        {c.lastMessage?.direction === "outbound" ? "You: " : ""}
-                        {c.lastMessage?.body || "Interactive message"}
+                        {(() => {
+                          const last = c.lastMessage;
+                          if (!last) return "No messages";
+                          const prefix = last.direction === "outbound" ? "You: " : "";
+                          if (last.mediaUrl || last.type === "image" || last.body === "[image]") {
+                            return (
+                              <span className={styles.previewMediaTag}>
+                                {prefix}
+                                <FiImage className={styles.previewIcon} />
+                                {last.caption || "Photo"}
+                              </span>
+                            );
+                          }
+                          if (last.type === "document" || last.body === "[document]") {
+                            return (
+                              <span className={styles.previewMediaTag}>
+                                {prefix}
+                                <FiFileText className={styles.previewIcon} />
+                                {last.caption || "Document"}
+                              </span>
+                            );
+                          }
+                          if (last.type === "video" || last.body === "[video]") {
+                            return (
+                              <span className={styles.previewMediaTag}>
+                                {prefix}
+                                <FiVideo className={styles.previewIcon} />
+                                {last.caption || "Video"}
+                              </span>
+                            );
+                          }
+                          return `${prefix}${last.body || "Interactive message"}`;
+                        })()}
                       </p>
 
                       {isStaff ? (
@@ -462,18 +534,125 @@ export default function WhatsAppChats() {
                               </span>
                             )}
 
-                            <div className={styles.messageText}>
-                              {isLeadAction ? (
-                                renderFormattedText(m.body)
-                              ) : (
-                                renderFormattedText(m.body)
+                            {/* 1. Live Image Media */}
+                            {m.mediaUrl && isImageMsg(m) && (
+                              <div className={styles.mediaContainer}>
+                                <div
+                                  className={styles.imageCard}
+                                  onClick={() =>
+                                    setModalImage({
+                                      url: m.mediaUrl,
+                                      caption:
+                                        m.caption ||
+                                        (m.body && m.body !== "[image]" ? m.body : ""),
+                                    })
+                                  }
+                                  title="Click to view full size"
+                                >
+                                  <img
+                                    src={m.mediaUrl}
+                                    alt={m.caption || "WhatsApp media"}
+                                    className={styles.chatImage}
+                                    loading="lazy"
+                                  />
+                                  <div className={styles.imageOverlay}>
+                                    <FiMaximize2 />
+                                    <span>Click to view full size</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* 2. Live Document Media */}
+                            {m.mediaUrl && isDocMsg(m) && (
+                              <div className={styles.docContainer}>
+                                <a
+                                  href={m.mediaUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.docAttachment}
+                                  download
+                                >
+                                  <div className={styles.docIconBox}>
+                                    <FiFileText size={22} />
+                                  </div>
+                                  <div className={styles.docDetails}>
+                                    <span className={styles.docName}>
+                                      {m.caption || "Document Attachment"}
+                                    </span>
+                                    <span className={styles.docDownloadPrompt}>
+                                      <FiDownload size={12} /> Download / Open
+                                    </span>
+                                  </div>
+                                </a>
+                              </div>
+                            )}
+
+                            {/* 3. Live Video Media */}
+                            {m.mediaUrl && isVideoMsg(m) && (
+                              <div className={styles.mediaContainer}>
+                                <video
+                                  controls
+                                  src={m.mediaUrl}
+                                  className={styles.chatVideo}
+                                />
+                              </div>
+                            )}
+
+                            {/* 4. Legacy Image without stored mediaUrl */}
+                            {!m.mediaUrl &&
+                              (m.body === "[image]" || m.type === "image") && (
+                                <div className={styles.legacyImageNotice}>
+                                  <div className={styles.legacyIconBox}>
+                                    <FiImage size={20} />
+                                  </div>
+                                  <div className={styles.legacyTextCol}>
+                                    <span className={styles.legacyHeading}>
+                                      Photo received
+                                    </span>
+                                    <span className={styles.legacySub}>
+                                      Received prior to media sync. All new incoming photos display with live photo preview.
+                                    </span>
+                                  </div>
+                                </div>
                               )}
-                            </div>
+
+                            {/* 5. Legacy Document without stored mediaUrl */}
+                            {!m.mediaUrl &&
+                              (m.body === "[document]" || m.type === "document") && (
+                                <div className={styles.legacyImageNotice}>
+                                  <div className={styles.legacyIconBox}>
+                                    <FiFileText size={20} />
+                                  </div>
+                                  <div className={styles.legacyTextCol}>
+                                    <span className={styles.legacyHeading}>
+                                      Document received
+                                    </span>
+                                    <span className={styles.legacySub}>
+                                      Received prior to media sync.
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                            {/* Text content (body or caption) */}
+                            {m.body &&
+                              m.body !== "[image]" &&
+                              m.body !== "[document]" &&
+                              m.body !== "[video]" &&
+                              m.body !== "[audio]" && (
+                                <div className={styles.messageText}>
+                                  {renderFormattedText(m.body)}
+                                </div>
+                              )}
 
                             <div className={styles.bubbleMeta}>
                               <span>{formatTime(m.createdAt)}</span>
                               {!isInbound && (
-                                <span className={styles.checkmarks} title="Delivered">
+                                <span
+                                  className={styles.checkmarks}
+                                  title="Delivered"
+                                >
                                   ✓✓
                                 </span>
                               )}
@@ -535,6 +714,58 @@ export default function WhatsAppChats() {
           </>
         )}
       </div>
+
+      {/* Lightbox Image Preview Modal */}
+      {modalImage && (
+        <div
+          className={styles.lightboxModal}
+          onClick={() => setModalImage(null)}
+        >
+          <div
+            className={styles.lightboxContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.lightboxHeader}>
+              <div className={styles.lightboxTitle}>
+                <FiImage style={{ verticalAlign: "middle", marginRight: 8 }} />
+                <span>{modalImage.caption || "WhatsApp Photo"}</span>
+              </div>
+              <div className={styles.lightboxActions}>
+                <a
+                  href={modalImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.lightboxBtn}
+                  title="Open original in new tab / Download"
+                  download
+                >
+                  <FiExternalLink />
+                </a>
+                <button
+                  type="button"
+                  className={styles.lightboxBtn}
+                  onClick={() => setModalImage(null)}
+                  title="Close preview"
+                >
+                  <FiX />
+                </button>
+              </div>
+            </div>
+            <div className={styles.lightboxImgContainer}>
+              <img
+                src={modalImage.url}
+                alt={modalImage.caption || "Full preview"}
+                className={styles.lightboxImg}
+              />
+            </div>
+            {modalImage.caption && (
+              <div className={styles.lightboxCaption}>
+                {renderFormattedText(modalImage.caption)}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import {
   getConversationsService,
   getConversationMessagesService,
   sendManualMessageService,
+  streamWhatsAppMedia,
 } from "./whatsapp.service.js";
 import { asyncHandler } from "../StaffCRM/utils/asyncHandler.js";
 
@@ -69,3 +70,8 @@ export const sendManualMessage = asyncHandler(async (req, res) => {
     data: result,
   });
 });
+
+export const getMedia = async (req, res) => {
+  const { mediaId } = req.params;
+  await streamWhatsAppMedia(mediaId, res);
+};

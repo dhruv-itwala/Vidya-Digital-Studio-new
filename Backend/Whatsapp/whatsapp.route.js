@@ -5,6 +5,7 @@ import {
   getConversations,
   getConversationMessages,
   sendManualMessage,
+  getMedia,
 } from "./whatsapp.controller.js";
 import { protect } from "../StaffCRM/middleware/auth.middleware.js";
 import { roleCheck } from "../StaffCRM/middleware/role.middleware.js";
@@ -14,6 +15,9 @@ const whatsappRoutes = express.Router();
 // Webhook
 whatsappRoutes.get("/webhook", verifyWebhook);
 whatsappRoutes.post("/webhook", receiveMessage);
+
+// Media Streaming Proxy
+whatsappRoutes.get("/media/:mediaId", getMedia);
 
 // Conversation History & Chat Management (Admin, HR, Administrative)
 whatsappRoutes.get("/conversations", protect, roleCheck("admin", "hr"), getConversations);

@@ -4,6 +4,7 @@ import Lead from "../StaffCRM/Leads/Lead.model.js";
 import { createLeadService } from "../StaffCRM/Leads/Lead.service.js";
 import { logActivity } from "../StaffCRM/AuditLog/AuditLog.service.js";
 import WhatsappMessage from "./WhatsappMessage.model.js";
+import cloudinary from "../config/cloudinary.config.js";
 
 /* =====================================================
    CONFIG
@@ -370,6 +371,12 @@ export const processMessage = async (body) => {
     console.log("LIST:", listReply);
     console.log("================================\n");
 
+    // Extract media information if message has an attachment
+    const mediaObj = message?.image || message?.document || message?.video || message?.audio;
+    const mediaId = mediaObj?.id;
+    const mimeType = mediaObj?.mime_type;
+    const caption = mediaObj?.caption || "";
+
     // Save inbound message to conversation history
     await saveInboundMessage({
       from,
@@ -378,6 +385,9 @@ export const processMessage = async (body) => {
       listReply,
       messageType: message.type,
       profileName: value?.contacts?.[0]?.profile?.name,
+      mediaId,
+      mimeType,
+      caption,
     });
 
 
@@ -1092,9 +1102,25 @@ const saveInboundMessage = async ({
   listReply,
   messageType,
   profileName,
+  mediaId,
+  mimeType,
+  caption,
 }) => {
   try {
     let body = text;
+    let mediaUrl = null;
+
+    if (mediaId) {
+      const uploaded = await downloadAndUploadWhatsAppMedia(mediaId);
+      if (uploaded?.mediaUrl) {
+        mediaUrl = uploaded.mediaUrl;
+      } else {
+        const backendBase = process.env.BASE_URL || "https://backend.vidyadigitalstudio.com";
+        const version = process.env.VERSION || "v1.0";
+        mediaUrl = `${backendBase}/api/${version}/whatsapp/media/${mediaId}`;
+      }
+    }
+
     if (!body && buttonReply) {
       body = buttonReply === "lead_show"
         ? "📋 Show leads"
@@ -1104,7 +1130,7 @@ const saveInboundMessage = async ({
     } else if (!body && listReply) {
       body = listReply;
     } else if (!body) {
-      body = `[${messageType || "message"}]`;
+      body = caption ? caption : `[${messageType || "message"}]`;
     }
 
     const clean = from.replace(/\D/g, "");
@@ -1122,6 +1148,10 @@ const saveInboundMessage = async ({
       direction: "inbound",
       type: messageType || "text",
       body,
+      mediaUrl,
+      mediaId,
+      mimeType,
+      caption,
       buttonReplyId: buttonReply,
       listReplyId: listReply,
       senderName: staffUser?.name || profileName || from,
@@ -1131,6 +1161,74 @@ const saveInboundMessage = async ({
     });
   } catch (err) {
     console.error("❌ Error saving inbound WhatsApp message:", err.message);
+  }
+};
+
+export const downloadAndUploadWhatsAppMedia = async (mediaId) => {
+  if (!mediaId) return null;
+  try {
+    const metaRes = await axios.get(`https://graph.facebook.com/v22.0/${mediaId}`, {
+      headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}` },
+    });
+
+    const downloadUrl = metaRes.data?.url;
+    const mimeType = metaRes.data?.mime_type || "image/jpeg";
+    if (!downloadUrl) return null;
+
+    const fileRes = await axios.get(downloadUrl, {
+      headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}` },
+      responseType: "arraybuffer",
+    });
+
+    const buffer = Buffer.from(fileRes.data);
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "Vidya Digital Studio/whatsapp_media",
+          resource_type: "auto",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(buffer);
+    });
+
+    return {
+      mediaUrl: uploadResult.secure_url,
+      mimeType,
+    };
+  } catch (err) {
+    console.error("❌ Error downloading/uploading WhatsApp media:", err.response?.data || err.message);
+    return null;
+  }
+};
+
+export const streamWhatsAppMedia = async (mediaId, res) => {
+  try {
+    const metaRes = await axios.get(`https://graph.facebook.com/v22.0/${mediaId}`, {
+      headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}` },
+    });
+
+    const downloadUrl = metaRes.data?.url;
+    const mimeType = metaRes.data?.mime_type || "image/jpeg";
+    if (!downloadUrl) {
+      return res.status(404).json({ success: false, message: "Media not found" });
+    }
+
+    const fileStream = await axios.get(downloadUrl, {
+      headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}` },
+      responseType: "stream",
+    });
+
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    fileStream.data.pipe(res);
+  } catch (err) {
+    console.error("❌ Error streaming WhatsApp media:", err.response?.data || err.message);
+    res.status(500).json({ success: false, message: "Failed to stream media" });
   }
 };
 
