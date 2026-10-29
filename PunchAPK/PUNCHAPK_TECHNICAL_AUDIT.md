@@ -658,7 +658,7 @@ jobs:
 ```
 
 ### 13.2 Required GitHub Repository Secrets (By Name & Purpose)
-- `EXPO_PUBLIC_API_URL`: The production or staging HTTPS API base URL (e.g. `https://crm.vidyadigitalstudio.com/api/v1.0`).
+- `EXPO_PUBLIC_API_URL`: The production or staging HTTPS API base URL (e.g. `https://backend.vidyadigitalstudio.com/api/v1.0`).
 - `ANDROID_KEYSTORE_BASE64`: Base64-encoded standard Java Keystore (`.jks` / `.keystore`) file.
 - `ANDROID_KEYSTORE_PASSWORD`: Keystore master password.
 - `ANDROID_KEY_ALIAS`: Private signing key alias name.

@@ -100,7 +100,7 @@ The project includes an automated GitHub Actions CI workflow located at:
 
 ### Optional GitHub Repository Secrets
 To build signed production release APKs, configure these secrets under **Settings** → **Secrets and variables** → **Actions**:
-- `EXPO_PUBLIC_API_URL`: The production API base URL (e.g., `https://crm.vidyadigitalstudio.com/api/v1.0`).
+- `EXPO_PUBLIC_API_URL`: The production API base URL (e.g., `http://backend.vidyadigitalstudio.com/api/v1.0`).
 - `ANDROID_KEYSTORE_BASE64`: Base64-encoded Java Keystore file.
 - `ANDROID_KEYSTORE_PASSWORD`: Master Keystore password.
 - `ANDROID_KEY_ALIAS`: Signing key alias.

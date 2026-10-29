@@ -2,7 +2,7 @@
 
 export const DEFAULT_CONFIG = {
   apiUrl:
-    process.env.EXPO_PUBLIC_API_URL || "https://crm.vidyadigitalstudio.com/api/v1.0",
+    process.env.EXPO_PUBLIC_API_URL || "https://backend.vidyadigitalstudio.com/api/v1.0",
   deviceId:
     process.env.EXPO_PUBLIC_DEFAULT_DEVICE_ID || "M32-KIOSK-01",
   // SECURITY REQUIREMENT:

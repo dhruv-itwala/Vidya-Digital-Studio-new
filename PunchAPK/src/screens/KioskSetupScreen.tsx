@@ -80,19 +80,6 @@ export const KioskSetupScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    if (
-      cleanUrl.startsWith("http://") &&
-      !cleanUrl.includes("localhost") &&
-      !cleanUrl.includes("127.0.0.1") &&
-      !cleanUrl.includes("192.168.") &&
-      !cleanUrl.includes("10.")
-    ) {
-      Alert.alert(
-        "Security Warning",
-        "Cleartext HTTP detected on a non-private IP. Production traffic must use HTTPS to protect device credentials in transit.",
-      );
-    }
-
     setSaving(true);
     try {
       await saveKioskConfig({
@@ -192,12 +179,12 @@ export const KioskSetupScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.formCard}>
           <Text style={styles.sectionHeader}>API & DEVICE CREDENTIALS</Text>
 
-          <Text style={styles.inputLabel}>Backend API Base URL (HTTPS required in production)</Text>
+          <Text style={styles.inputLabel}>Backend API Base URL</Text>
           <TextInput
             style={styles.input}
             value={apiUrl}
             onChangeText={setApiUrl}
-            placeholder="https://crm.vidyadigitalstudio.com/api/v1.0"
+            placeholder="http://backend.vidyadigitalstudio.com/api/v1.0"
             placeholderTextColor="#6b7280"
             autoCapitalize="none"
             autoCorrect={false}
