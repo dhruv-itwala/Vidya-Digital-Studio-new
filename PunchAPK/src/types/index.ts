@@ -37,6 +37,7 @@ export interface WifiStatus {
 }
 
 export interface TodayWorkRecord {
+  date?: string | Date;
   punchIn?: string | null;
   punchOut?: string | null;
   totalWorkMinutes: number;

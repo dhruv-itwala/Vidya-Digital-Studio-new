@@ -6,78 +6,84 @@ import Holiday from "../../Holidays/holiday.model.js";
 
 import { getCurrentWeekRangeIST, calcLiveNetSeconds } from "../utils/attendance.utils.js";
 
-cron.schedule("59 23 * * *", async () => {
-  console.log("Running Weekly Progress Cron");
+cron.schedule(
+  "59 23 * * *",
+  async () => {
+    console.log("Running Weekly Progress Cron");
 
-  const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
+    const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
 
-  const users = await User.find({
-    isActive: true,
-  }).lean();
+    const users = await User.find({
+      isActive: true,
+    }).lean();
 
-  // ===== FIND HOLIDAYS =====
-  const holidays = await Holiday.find({
-    date: { $gte: weekStartUTC, $lte: weekEndUTC },
-  }).lean();
+    // ===== FIND HOLIDAYS =====
+    const holidays = await Holiday.find({
+      date: { $gte: weekStartUTC, $lte: weekEndUTC },
+    }).lean();
 
-  let holidayCount = 0;
+    let holidayCount = 0;
 
-  for (const h of holidays) {
-    const day = new Date(h.date.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay();
-    if (day !== 0 && day !== 6) {
-      holidayCount++;
+    for (const h of holidays) {
+      const day = new Date(h.date.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay();
+      if (day !== 0 && day !== 6) {
+        holidayCount++;
+      }
     }
-  }
 
-  const requiredSeconds = (48 - holidayCount * 8) * 60 * 60;
+    const requiredSeconds = (48 - holidayCount * 8) * 60 * 60;
 
-  // Batch process users to prevent MongoDB connection saturation
-  const BATCH_SIZE = 15;
-  for (let i = 0; i < users.length; i += BATCH_SIZE) {
-    const batch = users.slice(i, i + BATCH_SIZE);
+    // Batch process users to prevent MongoDB connection saturation
+    const BATCH_SIZE = 15;
+    for (let i = 0; i < users.length; i += BATCH_SIZE) {
+      const batch = users.slice(i, i + BATCH_SIZE);
 
-    await Promise.all(
-      batch.map(async (user) => {
-        const records = await WorkRecord.find({
-          user: user._id,
-          date: { $gte: weekStartUTC, $lte: weekEndUTC },
-        }).lean();
-
-        let totalSeconds = 0;
-
-        for (const record of records) {
-          if (!record.punchIn) continue;
-          totalSeconds += calcLiveNetSeconds(record, new Date());
-        }
-
-        const weekFinished = new Date() > weekEndUTC;
-
-        let status = "IN_PROGRESS";
-
-        if (totalSeconds >= requiredSeconds) {
-          status = "COMPLETED";
-        } else if (weekFinished) {
-          status = "DEFICIT";
-        }
-
-        const totalMinutes = Math.floor(totalSeconds / 60);
-
-        await weeklyWork.findOneAndUpdate(
-          {
+      await Promise.all(
+        batch.map(async (user) => {
+          const records = await WorkRecord.find({
             user: user._id,
-            weekStart: weekStartUTC,
-          },
-          {
-            weekEnd: weekEndUTC,
-            totalMinutes,
-            requiredMinutes: requiredSeconds / 60,
-            status,
-          },
-          { upsert: true }
-        );
-      })
-    );
-  }
+            date: { $gte: weekStartUTC, $lte: weekEndUTC },
+          }).lean();
 
-  console.log("Weekly Progress Cron Completed");
-});
+          let totalSeconds = 0;
+
+          for (const record of records) {
+            if (!record.punchIn) continue;
+            totalSeconds += calcLiveNetSeconds(record, new Date());
+          }
+
+          const weekFinished = new Date() > weekEndUTC;
+
+          let status = "IN_PROGRESS";
+
+          if (totalSeconds >= requiredSeconds) {
+            status = "COMPLETED";
+          } else if (weekFinished) {
+            status = "DEFICIT";
+          }
+
+          const totalMinutes = Math.floor(totalSeconds / 60);
+
+          await weeklyWork.findOneAndUpdate(
+            {
+              user: user._id,
+              weekStart: weekStartUTC,
+            },
+            {
+              weekEnd: weekEndUTC,
+              totalMinutes,
+              requiredMinutes: requiredSeconds / 60,
+              status,
+            },
+            { upsert: true }
+          );
+        })
+      );
+    }
+
+    console.log("Weekly Progress Cron Completed");
+  },
+  {
+    timezone: "Asia/Kolkata",
+  },
+);

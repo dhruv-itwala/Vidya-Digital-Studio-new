@@ -262,9 +262,16 @@ export const EmployeePunchScreen: React.FC<Props> = ({
     loadAttendance();
   };
 
+  // IST Date check to ensure record belongs strictly to today
+  const todayISTStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const isRecordFromToday = record?.date
+    ? new Date(record.date).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }) === todayISTStr
+    : false;
+  const validRecord = isRecordFromToday ? record : null;
+
   // Determine current punch action
-  const isWorking = Boolean(record?.punchIn && !record?.punchOut);
-  const isCompleted = Boolean(record?.punchIn && record?.punchOut);
+  const isWorking = Boolean(validRecord?.punchIn && !validRecord?.punchOut);
+  const isCompleted = Boolean(validRecord?.punchIn && validRecord?.punchOut);
   const nextAction: "PUNCH_IN" | "PUNCH_OUT" = isWorking
     ? "PUNCH_OUT"
     : "PUNCH_IN";
@@ -529,7 +536,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
               />
               <Text style={styles.statLabel}>Punch In</Text>
               <Text style={styles.statValue}>
-                {formatTimeStr(record?.punchIn)}
+                {formatTimeStr(validRecord?.punchIn)}
               </Text>
             </View>
 
@@ -543,7 +550,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
               />
               <Text style={styles.statLabel}>Punch Out</Text>
               <Text style={styles.statValue}>
-                {formatTimeStr(record?.punchOut)}
+                {formatTimeStr(validRecord?.punchOut)}
               </Text>
             </View>
 
@@ -557,9 +564,9 @@ export const EmployeePunchScreen: React.FC<Props> = ({
               />
               <Text style={styles.statLabel}>Total Time</Text>
               <Text style={styles.statValue}>
-                {record?.totalWorkMinutes
-                  ? `${Math.floor(record.totalWorkMinutes / 60)}h ${
-                      record.totalWorkMinutes % 60
+                {validRecord?.totalWorkMinutes
+                  ? `${Math.floor(validRecord.totalWorkMinutes / 60)}h ${
+                      validRecord.totalWorkMinutes % 60
                     }m`
                   : "--"}
               </Text>

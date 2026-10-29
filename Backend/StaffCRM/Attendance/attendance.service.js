@@ -96,10 +96,88 @@ export const getMyAttendanceService = async (userId, from, to) => {
   return records;
 };
 
+// ================= AUTO-CLOSE PAST UNCLOSED WORK RECORDS ================= */
+export const autoClosePastUnclosedWorkRecords = async (userId = null) => {
+  const today = todayISTUTC();
+  const query = {
+    date: { $lt: today },
+    punchIn: { $exists: true },
+    $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
+  };
+  if (userId) {
+    query.user = userId;
+  }
+
+  const records = await WorkRecord.find(query);
+  if (!records || records.length === 0) return 0;
+
+  const workRecordOps = [];
+  const attendanceOps = [];
+
+  for (const record of records) {
+    const cappedPunchOut = new Date(record.punchIn.getTime() + 8 * 60 * 60 * 1000);
+    record.punchOut = cappedPunchOut;
+    record.autoClosed = true;
+
+    if (record.breaks?.length) {
+      record.breaks.forEach((b) => !b.out && (b.out = cappedPunchOut));
+    }
+    if (record.punches?.length) {
+      record.punches.forEach((p) => !p.out && (p.out = cappedPunchOut));
+    } else {
+      record.punches = [{ in: record.punchIn, out: cappedPunchOut }];
+    }
+
+    calcWorkMinutes(record);
+
+    workRecordOps.push({
+      updateOne: {
+        filter: { _id: record._id },
+        update: {
+          $set: {
+            punchOut: record.punchOut,
+            autoClosed: record.autoClosed,
+            breaks: record.breaks,
+            punches: record.punches,
+            totalWorkMinutes: record.totalWorkMinutes,
+            totalBreakMinutes: record.totalBreakMinutes,
+            netWorkMinutes: record.netWorkMinutes,
+          },
+        },
+      },
+    });
+
+    attendanceOps.push({
+      updateOne: {
+        filter: { user: record.user, date: record.date },
+        update: {
+          $set: {
+            status: "INCOMPLETE",
+            source: "SYSTEM",
+            remarks: "Auto closed at midnight (forgot punch-out)",
+          },
+        },
+        upsert: true,
+      },
+    });
+  }
+
+  await Promise.all([
+    WorkRecord.bulkWrite(workRecordOps),
+    Attendance.bulkWrite(attendanceOps),
+  ]);
+
+  return records.length;
+};
+
 // ================= PUNCH IN ================= */
 export const punchInService = async (userId) => {
   const now = nowUTC();
   const date = todayISTUTC();
+
+  // Self-heal: ensure any dangling previous day records are closed
+  await autoClosePastUnclosedWorkRecords(userId);
+
   const [user, isHoliday, existing] = await Promise.all([
     User.findById(userId).select("role").lean(),
     Holiday.exists({ date }),
@@ -180,18 +258,8 @@ export const punchInService = async (userId) => {
 // ================= PUNCH OUT ================= */
 export const punchOutService = async (userId) => {
   const today = todayISTUTC();
-  const yesterday = new Date(today.getTime() - 86400000);
 
-  let record = await WorkRecord.findOne({ user: userId, date: today });
-
-  if (!record) {
-    record = await WorkRecord.findOne({
-      user: userId,
-      date: yesterday,
-      punchIn: { $exists: true },
-      $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
-    });
-  }
+  const record = await WorkRecord.findOne({ user: userId, date: today });
 
   if (!record || !record.punchIn) {
     throw new AppError("Punch in first", 400);
@@ -700,21 +768,14 @@ export const deleteAttendanceByIdService = async (attendanceId) => {
 // ================ GET TODAY WORK RECORD ================= */
 export const getTodayWorkRecordService = async (userId) => {
   const today = todayISTUTC();
-  const yesterday = new Date(today.getTime() - 86400000);
 
-  let record = await WorkRecord.findOne({
+  // Self-heal: auto-close any past unclosed records from yesterday or earlier
+  await autoClosePastUnclosedWorkRecords(userId);
+
+  const record = await WorkRecord.findOne({
     user: userId,
     date: today,
   }).lean();
-
-  if (!record) {
-    record = await WorkRecord.findOne({
-      user: userId,
-      date: yesterday,
-      punchIn: { $exists: true },
-      $or: [{ punchOut: { $exists: false } }, { punchOut: null }],
-    }).lean();
-  }
 
   if (!record) return null;
 

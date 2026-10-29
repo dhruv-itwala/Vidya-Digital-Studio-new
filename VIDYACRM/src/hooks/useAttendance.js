@@ -71,7 +71,14 @@ export const useAttendance = () => {
       getWeeklyProgressAPI(),
     ]);
 
-    const record = recordRes?.data?.data;
+    const getISTDate = (date) =>
+      new Date(date).toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata",
+      });
+    const today = getISTDate(new Date());
+    const rawRecord = recordRes?.data?.data;
+    const isToday = rawRecord?.date ? getISTDate(rawRecord.date) === today : false;
+    const record = isToday ? rawRecord : null;
     const weekly = weeklyRes?.data?.data;
 
     const dailyRequiredSeconds = weekly?.dailyRequiredSeconds || 8 * 3600;
@@ -158,7 +165,9 @@ export const useAttendance = () => {
         return;
       }
 
-      const record = recordRes?.data?.data;
+      const rawRecord = recordRes?.data?.data;
+      const isToday = rawRecord?.date ? getISTDate(rawRecord.date) === today : false;
+      const record = isToday ? rawRecord : null;
       const weekly = weeklyRes?.data?.data;
 
       const dailyRequiredSeconds = weekly?.dailyRequiredSeconds || 8 * 3600;
@@ -243,6 +252,20 @@ export const useAttendance = () => {
     fetchDashboardStatus();
     const abort = abortRef.current;
     return () => abort?.abort();
+  }, [fetchDashboardStatus]);
+
+  /* ================= AUTO-REFRESH ON MIDNIGHT DATE CHANGE ================= */
+  useEffect(() => {
+    let currentDay = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const interval = setInterval(() => {
+      const nowDay = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+      if (nowDay !== currentDay) {
+        currentDay = nowDay;
+        fetchDashboardStatus();
+      }
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, [fetchDashboardStatus]);
 
   /* ================= AUTO-SYNC ON TAB WAKE UP ================= */
