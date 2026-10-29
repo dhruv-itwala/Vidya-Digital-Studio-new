@@ -87,18 +87,20 @@ jobs:
         working-directory: PunchAPK/android
         run: |
           chmod +x gradlew
-          if [ "${{ github.event.inputs.build_type }}" = "debug" ] || [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "Building Debug / Unsigned APK..."
-            ./gradlew assembleDebug --no-daemon --stacktrace
+          if [ "${{ github.event.inputs.build_type }}" = "debug" ]; then
+            echo "Building Standalone Debug APK with embedded bundle..."
+            ./gradlew assembleDebug -Preact.bundleInDebug=true --no-daemon --stacktrace
             echo "APK_PATH=PunchAPK/android/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_ENV
             echo "ARTIFACT_NAME=vds-punchapk-debug-${{ github.run_number }}.apk" >> $GITHUB_ENV
           else
-            echo "Building Signed Release APK..."
+            echo "Building Standalone Release APK..."
             ./gradlew assembleRelease --no-daemon --stacktrace
             echo "APK_PATH=PunchAPK/android/app/build/outputs/apk/release/app-release.apk" >> $GITHUB_ENV
             echo "ARTIFACT_NAME=vds-punchapk-release-${{ github.run_number }}.apk" >> $GITHUB_ENV
           fi
         env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL || 'http://backend.vidyadigitalstudio.com/api/v1.0' }}
+          EXPO_PUBLIC_DEFAULT_DEVICE_ID: ${{ secrets.KIOSK_DEVICE_ID || 'M32-KIOSK-01' }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
