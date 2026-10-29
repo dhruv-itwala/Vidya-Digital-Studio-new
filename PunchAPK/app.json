@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0b0f19"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -43,7 +45,8 @@
             "usesCleartextTraffic": true
           }
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }
