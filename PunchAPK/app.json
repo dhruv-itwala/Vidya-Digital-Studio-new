@@ -2,7 +2,7 @@
   "expo": {
     "name": "VDS Punch Kiosk",
     "slug": "vds-punch-kiosk",
-    "version": "1.0.0",
+    "version": "1.3.90",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.vds.punchkiosk",
+      "versionCode": 1390,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0b0f19"
