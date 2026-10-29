@@ -1,7 +1,7 @@
 // PunchAPK/src/services/storage.service.ts
 import * as SecureStore from "expo-secure-store";
-import { DEFAULT_CONFIG, KIOSK_STORAGE_KEYS } from "../config/env";
-import { KioskConfig } from "../types";
+import { DEFAULT_CONFIG, STORAGE_KEYS, KIOSK_STORAGE_KEYS } from "../config/env";
+import { KioskConfig, AuthSession, UserProfile } from "../types";
 
 export const getKioskConfig = async (): Promise<KioskConfig> => {
   try {
@@ -125,5 +125,61 @@ export const resetKioskConfig = async (): Promise<void> => {
     ]);
   } catch (err) {
     console.warn("SecureStore reset error:", err);
+  }
+};
+
+/**
+ * Saves authenticated employee session (JWT token & profile) in hardware SecureStore.
+ */
+export const saveAuthSession = async (
+  token: string,
+  user: UserProfile,
+): Promise<void> => {
+  try {
+    await Promise.all([
+      SecureStore.setItemAsync(STORAGE_KEYS.AUTH_TOKEN, token.trim()),
+      SecureStore.setItemAsync(STORAGE_KEYS.USER_PROFILE, JSON.stringify(user)),
+    ]);
+  } catch (err) {
+    console.error("Failed to securely store auth session:", err);
+    throw new Error("Unable to save authentication session.");
+  }
+};
+
+/**
+ * Retrieves the stored employee session if logged in.
+ */
+export const getAuthSession = async (): Promise<AuthSession | null> => {
+  try {
+    const [token, userJson] = await Promise.all([
+      SecureStore.getItemAsync(STORAGE_KEYS.AUTH_TOKEN),
+      SecureStore.getItemAsync(STORAGE_KEYS.USER_PROFILE),
+    ]);
+
+    if (!token || !userJson) {
+      return null;
+    }
+
+    return {
+      token,
+      user: JSON.parse(userJson) as UserProfile,
+    };
+  } catch (err) {
+    console.warn("Error reading auth session from SecureStore:", err);
+    return null;
+  }
+};
+
+/**
+ * Clears employee session on logout.
+ */
+export const clearAuthSession = async (): Promise<void> => {
+  try {
+    await Promise.all([
+      SecureStore.deleteItemAsync(STORAGE_KEYS.AUTH_TOKEN),
+      SecureStore.deleteItemAsync(STORAGE_KEYS.USER_PROFILE),
+    ]);
+  } catch (err) {
+    console.warn("Error clearing auth session:", err);
   }
 };

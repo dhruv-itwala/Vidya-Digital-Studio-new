@@ -103,4 +103,45 @@ describe("Kiosk Mobile Client Logic Tests", () => {
     // Invalid: Empty
     assert.equal(validatePinSetup("", "").valid, false);
   });
+
+  test("6. Studio Wi-Fi subnet verification accepts 192.168.0.x and rejects cellular/other IPs", () => {
+    const isStudioSubnet = (ip, targetSubnet = "192.168.0.") => {
+      if (!ip || typeof ip !== "string") return false;
+      return ip.trim().startsWith(targetSubnet);
+    };
+
+    assert.equal(isStudioSubnet("192.168.0.149"), true);
+    assert.equal(isStudioSubnet("192.168.0.1"), true);
+    assert.equal(isStudioSubnet("192.168.0.254"), true);
+
+    // Other Wi-Fi networks / subnets
+    assert.equal(isStudioSubnet("192.168.1.50"), false);
+    assert.equal(isStudioSubnet("10.0.0.12"), false);
+
+    // Mobile carrier cellular data
+    assert.equal(isStudioSubnet("100.72.14.9"), false);
+    assert.equal(isStudioSubnet(""), false);
+    assert.equal(isStudioSubnet(null), false);
+  });
+
+  test("7. Auth session payload validator enforces token and user profile structure", () => {
+    const validateAuthSession = (session) => {
+      if (!session || typeof session !== "object") return false;
+      if (!session.token || typeof session.token !== "string") return false;
+      if (!session.user || typeof session.user !== "object") return false;
+      if (!session.user._id || !session.user.name || !session.user.email) return false;
+      return true;
+    };
+
+    assert.equal(
+      validateAuthSession({
+        token: "eyJhbGciOi...",
+        user: { _id: "usr_123", name: "Rahul Sharma", email: "rahul@vds.com" },
+      }),
+      true,
+    );
+
+    assert.equal(validateAuthSession({ token: "123" }), false);
+    assert.equal(validateAuthSession(null), false);
+  });
 });

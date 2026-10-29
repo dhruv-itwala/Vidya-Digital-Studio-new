@@ -23,6 +23,7 @@
     "expo-font": "~13.0.4",
     "expo-keep-awake": "~14.0.2",
     "expo-local-authentication": "~15.0.2",
+    "expo-network": "~7.0.5",
     "expo-secure-store": "~14.0.1",
     "expo-status-bar": "~2.0.1",
     "expo-system-ui": "~4.0.9",

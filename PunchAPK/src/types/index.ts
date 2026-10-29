@@ -9,6 +9,40 @@ export type AttendanceStatus =
 
 export type KioskAction = "PUNCH_IN" | "PUNCH_OUT" | "BREAK_OUT" | "NONE";
 
+export interface UserProfile {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: "administrative" | "admin" | "employee" | "hr" | "intern";
+  designation?: string;
+  profilePicture?: {
+    url: string;
+    public_id?: string;
+  };
+}
+
+export interface AuthSession {
+  token: string;
+  user: UserProfile;
+}
+
+export interface WifiStatus {
+  isStudioWifi: boolean;
+  localIp: string | null;
+  publicIp?: string | null;
+  isWifiConnected: boolean;
+  message?: string;
+}
+
+export interface TodayWorkRecord {
+  punchIn?: string | null;
+  punchOut?: string | null;
+  totalWorkMinutes: number;
+  attendanceStatus?: string;
+  punches?: Array<{ in: string; out?: string | null }>;
+}
+
 export interface Employee {
   id: string;
   name: string;
@@ -76,4 +110,3 @@ export interface BiometricCheckResult {
   isEnrolled: boolean;
   supportedTypes: string[];
 }
-

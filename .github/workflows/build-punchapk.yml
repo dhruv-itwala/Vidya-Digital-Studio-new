@@ -64,7 +64,7 @@ jobs:
         working-directory: Backend
         run: |
           npm install
-          node --test tests/kiosk.test.js
+          node --test tests/kiosk.test.js tests/officeWifi.test.js
 
       - name: 8. Generate Android Native Project via Expo Prebuild
         working-directory: PunchAPK
