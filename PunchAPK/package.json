@@ -8,7 +8,8 @@
     "android": "expo run:android",
     "build:prebuild": "expo prebuild --platform android --clean",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/kioskApp.test.js"
+    "test": "node --test tests/kioskApp.test.js",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
