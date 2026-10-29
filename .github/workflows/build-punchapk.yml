@@ -70,6 +70,7 @@ jobs:
         working-directory: PunchAPK
         run: |
           npx expo prebuild --platform android --clean
+          echo "android.disableAutomaticComponentCreation=false" >> android/gradle.properties
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL || 'http://backend.vidyadigitalstudio.com/api/v1.0' }}
           EXPO_PUBLIC_DEFAULT_DEVICE_ID: ${{ secrets.KIOSK_DEVICE_ID || 'M32-KIOSK-01' }}
@@ -88,12 +89,12 @@ jobs:
           chmod +x gradlew
           if [ "${{ github.event.inputs.build_type }}" = "debug" ] || [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
             echo "Building Debug / Unsigned APK..."
-            ./gradlew assembleDebug --no-daemon
+            ./gradlew assembleDebug --no-daemon --stacktrace
             echo "APK_PATH=PunchAPK/android/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_ENV
             echo "ARTIFACT_NAME=vds-punchapk-debug-${{ github.run_number }}.apk" >> $GITHUB_ENV
           else
             echo "Building Signed Release APK..."
-            ./gradlew assembleRelease --no-daemon
+            ./gradlew assembleRelease --no-daemon --stacktrace
             echo "APK_PATH=PunchAPK/android/app/build/outputs/apk/release/app-release.apk" >> $GITHUB_ENV
             echo "ARTIFACT_NAME=vds-punchapk-release-${{ github.run_number }}.apk" >> $GITHUB_ENV
           fi
