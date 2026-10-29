@@ -164,13 +164,14 @@ export const verifyOfficeWifi = (req) => {
 
 /**
  * Middleware that blocks punch requests if the user is not connected to Studio Wi-Fi.
- * Exempts employees whose work mode is set to WFH / On-site (requireOfficeWifi === false).
+ * Only enforces restriction when employee is explicitly marked with requireOfficeWifi === true.
+ * Exempts employees by default or when requireOfficeWifi is false/undefined (WFH / On-site).
  */
 export const requireOfficeWifi = async (req, res, next) => {
   try {
-    // If user is authenticated and NOT flagged for office Wi-Fi restriction
-    // (i.e. requireOfficeWifi === false, meaning WFH / On-site / Remote), allow punch!
-    if (req.user && req.user.requireOfficeWifi === false) {
+    // Only enforce office Wi-Fi if the employee is explicitly configured for it (requireOfficeWifi === true).
+    // If requireOfficeWifi is false, null, or undefined, the employee is allowed to punch from anywhere!
+    if (req.user && req.user.requireOfficeWifi !== true) {
       req.officeWifi = {
         isOfficeWifi: true,
         isExempt: true,

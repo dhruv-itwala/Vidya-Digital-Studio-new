@@ -28,11 +28,12 @@ import {
   updateOfficeNetworkConfig,
 } from "../api/attendance.api";
 import {
+  fetchCurrentProfile,
   getAllEmployeesForAdmin,
   toggleEmployeeWifiRestriction,
 } from "../api/auth.api";
 import { authenticateKiosk } from "../services/biometric.service";
-import { clearAuthSession } from "../services/storage.service";
+import { clearAuthSession, saveAuthSession } from "../services/storage.service";
 import { SuccessOverlay } from "../components/SuccessOverlay";
 import { ErrorOverlay } from "../components/ErrorOverlay";
 
@@ -47,6 +48,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
   token,
   onLogout,
 }) => {
+  const [currentUser, setCurrentUser] = useState<UserProfile>(user);
   const [record, setRecord] = useState<TodayWorkRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -229,12 +231,17 @@ export const EmployeePunchScreen: React.FC<Props> = ({
   // Fetch Attendance and Wi-Fi state
   const loadAttendance = useCallback(async () => {
     try {
-      const [wifi, att] = await Promise.all([
+      const [wifi, att, freshProfile] = await Promise.all([
         checkStudioWifi(),
         getTodayAttendance(token),
+        fetchCurrentProfile(token).catch(() => null),
       ]);
       setWifiStatus(wifi);
       setRecord(att);
+      if (freshProfile) {
+        setCurrentUser(freshProfile);
+        saveAuthSession(token, freshProfile).catch(() => {});
+      }
     } catch (err: any) {
       console.warn("Attendance load error:", err.message);
     } finally {
@@ -264,7 +271,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
 
   // Handle Biometric Punch Action
   const handlePunchAction = async () => {
-    const isWifiRequired = user.requireOfficeWifi !== false;
+    const isWifiRequired = currentUser.requireOfficeWifi === true;
     if (isWifiRequired && !wifiStatus.isStudioWifi) {
       Alert.alert(
         "Studio Wi-Fi Required",
@@ -276,8 +283,8 @@ export const EmployeePunchScreen: React.FC<Props> = ({
     // Step 1: Biometric Verification
     const promptMessage =
       nextAction === "PUNCH_IN"
-        ? `Authenticate to Punch In as ${user.name}`
-        : `Authenticate to Punch Out as ${user.name}`;
+        ? `Authenticate to Punch In as ${currentUser.name}`
+        : `Authenticate to Punch Out as ${currentUser.name}`;
 
     const bioResult = await authenticateKiosk(promptMessage);
 
@@ -299,7 +306,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
         setSuccessData({
           visible: true,
           actionType: "PUNCH_IN",
-          employeeName: user.name,
+          employeeName: currentUser.name,
           serverTime: res.data?.punchIn || new Date().toISOString(),
           isLateHalfDay: res.data?.isLateHalfDay || false,
         });
@@ -308,7 +315,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
         setSuccessData({
           visible: true,
           actionType: "PUNCH_OUT",
-          employeeName: user.name,
+          employeeName: currentUser.name,
           serverTime: res.data?.punchOut || new Date().toISOString(),
         });
       }
@@ -349,7 +356,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
   };
 
   // Avatar Initials
-  const initials = user.name
+  const initials = (currentUser.name || "U")
     .split(" ")
     .map((s) => s[0])
     .join("")
@@ -379,15 +386,15 @@ export const EmployeePunchScreen: React.FC<Props> = ({
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={styles.userMeta}>
-            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userName}>{currentUser.name}</Text>
             <Text style={styles.userRole}>
-              {user.designation || user.role.toUpperCase()}
+              {currentUser.designation || currentUser.role.toUpperCase()}
             </Text>
           </View>
         </View>
 
         <View style={styles.headerActions}>
-          {(user.role === "admin" || user.role === "hr") && (
+          {(currentUser.role === "admin" || currentUser.role === "hr") && (
             <TouchableOpacity
               style={styles.adminWifiButton}
               onPress={openAdminNetworkModal}
@@ -428,23 +435,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
         </View>
 
         {/* Network Status Pill */}
-        {user.requireOfficeWifi === false ? (
-          <View style={[styles.networkBadge, styles.networkBadgeRemote]}>
-            <MaterialCommunityIcons
-              name="home-map-marker"
-              size={20}
-              color="#38bdf8"
-            />
-            <View style={styles.networkMeta}>
-              <Text style={[styles.networkTitle, { color: "#38bdf8" }]}>
-                WORK FROM HOME / ON-SITE
-              </Text>
-              <Text style={styles.networkSub}>
-                Office Wi-Fi exempt • Allowed to punch from any network
-              </Text>
-            </View>
-          </View>
-        ) : (
+        {currentUser.requireOfficeWifi === true ? (
           <View
             style={[
               styles.networkBadge,
@@ -469,12 +460,28 @@ export const EmployeePunchScreen: React.FC<Props> = ({
               >
                 {wifiStatus.isStudioWifi
                   ? "STUDIO WI-FI VERIFIED"
-                  : "NOT ON STUDIO WI-FI"}
+                  : "STUDIO WI-FI REQUIRED"}
               </Text>
               <Text style={styles.networkSub}>
                 {wifiStatus.isStudioWifi
                   ? `IP: ${wifiStatus.localIp || "192.168.0.x"} • Ready to Punch`
                   : wifiStatus.message}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={[styles.networkBadge, styles.networkBadgeRemote]}>
+            <MaterialCommunityIcons
+              name="home-map-marker"
+              size={20}
+              color="#38bdf8"
+            />
+            <View style={styles.networkMeta}>
+              <Text style={[styles.networkTitle, { color: "#38bdf8" }]}>
+                WORK FROM HOME / ON-SITE
+              </Text>
+              <Text style={styles.networkSub}>
+                Office Wi-Fi exempt • Allowed to punch from any network
               </Text>
             </View>
           </View>
@@ -564,7 +571,7 @@ export const EmployeePunchScreen: React.FC<Props> = ({
         <View style={styles.actionContainer}>
           {(() => {
             const isPunchAllowed =
-              user.requireOfficeWifi === false || wifiStatus.isStudioWifi;
+              currentUser.requireOfficeWifi !== true || wifiStatus.isStudioWifi;
             return (
               <TouchableOpacity
                 style={[

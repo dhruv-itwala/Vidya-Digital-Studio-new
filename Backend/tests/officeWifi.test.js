@@ -127,15 +127,16 @@ describe("Studio Wi-Fi & Office IP Verification Tests", () => {
     assert.equal(res.clientLocalIp, "192.168.0.149");
   });
 
-  test("7. requireOfficeWifi allows WFH / On-site employees (requireOfficeWifi: false) from any outside IP", async () => {
+  test("7. requireOfficeWifi allows WFH / On-site employees (requireOfficeWifi: false or undefined) from any outside IP", async () => {
     process.env.NODE_ENV = "production";
     process.env.OFFICE_WIFI_IPS = "103.21.54.10";
 
-    const wfhReq = {
+    // Test with undefined (default state for existing employees)
+    const defaultEmpReq = {
       user: {
         _id: "650000000000000000000001",
-        name: "Remote Employee",
-        requireOfficeWifi: false,
+        name: "Default Employee",
+        // requireOfficeWifi: undefined
       },
       headers: { "x-forwarded-for": "203.0.113.195" },
       socket: { remoteAddress: "203.0.113.195" },
@@ -145,7 +146,7 @@ describe("Studio Wi-Fi & Office IP Verification Tests", () => {
     let nextError = null;
 
     await new Promise((resolve) => {
-      requireOfficeWifi(wfhReq, {}, (err) => {
+      requireOfficeWifi(defaultEmpReq, {}, (err) => {
         if (err) nextError = err;
         else nextCalled = true;
         resolve();
@@ -154,7 +155,29 @@ describe("Studio Wi-Fi & Office IP Verification Tests", () => {
 
     assert.equal(nextCalled, true);
     assert.equal(nextError, null);
-    assert.equal(wfhReq.officeWifi.isExempt, true);
+    assert.equal(defaultEmpReq.officeWifi.isExempt, true);
+
+    // Test with requireOfficeWifi: true (office employee) - must be blocked outside
+    const officeEmpReq = {
+      user: {
+        _id: "650000000000000000000002",
+        name: "Office Employee",
+        requireOfficeWifi: true,
+      },
+      headers: { "x-forwarded-for": "203.0.113.195" },
+      socket: { remoteAddress: "203.0.113.195" },
+    };
+
+    let officeError = null;
+    await new Promise((resolve) => {
+      requireOfficeWifi(officeEmpReq, {}, (err) => {
+        officeError = err;
+        resolve();
+      });
+    });
+
+    assert.ok(officeError, "Office-required employee must be blocked on outside network");
+    assert.equal(officeError.statusCode, 403);
   });
 });
 
