@@ -194,12 +194,15 @@ export const LoginScreen: React.FC<Props> = ({ navigation, onLoginSuccess }) => 
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.eyeButton}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
                 >
                   <MaterialCommunityIcons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={20}
-                    color="#9ca3af"
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={22}
+                    color={showPassword ? "#10b981" : "#9ca3af"}
                   />
                 </TouchableOpacity>
               </View>
@@ -375,7 +378,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   eyeButton: {
-    padding: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   submitButton: {
     backgroundColor: "#10b981",

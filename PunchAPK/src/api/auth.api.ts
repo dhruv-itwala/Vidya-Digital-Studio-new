@@ -4,10 +4,13 @@ import { getKioskConfig } from "../services/storage.service";
 import { UserProfile } from "../types";
 
 export interface LoginResponse {
-  status: string;
+  success?: boolean;
+  status?: string;
+  message?: string;
   token: string;
-  data: {
-    user: UserProfile;
+  user?: UserProfile & { id?: string };
+  data?: {
+    user: UserProfile & { id?: string };
   };
 }
 
@@ -31,13 +34,26 @@ export const loginEmployee = async (
     },
   );
 
-  if (!res.data.token || !res.data.data?.user) {
+  const token = res.data?.token;
+  const userObj = res.data?.user || res.data?.data?.user;
+
+  if (!token || !userObj) {
     throw new Error("Invalid response received from authentication server.");
   }
 
+  const user: UserProfile = {
+    _id: userObj._id || userObj.id || "",
+    name: userObj.name || "",
+    email: userObj.email || "",
+    role: userObj.role || "employee",
+    designation: userObj.designation,
+    requireOfficeWifi: userObj.requireOfficeWifi,
+    profilePicture: userObj.profilePicture,
+  };
+
   return {
-    token: res.data.token,
-    user: res.data.data.user,
+    token,
+    user,
   };
 };
 
@@ -46,7 +62,7 @@ export const fetchCurrentProfile = async (
 ): Promise<UserProfile> => {
   const config = await getKioskConfig();
 
-  const res = await axios.get<{ status: string; data: UserProfile }>(
+  const res = await axios.get(
     `${config.apiUrl}/users/me`,
     {
       headers: {
@@ -56,7 +72,20 @@ export const fetchCurrentProfile = async (
     },
   );
 
-  return res.data.data;
+  const userObj = res.data?.user || res.data?.data?.user || res.data?.data;
+  if (!userObj) {
+    throw new Error("Failed to retrieve user profile from server.");
+  }
+
+  return {
+    _id: userObj._id || userObj.id || "",
+    name: userObj.name || "",
+    email: userObj.email || "",
+    role: userObj.role || "employee",
+    designation: userObj.designation,
+    requireOfficeWifi: userObj.requireOfficeWifi,
+    profilePicture: userObj.profilePicture,
+  };
 };
 
 export const getAllEmployeesForAdmin = async (
