@@ -3,17 +3,7 @@ import clientApi from "../../api/clientAxios";
 import { FaGoogleDrive, FaCalendarAlt, FaCheckCircle } from "react-icons/fa";
 import styles from "./ClientDashboard.module.css";
 import { FiStar, FiChevronRight } from "react-icons/fi";
-
-const getEmbedUrl = (url) => {
-  if (!url) return null;
-  if (url.includes("spreadsheets/d/")) {
-    const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    if (match && match[1]) {
-      return `https://docs.google.com/spreadsheets/d/${match[1]}/htmlembed?widget=true&chrome=false`;
-    }
-  }
-  return url;
-};
+import ClientContentCalendar from "../../components/ClientContentCalendar/ClientContentCalendar";
 
 const ClientDashboard = () => {
   const [clientData, setClientData] = useState(null);
@@ -124,23 +114,10 @@ const ClientDashboard = () => {
         </div>
       </div>
 
-      {/* Embedded Calendar Section */}
-      {clientData.contentCalendarLink && (
-        <div className={styles.dashboardCard} style={{ marginTop: '1.5rem' }}>
-          <h2 className={styles.sectionTitle}>
-            <FaCalendarAlt style={{ color: '#3b82f6' }} /> Live Content Calendar
-          </h2>
-          <div className={styles.iframeWrapper}>
-            <iframe
-              src={getEmbedUrl(clientData.contentCalendarLink)}
-              title="Content Calendar"
-              width="100%"
-              height="100%"
-              frameBorder="0"
-            ></iframe>
-          </div>
-        </div>
-      )}
+      {/* Native Content Calendar Section */}
+      <div style={{ marginTop: '1.5rem' }}>
+        <ClientContentCalendar />
+      </div>
     </div>
   );
 };

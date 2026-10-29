@@ -92,20 +92,26 @@ export const getAllEmployeesAttendanceAPI = async (date) => {
   }
 };
 
-export const getAllEmployeesAttendanceByDateRangeAPI = async (from, to) => {
+export const getAllEmployeesAttendanceByDateRangeAPI = async (from, to, userIds = null) => {
   try {
-    return await api.get("/attendance/all/date", {
-      params: { from, to },
-    });
+    const params = { from, to };
+    if (userIds) {
+      params.userIds = Array.isArray(userIds) ? userIds.join(",") : userIds;
+    }
+    return await api.get("/attendance/all/date", { params });
   } catch (error) {
     handleError(error);
   }
 };
 
-export const downloadAttendancePDFWithPunchAPI = async (from, to) => {
+export const downloadAttendancePDFWithPunchAPI = async (from, to, userIds = null) => {
   try {
+    const params = { from, to };
+    if (userIds) {
+      params.userIds = Array.isArray(userIds) ? userIds.join(",") : userIds;
+    }
     return await api.get("/attendance/download/timepdf", {
-      params: { from, to },
+      params,
       responseType: "blob",
     });
   } catch (error) {
@@ -129,9 +135,13 @@ export const getLiveEmployeesStatusAPI = async (date) => {
   }
 };
 
-export const downloadAttendancePDFAPI = async (from, to) => {
+export const downloadAttendancePDFAPI = async (from, to, userIds = null) => {
+  const params = { from, to };
+  if (userIds) {
+    params.userIds = Array.isArray(userIds) ? userIds.join(",") : userIds;
+  }
   return api.get("/attendance/download/pdf", {
-    params: { from, to },
+    params,
     responseType: "blob",
   });
 };

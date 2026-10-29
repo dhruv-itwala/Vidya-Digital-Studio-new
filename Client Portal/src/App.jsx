@@ -11,6 +11,7 @@ const ClientAssets = React.lazy(() => import("./pages/ClientAssets/ClientAssets"
 const ClientDocuments = React.lazy(() => import("./pages/ClientDocuments/ClientDocuments"));
 const ClientInvoices = React.lazy(() => import("./pages/ClientInvoices/ClientInvoices"));
 const ClientTransactions = React.lazy(() => import("./pages/ClientTransactions/ClientTransactions"));
+const ClientCalendar = React.lazy(() => import("./pages/ClientCalendar/ClientCalendar"));
 
 const Loader = () => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '1.5rem', color: '#3b82f6' }}>Loading...</div>;
 
@@ -31,6 +32,7 @@ export default function App() {
             }
           >
             <Route index element={<ClientDashboard />} />
+            <Route path="calendar" element={<ClientCalendar />} />
             <Route path="profile" element={<ClientProfile />} />
             <Route path="assets" element={<ClientAssets />} />
             <Route path="documents" element={<ClientDocuments />} />

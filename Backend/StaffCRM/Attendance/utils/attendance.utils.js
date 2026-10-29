@@ -71,7 +71,41 @@ export const calcWorkMinutes = (record) => {
   record.netWorkMinutes = capWorkMinutes(Math.floor(net), record.role); // 🔥 CAP HERE
 };
 
-export const suggestAttendanceStatus = (minutes, role = "employee") => {
+/**
+ * Checks if a punch-in timestamp is strictly after 10:30:00 AM IST.
+ * Strict rule: If an employee logs in / punches in after 10:30 AM IST,
+ * it automatically becomes HALF_DAY, regardless of whether they worked late or not.
+ * @param {Date|string|number} punchInDate
+ * @returns {boolean}
+ */
+export const isPunchInAfter1030IST = (punchInDate) => {
+  if (!punchInDate) return false;
+  const d = new Date(punchInDate);
+  if (isNaN(d.getTime())) return false;
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  }).formatToParts(d);
+
+  const hour = parseInt(parts.find((p) => p.type === "hour")?.value || "0", 10);
+  const minute = parseInt(parts.find((p) => p.type === "minute")?.value || "0", 10);
+  const second = parseInt(parts.find((p) => p.type === "second")?.value || "0", 10);
+
+  // 10:30:00 AM IST cutoff = 10 * 3600 + 30 * 60 = 37800 seconds
+  const totalSeconds = hour * 3600 + minute * 60 + second;
+  return totalSeconds > 37800;
+};
+
+export const suggestAttendanceStatus = (minutes, role = "employee", punchIn = null) => {
+  // Strict rule: Login after 10:30 AM IST automatically becomes HALF_DAY regardless of working late
+  if (punchIn && isPunchInAfter1030IST(punchIn)) {
+    return "HALF_DAY";
+  }
+
   const policy = getWorkPolicy(role);
 
   if (minutes >= policy.attendance.presentMinutes) return "PRESENT";

@@ -6,15 +6,19 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 
 // Register the PWA Service Worker
-registerSW({
-  immediate: true,
-  onRegistered(registration) {
-    console.log("✅ Service Worker registered:", registration);
-  },
-  onRegisterError(error) {
-    console.error("❌ Service Worker registration failed:", error);
-  },
-});
+try {
+  registerSW({
+    immediate: true,
+    onRegistered(registration) {
+      console.log("✅ Service Worker registered:", registration);
+    },
+    onRegisterError(error) {
+      console.warn("⚠️ Service Worker registration note:", error);
+    },
+  });
+} catch (swErr) {
+  console.warn("⚠️ SW initialization warning:", swErr);
+}
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

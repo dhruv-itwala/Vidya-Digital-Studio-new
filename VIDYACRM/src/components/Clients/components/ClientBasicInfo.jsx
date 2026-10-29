@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import styles from "../ClientForm.module.css";
-import { FiUser } from "react-icons/fi";
+import { FiUser, FiCheckCircle } from "react-icons/fi";
 import { validateFile } from "../../../utils/fileValidator";
+import InlineLoader from "../../UI/InlineLoader";
+import toast from "react-hot-toast";
 
 export default function ClientBasicInfo({
   form,
@@ -9,12 +11,46 @@ export default function ClientBasicInfo({
   readOnly,
   photoPreview,
   setPhotoPreview,
+  isEdit = false,
+  onUpdate = null,
+  updating = false,
 }) {
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleSaveBasic = () => {
+    if (!form.clientName?.trim()) {
+      toast.error("Business/Client name is required");
+      return;
+    }
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
+      toast.error("Invalid email format");
+      return;
+    }
+    if (form.phone && !/^\d{10}$/.test(form.phone)) {
+      toast.error("Phone must be 10 digits");
+      return;
+    }
+
+    if (onUpdate) {
+      const basicData = {
+        clientName: form.clientName.trim(),
+        ownerName: form.ownerName?.trim() || "",
+        email: form.email?.trim() || "",
+        phone: form.phone?.trim() || "",
+        address: form.address || "",
+        onboardingDate: form.onboardingDate || "",
+        notes: form.notes || "",
+      };
+      if (form.profilePhoto instanceof File) {
+        basicData.profilePhoto = form.profilePhoto;
+      }
+      onUpdate(basicData);
+    }
   };
 
   /* ================= CLEAN OBJECT URL ================= */
@@ -170,6 +206,21 @@ export default function ClientBasicInfo({
           rows="3"
         />
       </div>
+
+      {/* Independent Update Button for Basic Information */}
+      {isEdit && !readOnly && onUpdate && (
+        <div className={styles.sectionAction}>
+          <button
+            type="button"
+            className={styles.updateBtn}
+            onClick={handleSaveBasic}
+            disabled={updating}
+          >
+            {updating ? <InlineLoader size={16} /> : <FiCheckCircle />}
+            <span>{updating ? "Updating Basic Info..." : "Update Basic Information"}</span>
+          </button>
+        </div>
+      )}
     </>
   );
 }

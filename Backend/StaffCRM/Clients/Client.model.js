@@ -77,6 +77,26 @@ const clientSchema = new mongoose.Schema(
     planDetails: String,
     deliverables: [String],
 
+    googleSheetsConfig: {
+      spreadsheetId: { type: String, trim: true },
+      spreadsheetUrl: { type: String, trim: true },
+      sheetTitle: String,
+      connectedAt: Date,
+      lastSyncedAt: Date,
+      status: {
+        type: String,
+        enum: ["connected", "error", "disconnected"],
+        default: "disconnected",
+      },
+      errorMessage: String,
+      selectedTab: String,
+      headerMapping: {
+        type: Map,
+        of: String,
+        default: {},
+      },
+    },
+
     credentials: [credentialSchema],
     documents: [documentSchema],
     invoices: [invoiceSchema],

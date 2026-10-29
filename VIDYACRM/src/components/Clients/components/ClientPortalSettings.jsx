@@ -1,39 +1,56 @@
 import React, { useState } from "react";
 import styles from "./ClientPortalSettings.module.css";
-import { FiGlobe, FiLock, FiFileText, FiLink, FiCalendar } from "react-icons/fi";
+import { FiGlobe, FiLock, FiLink, FiCheckCircle } from "react-icons/fi";
 import toast from "react-hot-toast";
+import InlineLoader from "../../UI/InlineLoader";
 
-export default function ClientPortalSettings({ form, setForm, readOnly }) {
+export default function ClientPortalSettings({
+  form,
+  setForm,
+  readOnly,
+  isEdit = false,
+  onUpdate = null,
+  updating = false,
+}) {
   const [newDeliverable, setNewDeliverable] = useState("");
 
+  const handleSavePortal = () => {
+    if (onUpdate) {
+      const portalData = {
+        contentCalendarLink: form.contentCalendarLink || "",
+        driveFolderLink: form.driveFolderLink || "",
+        planDetails: form.planDetails || "",
+        deliverables: form.deliverables || [],
+      };
+      if (form.password && form.password.trim()) {
+        portalData.password = form.password.trim();
+      }
+      onUpdate(portalData);
+    }
+  };
+
   const handleAddDeliverable = () => {
-    if (!newDeliverable.trim()) return;
+    const trimmed = newDeliverable.trim();
+    if (!trimmed) return;
     const deliverables = form.deliverables || [];
-    if (deliverables.includes(newDeliverable.trim())) {
+    if (deliverables.includes(trimmed)) {
       toast.error("Deliverable already exists");
       return;
     }
-    setForm({ ...form, deliverables: [...deliverables, newDeliverable.trim()] });
+    setForm((prev) => ({
+      ...prev,
+      deliverables: [...deliverables, trimmed],
+    }));
     setNewDeliverable("");
   };
 
   const handleRemoveDeliverable = (item) => {
     if (readOnly) return;
-    setForm({ ...form, deliverables: form.deliverables.filter(d => d !== item) });
+    setForm((prev) => ({
+      ...prev,
+      deliverables: (prev.deliverables || []).filter((d) => d !== item),
+    }));
   };
-
-  const getEmbedUrl = (url) => {
-    if (!url) return null;
-    if (url.includes("spreadsheets/d/")) {
-      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
-      if (match && match[1]) {
-        return `https://docs.google.com/spreadsheets/d/${match[1]}/htmlembed?widget=true&chrome=false`;
-      }
-    }
-    return null;
-  };
-
-  const embedUrl = getEmbedUrl(form.contentCalendarLink);
 
   return (
     <div className={styles.card}>
@@ -52,7 +69,7 @@ export default function ClientPortalSettings({ form, setForm, readOnly }) {
               <input
                 type="text"
                 value={form.password || ""}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
                 placeholder="Leave blank to keep unchanged"
               />
             </div>
@@ -66,7 +83,9 @@ export default function ClientPortalSettings({ form, setForm, readOnly }) {
             <input
               type="url"
               value={form.contentCalendarLink || ""}
-              onChange={(e) => setForm({ ...form, contentCalendarLink: e.target.value })}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, contentCalendarLink: e.target.value }))
+              }
               placeholder="Google Sheets URL"
               disabled={readOnly}
             />
@@ -80,7 +99,9 @@ export default function ClientPortalSettings({ form, setForm, readOnly }) {
             <input
               type="url"
               value={form.driveFolderLink || ""}
-              onChange={(e) => setForm({ ...form, driveFolderLink: e.target.value })}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, driveFolderLink: e.target.value }))
+              }
               placeholder="Google Drive URL"
               disabled={readOnly}
             />
@@ -88,31 +109,13 @@ export default function ClientPortalSettings({ form, setForm, readOnly }) {
         </div>
       </div>
 
-      {/* Calendar Preview inside Employee CRM */}
-      {embedUrl && (
-        <div className={styles.inputGroup}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#60a5fa' }}>
-            <FiCalendar /> Live Content Calendar Preview
-          </label>
-          <div style={{ width: '100%', height: '400px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #4b5563', background: '#111827', marginTop: '0.5rem' }}>
-            <iframe
-              src={embedUrl}
-              title="Content Calendar Preview"
-              width="100%"
-              height="100%"
-              frameBorder="0"
-            ></iframe>
-          </div>
-        </div>
-      )}
-
-      <div className={styles.inputGroup}>
+      <div className={styles.inputGroup} style={{ marginTop: "1rem" }}>
         <label>Plan Details</label>
         <div className={styles.inputWrapper}>
           <textarea
             value={form.planDetails || ""}
-            onChange={(e) => setForm({ ...form, planDetails: e.target.value })}
-            placeholder="Describe the client's plan..."
+            onChange={(e) => setForm((prev) => ({ ...prev, planDetails: e.target.value }))}
+            placeholder="Describe the client's plan, retainer deliverables, or monthly scope..."
             disabled={readOnly}
             rows={4}
           />
@@ -127,8 +130,13 @@ export default function ClientPortalSettings({ form, setForm, readOnly }) {
               type="text"
               value={newDeliverable}
               onChange={(e) => setNewDeliverable(e.target.value)}
-              placeholder="e.g. 4 Reels, 2 Posts"
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddDeliverable())}
+              placeholder="e.g. 4 Reels, 2 Posts, 1 Newsletter"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddDeliverable();
+                }
+              }}
             />
             <button
               type="button"
@@ -144,15 +152,36 @@ export default function ClientPortalSettings({ form, setForm, readOnly }) {
             <span key={idx} className={styles.deliverableTag}>
               {item}
               {!readOnly && (
-                <button type="button" onClick={() => handleRemoveDeliverable(item)} title="Remove">
+                <button
+                  type="button"
+                  onClick={() => handleRemoveDeliverable(item)}
+                  title="Remove deliverable"
+                >
                   &times;
                 </button>
               )}
             </span>
           ))}
-          {form.deliverables?.length === 0 && <span className={styles.emptyState}>No deliverables added.</span>}
+          {(!form.deliverables || form.deliverables.length === 0) && (
+            <span className={styles.emptyState}>No deliverables added.</span>
+          )}
         </div>
       </div>
+
+      {/* Independent Update Button for Client Portal Settings */}
+      {isEdit && !readOnly && onUpdate && (
+        <div className={styles.sectionAction}>
+          <button
+            type="button"
+            className={styles.updateBtn}
+            onClick={handleSavePortal}
+            disabled={updating}
+          >
+            {updating ? <InlineLoader size={16} /> : <FiCheckCircle />}
+            <span>{updating ? "Updating Portal Settings..." : "Update Client Portal Settings"}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

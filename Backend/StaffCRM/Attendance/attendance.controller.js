@@ -75,8 +75,8 @@ export const getAllEmployeesAttendance = asyncHandler(async (req, res) => {
 // ================= ALL EMPLOYEES ATTENDANCE BY DATE RANGE ================= */
 export const getAllEmployeesAttendanceByDateRange = asyncHandler(
   async (req, res) => {
-    const { from, to } = req.query;
-    const data = await service.getAllAttendanceByDateRangeService(from, to);
+    const { from, to, userIds } = req.query;
+    const data = await service.getAllAttendanceByDateRangeService(from, to, userIds);
     res.json({
       success: true,
       count: data.length,

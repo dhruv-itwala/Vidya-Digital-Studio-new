@@ -9,6 +9,7 @@ import {
   parseISTDateOnly,
   calcWorkMinutes,
   suggestAttendanceStatus,
+  isPunchInAfter1030IST,
   isWithinOfficeHoursIST,
   calcLiveNetSeconds,
   calcLiveBreakSeconds,
@@ -131,18 +132,41 @@ export const punchInService = async (userId) => {
 
   punches.push({ in: now, out: null });
 
-  const record = await WorkRecord.findOneAndUpdate(
-    { user: userId, date },
-    {
-      $set: {
-        punchIn,
-        punches,
-        punchOutReminderSent: false,
+  const isLateHalfDay = isPunchInAfter1030IST(punchIn);
+
+  const updateFields = {
+    punchIn,
+    punches,
+    punchOutReminderSent: false,
+  };
+
+  if (isLateHalfDay) {
+    updateFields.attendanceStatus = "HALF_DAY";
+  }
+
+  const [record] = await Promise.all([
+    WorkRecord.findOneAndUpdate(
+      { user: userId, date },
+      {
+        $set: updateFields,
+        $unset: { punchOut: 1 },
       },
-      $unset: { punchOut: 1 },
-    },
-    { upsert: true, new: true, lean: true },
-  );
+      { upsert: true, new: true, lean: true },
+    ),
+    ...(isLateHalfDay
+      ? [
+          Attendance.findOneAndUpdate(
+            { user: userId, date },
+            {
+              status: "HALF_DAY",
+              source: "SYSTEM",
+              remarks: "Login after 10:30 AM (Strict Rule: Auto Half Day)",
+            },
+            { upsert: true },
+          ),
+        ]
+      : []),
+  ]);
 
   return {
     ...record,
@@ -225,10 +249,14 @@ export const punchOutService = async (userId) => {
   }
 
   /* ===== ATTENDANCE STATUS ===== */
-  record.attendanceStatus = suggestAttendanceStatus(
-    record.netWorkMinutes,
-    user?.role || "employee",
-  );
+  const isLatePunchIn = isPunchInAfter1030IST(record.punchIn);
+  record.attendanceStatus = isLatePunchIn
+    ? "HALF_DAY"
+    : suggestAttendanceStatus(
+        record.netWorkMinutes,
+        user?.role || "employee",
+        record.punchIn,
+      );
 
   /* ===== SYNC ATTENDANCE TABLE & SAVE IN PARALLEL ===== */
   await Promise.all([
@@ -238,6 +266,9 @@ export const punchOutService = async (userId) => {
       {
         status: record.attendanceStatus,
         source: "SYSTEM",
+        ...(isLatePunchIn
+          ? { remarks: "Login after 10:30 AM (Strict Rule: Auto Half Day)" }
+          : {}),
       },
       { upsert: true },
     ),
@@ -316,17 +347,21 @@ export const getAllEmployeesAttendanceService = async (date) => {
   const day = parseISTDateOnly(date);
   const nowDay = todayISTUTC();
 
-  const [users, records, holiday, leaves] = await Promise.all([
+  const [users, records, workRecords, holiday, leaves] = await Promise.all([
     User.find({ isActive: true })
       .select("name email role")
       .lean(),
     Attendance.find({ date: day }).lean(),
+    WorkRecord.find({ date: day }).lean(),
     Holiday.findOne({ date: day }).lean(),
     Leave.find({ status: "APPROVED", fromDate: { $lte: day }, toDate: { $gte: day } }).lean(),
   ]);
 
   const recordMap = new Map();
   records.forEach((r) => recordMap.set(String(r.user), r));
+
+  const workRecordMap = new Map();
+  workRecords.forEach((w) => workRecordMap.set(String(w.user), w));
 
   const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
 
@@ -338,9 +373,13 @@ export const getAllEmployeesAttendanceService = async (date) => {
 
   return users.map((u) => {
     const att = recordMap.get(String(u._id));
+    const work = workRecordMap.get(String(u._id));
     let status = null;
 
-    if (att) {
+    if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
+      // Strict rule: Login after 10:30 AM IST automatically becomes HALF_DAY
+      status = "HALF_DAY";
+    } else if (att) {
       status = att.status;
     } else {
       const isHol = holiday || new Date(day.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
@@ -437,13 +476,23 @@ export const getUserAttendanceByDateService = async (userId, date) => {
 };
 
 // ================= ATTENDANCE BY DATE RANGE ================= */
-export const getAllAttendanceByDateRangeService = async (from, to) => {
+export const getAllAttendanceByDateRangeService = async (from, to, userIds = null) => {
   const fromDate = parseISTDateOnly(from);
   const toDate = parseISTDateOnly(to);
   const nowDay = todayISTUTC();
 
+  const userFilter = { isActive: true };
+  if (userIds) {
+    const ids = (Array.isArray(userIds) ? userIds : userIds.split(","))
+      .map((id) => id?.trim())
+      .filter(Boolean);
+    if (ids.length > 0) {
+      userFilter._id = { $in: ids };
+    }
+  }
+
   const [users, attendance, workRecords, holidays, leaves] = await Promise.all([
-    User.find({ isActive: true }).select("name email role").lean(),
+    User.find(userFilter).select("name email role").lean(),
     Attendance.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
     WorkRecord.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
     Holiday.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
@@ -481,7 +530,10 @@ export const getAllAttendanceByDateRangeService = async (from, to) => {
       const work = workMap.get(key);
       
       let status = null;
-      if (att) {
+      if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
+        // Strict rule: Login after 10:30 AM IST automatically becomes HALF_DAY
+        status = "HALF_DAY";
+      } else if (att) {
         status = att.status;
       } else {
         const matchingLeave = leaves.find(l => String(l.user) === String(u._id) && current >= l.fromDate && current <= l.toDate);
@@ -630,6 +682,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
       punchIn: record.punchIn,
       punchOut: record.punchOut,
       punches: record.punches || [],
+      isLateHalfDay: isPunchInAfter1030IST(record.punchIn),
     };
   });
 };
@@ -899,7 +952,7 @@ export const hrOverrideAttendanceService = async ({
 
   // Status
   targetRecord.attendanceStatus =
-    status || suggestAttendanceStatus(targetRecord.netWorkMinutes, user.role);
+    status || suggestAttendanceStatus(targetRecord.netWorkMinutes, user.role, targetRecord.punchIn);
 
   targetRecord.autoClosed = false; // HR fixed it
 

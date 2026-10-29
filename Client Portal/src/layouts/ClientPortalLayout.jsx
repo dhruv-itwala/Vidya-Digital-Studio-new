@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { FiMenu, FiX, FiHome, FiUser, FiFolder, FiFileText, FiActivity, FiLogOut, FiKey } from "react-icons/fi";
+import { FiMenu, FiX, FiHome, FiUser, FiFolder, FiFileText, FiActivity, FiLogOut, FiKey, FiCalendar } from "react-icons/fi";
 import styles from "./ClientPortalLayout.module.css";
 
 const ClientPortalLayout = () => {
@@ -15,6 +15,7 @@ const ClientPortalLayout = () => {
 
   const menuItems = [
     { path: ".", icon: <FiHome />, label: "Dashboard", end: true },
+    { path: "calendar", icon: <FiCalendar />, label: "Content Calendar" },
     { path: "profile", icon: <FiUser />, label: "Profile" },
     { path: "assets", icon: <FiKey />, label: "Assets & Logins" },
     { path: "documents", icon: <FiFolder />, label: "Documents" },

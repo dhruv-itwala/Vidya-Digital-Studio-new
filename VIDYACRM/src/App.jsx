@@ -97,6 +97,7 @@ const ClientAssets = React.lazy(() => import("./pages/ClientPortal/ClientAssets"
 const ClientDocuments = React.lazy(() => import("./pages/ClientPortal/ClientDocuments"));
 const ClientInvoices = React.lazy(() => import("./pages/ClientPortal/ClientInvoices"));
 const ClientTransactions = React.lazy(() => import("./pages/ClientPortal/ClientTransactions"));
+const ClientCalendar = React.lazy(() => import("./pages/ClientPortal/ClientCalendar"));
 
 export default function App() {
   const { isDown, loading } = useBackendStatus();
@@ -222,6 +223,7 @@ export default function App() {
             <Route path="clients/:id/edit" element={<EditClient />} />
             <Route path="clients/:id/portal" element={<ClientPortalLayout />}>
               <Route index element={<ClientDashboard />} />
+              <Route path="calendar" element={<ClientCalendar />} />
               <Route path="profile" element={<ClientProfile />} />
               <Route path="assets" element={<ClientAssets />} />
               <Route path="documents" element={<ClientDocuments />} />
@@ -282,6 +284,7 @@ export default function App() {
             <Route path="clients/:id/edit" element={<EditClient />} />
             <Route path="clients/:id/portal" element={<ClientPortalLayout />}>
               <Route index element={<ClientDashboard />} />
+              <Route path="calendar" element={<ClientCalendar />} />
               <Route path="profile" element={<ClientProfile />} />
               <Route path="assets" element={<ClientAssets />} />
               <Route path="documents" element={<ClientDocuments />} />
@@ -331,6 +334,7 @@ export default function App() {
             <Route path="clients/:id/edit" element={<EditClient />} />
             <Route path="clients/:id/portal" element={<ClientPortalLayout />}>
               <Route index element={<ClientDashboard />} />
+              <Route path="calendar" element={<ClientCalendar />} />
               <Route path="profile" element={<ClientProfile />} />
               <Route path="assets" element={<ClientAssets />} />
               <Route path="documents" element={<ClientDocuments />} />

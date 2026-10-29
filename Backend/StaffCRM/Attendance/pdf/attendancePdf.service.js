@@ -99,8 +99,8 @@ function buildAttendanceMatrixWithPunch(data = []) {
 /* ---------------- PDF SERVICE ---------------- */
 export const downloadAttendancePDFService = async (req, res) => {
   try {
-    const { from, to } = req.query;
-    const data = await getAllAttendanceByDateRangeService(from, to);
+    const { from, to, userIds } = req.query;
+    const data = await getAllAttendanceByDateRangeService(from, to, userIds);
 
     const { employees, rows } = buildAttendanceMatrixWithPunch(data);
 

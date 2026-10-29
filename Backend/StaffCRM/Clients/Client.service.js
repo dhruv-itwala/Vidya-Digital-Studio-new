@@ -8,6 +8,7 @@ import {
 import { parseIST } from "../utils/date.utils.js";
 import cloudinary from "../../config/cloudinary.config.js";
 import bcrypt from "bcryptjs";
+import { extractSpreadsheetId } from "../ContentCalendar/googleSheetsAuth.service.js";
 
 /* ================= CREATE CLIENT ================= */
 export const createClientService = async (data, userId, file) => {
@@ -34,10 +35,20 @@ export const createClientService = async (data, userId, file) => {
     }
   }
 
-  // Hash password if provided
-  if (data.password) {
-    const salt = await bcrypt.genSalt(10);
-    data.password = await bcrypt.hash(data.password, salt);
+  // Sync Google Sheets config if content calendar link provided
+  if (data.contentCalendarLink) {
+    try {
+      const spreadsheetId = extractSpreadsheetId(data.contentCalendarLink);
+      data.googleSheetsConfig = {
+        spreadsheetId,
+        spreadsheetUrl: data.contentCalendarLink,
+        status: "connected",
+        connectedAt: new Date(),
+        lastSyncedAt: new Date(),
+      };
+    } catch {
+      // non-sheets URL, leave as is
+    }
   }
 
   return await Client.create(data);
@@ -148,6 +159,23 @@ export const updateClientService = async (clientId, data, file) => {
 
   // ❗ Prevent createdBy overwrite
   delete data.createdBy;
+  delete data._id;
+  delete data.__v;
+  delete data.createdAt;
+  delete data.updatedAt;
+  delete data.invoices;
+  delete data.credentials;
+  delete data.documents;
+  delete data.transactions;
+
+  // Parse deliverables
+  if (typeof data.deliverables === "string") {
+    try {
+      data.deliverables = JSON.parse(data.deliverables);
+    } catch {
+      delete data.deliverables;
+    }
+  }
 
   // Parse services
   if (typeof data.services === "string") {
@@ -181,6 +209,23 @@ export const updateClientService = async (clientId, data, file) => {
   } else {
     // Prevent accidental overwrite of password with empty string
     delete data.password;
+  }
+
+  // Sync Google Sheets config if contentCalendarLink was updated
+  if (data.contentCalendarLink) {
+    try {
+      const spreadsheetId = extractSpreadsheetId(data.contentCalendarLink);
+      data.googleSheetsConfig = {
+        ...(client.googleSheetsConfig?.toObject ? client.googleSheetsConfig.toObject() : client.googleSheetsConfig),
+        spreadsheetId,
+        spreadsheetUrl: data.contentCalendarLink,
+        status: "connected",
+        connectedAt: client.googleSheetsConfig?.connectedAt || new Date(),
+        lastSyncedAt: new Date(),
+      };
+    } catch {
+      // non-sheets URL, leave as is
+    }
   }
 
   return Client.findByIdAndUpdate(clientId, data, {

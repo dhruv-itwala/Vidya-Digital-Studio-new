@@ -12,8 +12,20 @@ export const getClientByIdAPI = (id) => api.get(`/clients/${id}`);
 
 const buildFormData = (data) => {
   const formData = new FormData();
+  const excludedKeys = new Set([
+    "invoices",
+    "credentials",
+    "documents",
+    "transactions",
+    "_id",
+    "__v",
+    "createdAt",
+    "updatedAt",
+    "createdBy",
+  ]);
 
   Object.keys(data).forEach((key) => {
+    if (excludedKeys.has(key)) return;
     const value = data[key];
 
     if (key === "profilePhoto" && value) {
@@ -70,6 +82,17 @@ export const deleteTransactionAPI = (clientId, txnId) =>
 /* ================= DOCUMENTS ================= */
 export const uploadDocumentAPI = (id, file, onProgress) => {
   const formData = new FormData();
+  const excludedKeys = new Set([
+    "invoices",
+    "credentials",
+    "documents",
+    "transactions",
+    "_id",
+    "__v",
+    "createdAt",
+    "updatedAt",
+    "createdBy",
+  ]);
   formData.append("document", file);
   return api.post(`/clients/${id}/documents`, formData, {
     onUploadProgress: (progressEvent) => {

@@ -80,7 +80,7 @@ export function useQuery({
   enabled = true,
   refetchInterval = false,
   refetchOnWindowFocus = true,
-  staleTime = 0,
+  staleTime = 10000,
 }) {
   const keyStr = queryClient.getKey(queryKey);
   const cached = queryClient.cache.get(keyStr);
@@ -102,7 +102,8 @@ export function useQuery({
         return queryClient.inFlight.get(keyStr);
       }
 
-      if (!isBackground && !data) {
+      const existingCached = queryClient.cache.get(keyStr);
+      if (!isBackground && !existingCached?.data) {
         setIsLoading(true);
       }
       setIsFetching(true);
@@ -117,7 +118,6 @@ export function useQuery({
           });
           setData(result);
           setError(null);
-          queryClient.notify(keyStr, result);
           return result;
         } catch (err) {
           setError(err);
@@ -132,7 +132,7 @@ export function useQuery({
       queryClient.inFlight.set(keyStr, promise);
       return promise;
     },
-    [keyStr, enabled, data]
+    [keyStr, enabled]
   );
 
   // Initial and reactive fetch
@@ -150,7 +150,7 @@ export function useQuery({
     }
 
     // Subscribe to cache updates and invalidations
-    const unsubscribe = queryClient.subscribe(queryKey, (update) => {
+    const unsubscribe = queryClient.subscribe(keyStr, (update) => {
       if (update?.shouldRefetch) {
         fetchData(true);
       } else if (update !== undefined) {
@@ -159,7 +159,7 @@ export function useQuery({
     });
 
     return () => unsubscribe();
-  }, [keyStr, enabled, staleTime, fetchData, queryKey]);
+  }, [keyStr, enabled, staleTime, fetchData]);
 
   // Window Focus Refetching
   useEffect(() => {

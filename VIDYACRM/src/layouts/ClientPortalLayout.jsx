@@ -10,7 +10,8 @@ import {
   FiActivity,
   FiLogOut,
   FiMenu,
-  FiX
+  FiX,
+  FiCalendar
 } from "react-icons/fi";
 
 const ClientPortalLayout = () => {
@@ -25,6 +26,7 @@ const ClientPortalLayout = () => {
 
   const menuItems = [
     { path: ".", icon: <FiHome />, label: "Dashboard", end: true },
+    { path: "calendar", icon: <FiCalendar />, label: "Content Calendar" },
     { path: "profile", icon: <FiUser />, label: "Profile" },
     { path: "assets", icon: <FiKey />, label: "Assets & Logins" },
     { path: "documents", icon: <FiFolder />, label: "Documents" },

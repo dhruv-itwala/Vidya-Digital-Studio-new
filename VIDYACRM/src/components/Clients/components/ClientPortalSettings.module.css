@@ -1,10 +1,6 @@
 .card {
-  background: var(--bg-card, #1f2937);
   border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid var(--border-color, #374151);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  color: #f3f4f6;
+  color: var(--color-text, #222222);
   font-family: inherit;
 }
 
@@ -14,19 +10,19 @@
   gap: 0.75rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color, #374151);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
 }
 
 .icon {
   font-size: 1.25rem;
-  color: #10b981;
+  color: var(--deep-forest, #0f5c44);
 }
 
 .cardHeader h3 {
   margin: 0;
   font-size: 1.125rem;
-  font-weight: 600;
-  color: #f3f4f6;
+  font-weight: 700;
+  color: var(--color-text, #111827);
 }
 
 .grid {
@@ -44,15 +40,15 @@
 
 .inputGroup label {
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #9ca3af;
+  font-weight: 600;
+  color: var(--color-text-muted, #4b5563);
 }
 
 .inputWrapper {
   display: flex;
   align-items: center;
-  background: #111827;
-  border: 1px solid #4b5563;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 8px;
   padding: 0.6rem 0.85rem;
   transition: all 0.2s ease;
@@ -60,12 +56,12 @@
 }
 
 .inputWrapper:focus-within {
-  border-color: #10b981;
-  box-shadow: 0 0 0 1px #10b981;
+  border-color: var(--deep-forest, #0f5c44);
+  box-shadow: 0 0 0 2px rgba(15, 92, 68, 0.15);
 }
 
 .inputIcon {
-  color: #6b7280;
+  color: var(--color-text-muted, #6b7280);
   font-size: 1.1rem;
 }
 
@@ -73,7 +69,7 @@
 .inputWrapper textarea {
   background: transparent;
   border: none;
-  color: white;
+  color: var(--color-text, #111827);
   width: 100%;
   outline: none;
   font-size: 0.95rem;
@@ -95,30 +91,31 @@
   flex: 1;
   padding: 0.6rem 0.85rem;
   border-radius: 8px;
-  border: 1px solid #4b5563;
-  background: #111827;
-  color: white;
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text, #111827);
   outline: none;
   transition: all 0.2s ease;
 }
 
 .addDeliverableRow input:focus {
-  border-color: #10b981;
+  border-color: var(--deep-forest, #0f5c44);
+  box-shadow: 0 0 0 2px rgba(15, 92, 68, 0.15);
 }
 
 .addBtn {
   padding: 0.6rem 1.25rem;
   border-radius: 8px;
-  background: #10b981;
+  background: var(--deep-forest, #0f5c44);
   color: white;
   border: none;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
 
 .addBtn:hover {
-  background: #059669;
+  background: #0b4331;
 }
 
 .deliverablesList {
@@ -128,21 +125,22 @@
 }
 
 .deliverableTag {
-  background: #374151;
+  background: var(--soft-ivory, #f4f0e8);
   padding: 0.35rem 0.85rem;
   border-radius: 999px;
   font-size: 0.85rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #e5e7eb;
-  border: 1px solid #4b5563;
+  color: var(--charcoal-black, #222222);
+  border: 1px solid rgba(15, 92, 68, 0.2);
+  font-weight: 500;
 }
 
 .deliverableTag button {
   background: transparent;
   border: none;
-  color: #ef4444;
+  color: var(--warm-coral-red, #ef4f6e);
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -152,11 +150,47 @@
 }
 
 .deliverableTag button:hover {
-  color: #f87171;
+  color: #d83152;
 }
 
 .emptyState {
-  color: #9ca3af;
+  color: var(--color-text-muted, #9ca3af);
   font-style: italic;
   font-size: 0.9rem;
+}
+
+/* ================= INDEPENDENT SECTION ACTION ================= */
+.sectionAction {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+
+.updateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--deep-forest, #0f5c44);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 92, 68, 0.2);
+}
+
+.updateBtn:hover:not(:disabled) {
+  background: #0b4331;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 92, 68, 0.3);
+}
+
+.updateBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
 }

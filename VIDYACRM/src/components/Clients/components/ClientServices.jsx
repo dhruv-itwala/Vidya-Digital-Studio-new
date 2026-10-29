@@ -1,7 +1,16 @@
 import { useState } from "react";
 import styles from "../ClientForm.module.css";
+import { FiCheckCircle } from "react-icons/fi";
+import InlineLoader from "../../UI/InlineLoader";
 
-export default function ClientServices({ services = [], setForm, isView }) {
+export default function ClientServices({
+  services = [],
+  setForm,
+  isView,
+  isEdit = false,
+  onUpdate = null,
+  updating = false,
+}) {
   const [input, setInput] = useState("");
 
   const addService = () => {
@@ -81,6 +90,21 @@ export default function ClientServices({ services = [], setForm, isView }) {
           </div>
         </div>
       </div>
+
+      {/* Independent Update Button for Active Services */}
+      {isEdit && !isView && onUpdate && (
+        <div className={styles.sectionAction}>
+          <button
+            type="button"
+            className={styles.updateBtn}
+            onClick={() => onUpdate(services)}
+            disabled={updating}
+          >
+            {updating ? <InlineLoader size={16} /> : <FiCheckCircle />}
+            <span>{updating ? "Updating Services..." : "Update Active Services"}</span>
+          </button>
+        </div>
+      )}
     </>
   );
 }

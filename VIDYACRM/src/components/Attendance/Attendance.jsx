@@ -7,8 +7,9 @@ import {
   downloadAttendancePDFAPI,
   getAllUsersWeeklyProgressAPI,
 } from "../../api/attendance.api";
+import { getAllUsersAPI } from "../../api/admin.api";
 
-import { FaUsers, FaCalendarDay, FaCalendarAlt, FaChartBar, FaDownload } from "react-icons/fa";
+import { FaUsers, FaCalendarDay, FaCalendarAlt, FaChartBar, FaDownload, FaFilter, FaSearch } from "react-icons/fa";
 import styles from "./Attendance.module.css";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader/Loader";
@@ -39,6 +40,13 @@ export default function Attendance() {
   const [range, setRange] = useState([]);
   const [rangeLoading, setRangeLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  // Employee filter state for Attendance Summary
+  const [allUsersList, setAllUsersList] = useState([]);
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
+  const [empDropdownOpen, setEmpDropdownOpen] = useState(false);
+  const [empSearch, setEmpSearch] = useState("");
+  const empDropdownRef = useRef(null);
 
   const liveFetchRef = useRef(null);
   const liveTickRef = useRef(null);
@@ -118,7 +126,8 @@ export default function Attendance() {
       }
     },
     enabled: activeTab === "live",
-    refetchInterval: 60000, // 60s tab-aware polling
+    staleTime: 15000,
+    refetchInterval: 30000, // 30s tab-aware polling
   });
 
   useEffect(() => {
@@ -126,6 +135,31 @@ export default function Attendance() {
       setLive(liveData);
     }
   }, [liveData]);
+
+  // Load full employee list for the Attendance Summary filter
+  useEffect(() => {
+    getAllUsersAPI()
+      .then((res) => {
+        const users = res.data?.data || res.data || [];
+        setAllUsersList(users.filter((u) => u.isActive !== false));
+      })
+      .catch((err) => console.error("Failed to fetch users for attendance filter", err));
+  }, []);
+
+  // Close employee filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (empDropdownRef.current && !empDropdownRef.current.contains(e.target)) {
+        setEmpDropdownOpen(false);
+      }
+    };
+    if (empDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [empDropdownOpen]);
 
   // Local 1-second display ticker
   useEffect(() => {
@@ -162,6 +196,7 @@ export default function Attendance() {
       const res = await getAllEmployeesAttendanceByDateRangeAPI(
         fromDate,
         toDate,
+        selectedEmployeeIds.length > 0 ? selectedEmployeeIds : null,
       );
       setRange(res.data?.data || []);
     } catch (err) {
@@ -220,13 +255,43 @@ export default function Attendance() {
     };
   }, [activeTab, fetchDaily, fromDate, toDate, weeklyFrom, refetchLive]);
 
-  const employees = useMemo(() => {
-    return Array.from(
-      new Map(
-        range.map((a) => [a.userId, { id: a.userId, name: a.name }]),
-      ).values(),
+  const allEmployees = useMemo(() => {
+    const map = new Map();
+    allUsersList.forEach((u) => {
+      map.set(String(u._id), { id: String(u._id), name: u.name, role: u.role });
+    });
+    range.forEach((a) => {
+      if (a.userId && a.name && !map.has(String(a.userId))) {
+        map.set(String(a.userId), { id: String(a.userId), name: a.name, role: a.role });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [allUsersList, range]);
+
+  const displayedEmployees = useMemo(() => {
+    const source = range.length > 0
+      ? Array.from(new Map(range.map((a) => [String(a.userId), { id: String(a.userId), name: a.name, role: a.role }])).values())
+      : allEmployees;
+
+    if (!selectedEmployeeIds || selectedEmployeeIds.length === 0) {
+      return source;
+    }
+    return source.filter((e) => selectedEmployeeIds.includes(e.id));
+  }, [range, allEmployees, selectedEmployeeIds]);
+
+  const filteredEmpOptions = useMemo(() => {
+    if (!empSearch.trim()) return allEmployees;
+    const q = empSearch.toLowerCase().trim();
+    return allEmployees.filter(
+      (e) => e.name.toLowerCase().includes(q) || (e.role && e.role.toLowerCase().includes(q))
     );
-  }, [range]);
+  }, [allEmployees, empSearch]);
+
+  const toggleEmployeeSelection = (id) => {
+    setSelectedEmployeeIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
   const byDate = useMemo(() => {
     return range.reduce((acc, cur) => {
@@ -268,7 +333,11 @@ export default function Attendance() {
     try {
       setDownloading(true);
       const api = downloadAttendancePDFAPI;
-      const res = await api(fromDate, toDate);
+      const res = await api(
+        fromDate,
+        toDate,
+        selectedEmployeeIds.length > 0 ? selectedEmployeeIds : null,
+      );
       const url = URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement("a");
       a.href = url;
@@ -368,6 +437,14 @@ export default function Attendance() {
                             <div className={styles.avatar} style={{background: '#f1f5f9'}} />
                           )}
                           <span className={styles.userName}>{e.name}</span>
+                          {e.isLateHalfDay && (
+                            <span
+                              className={styles.lateHalfDayBadge}
+                              title="Login after 10:30 AM (Strict Rule: Auto Half Day)"
+                            >
+                              Late (Half Day)
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td>
@@ -425,6 +502,14 @@ export default function Attendance() {
                       <tr key={e._id}>
                         <td>
                           <span className={styles.userName}>{e.name}</span>
+                          {e.isLateHalfDay && (
+                            <span
+                              className={styles.lateHalfDayBadge}
+                              title="Login after 10:30 AM (Strict Rule: Auto Half Day)"
+                            >
+                              Late (Half Day)
+                            </span>
+                          )}
                         </td>
                         <td>
                           <span className={styles.userEmail}>{e.email}</span>
@@ -477,6 +562,123 @@ export default function Attendance() {
                 onChange={(e) => setToDate(e.target.value)}
                 className={styles.dateInput}
               />
+
+              {/* EMPLOYEE MULTI-SELECT FILTER */}
+              <div className={styles.empFilterWrapper} ref={empDropdownRef}>
+                <button
+                  type="button"
+                  className={`${styles.filterBtn} ${selectedEmployeeIds.length > 0 ? styles.filterBtnActive : ''}`}
+                  onClick={() => setEmpDropdownOpen((prev) => !prev)}
+                >
+                  <FaFilter />
+                  <span>
+                    {selectedEmployeeIds.length === 0
+                      ? "All Employees"
+                      : `${selectedEmployeeIds.length} Selected`}
+                  </span>
+                  <span className={styles.filterCountBadge}>
+                    {selectedEmployeeIds.length === 0
+                      ? allEmployees.length
+                      : `${selectedEmployeeIds.length}/${allEmployees.length}`}
+                  </span>
+                </button>
+
+                {empDropdownOpen && (
+                  <div className={styles.empDropdown}>
+                    <div className={styles.empDropdownHeader}>
+                      <div className={styles.empSearchBox}>
+                        <FaSearch className={styles.searchIcon} />
+                        <input
+                          type="text"
+                          placeholder="Search employee..."
+                          value={empSearch}
+                          onChange={(e) => setEmpSearch(e.target.value)}
+                          className={styles.empSearchInput}
+                          autoFocus
+                        />
+                        {empSearch && (
+                          <button
+                            type="button"
+                            className={styles.clearSearchBtn}
+                            onClick={() => setEmpSearch("")}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                      <div className={styles.empQuickActions}>
+                        <button
+                          type="button"
+                          className={styles.quickActionBtn}
+                          onClick={() => setSelectedEmployeeIds([])}
+                        >
+                          Select All
+                        </button>
+                        {selectedEmployeeIds.length > 0 && (
+                          <button
+                            type="button"
+                            className={styles.quickActionBtn}
+                            onClick={() => setSelectedEmployeeIds([])}
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={styles.empListScroll}>
+                      <label className={styles.empListItem}>
+                        <input
+                          type="checkbox"
+                          checked={selectedEmployeeIds.length === 0}
+                          onChange={() => setSelectedEmployeeIds([])}
+                        />
+                        <span className={styles.empItemName} style={{ fontWeight: 700 }}>
+                          All Employees ({allEmployees.length})
+                        </span>
+                      </label>
+
+                      {filteredEmpOptions.map((emp) => {
+                        const isChecked = selectedEmployeeIds.includes(emp.id);
+                        return (
+                          <label key={emp.id} className={styles.empListItem}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleEmployeeSelection(emp.id)}
+                            />
+                            <div className={styles.empItemInfo}>
+                              <span className={styles.empItemName}>{emp.name}</span>
+                              {emp.role && (
+                                <span className={styles.empItemRole}>{emp.role}</span>
+                              )}
+                            </div>
+                          </label>
+                        );
+                      })}
+
+                      {filteredEmpOptions.length === 0 && (
+                        <div className={styles.noEmpMatch}>No employees matching "{empSearch}"</div>
+                      )}
+                    </div>
+
+                    <div className={styles.empDropdownFooter}>
+                      <span>{selectedEmployeeIds.length === 0 ? "Showing all" : `${selectedEmployeeIds.length} employee(s) selected`}</span>
+                      <button
+                        type="button"
+                        className={styles.applyFilterBtn}
+                        onClick={() => {
+                          setEmpDropdownOpen(false);
+                          if (fromDate && toDate) fetchRange();
+                        }}
+                      >
+                        Apply Filter
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button onClick={fetchRange} className={styles.primaryBtn} disabled={rangeLoading || downloading}>
                 {rangeLoading && <InlineLoader size={14} />}
                 <span>{rangeLoading ? "Generating..." : "Generate Report"}</span>
@@ -486,6 +688,38 @@ export default function Attendance() {
                 <span>{downloading ? "Downloading..." : "Download PDF"}</span>
               </button>
             </div>
+
+            {/* ACTIVE FILTER TAGS */}
+            {selectedEmployeeIds.length > 0 && (
+              <div className={styles.activeFilterBar}>
+                <span className={styles.activeFilterLabel}>Filtered Employees:</span>
+                <div className={styles.activeFilterTags}>
+                  {selectedEmployeeIds.map((id) => {
+                    const emp = allEmployees.find((e) => e.id === id);
+                    if (!emp) return null;
+                    return (
+                      <span key={id} className={styles.empTag}>
+                        {emp.name}
+                        <button
+                          type="button"
+                          onClick={() => toggleEmployeeSelection(id)}
+                          className={styles.removeTagBtn}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEmployeeIds([])}
+                    className={styles.clearAllTagsBtn}
+                  >
+                    Clear Filter (Show All)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {rangeLoading ? (
@@ -496,19 +730,19 @@ export default function Attendance() {
                 <thead>
                   <tr>
                     <th>Date</th>
-                    {employees.map((e) => (
+                    {displayedEmployees.map((e) => (
                       <th key={e.id}>{e.name}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {Object.keys(byDate).length === 0 ? (
-                     <tr><td colSpan={employees.length + 1}><div className={styles.emptyState}>No report data. Select dates and generate.</div></td></tr>
+                     <tr><td colSpan={displayedEmployees.length + 1}><div className={styles.emptyState}>No report data. Select dates and generate.</div></td></tr>
                   ) : (
                     sortedDateEntries.map(([d, rec]) => (
                       <tr key={d}>
                         <td style={{fontWeight: 700, color: 'var(--color-text)'}}>{d}</td>
-                        {employees.map((e) => {
+                        {displayedEmployees.map((e) => {
                           const item = rec[e.id];
                           if (!item) {
                             return (

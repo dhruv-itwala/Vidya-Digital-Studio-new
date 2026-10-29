@@ -27,6 +27,8 @@ import LeadsRoutes from "./StaffCRM/Leads/Lead.routes.js";
 import ClientRoutes from "./StaffCRM/Clients/Client.routes.js";
 import ClientPortalRoutes from "./StaffCRM/Clients/ClientPortal.routes.js";
 import ContentTaskRoutes from "./StaffCRM/Tasks/ContentTask.routes.js";
+import ContentCalendarRoutes from "./StaffCRM/ContentCalendar/contentCalendar.routes.js";
+import ContentCalendarClientRoutes from "./StaffCRM/ContentCalendar/contentCalendarClient.routes.js";
 import whatsappRoutes from "./Whatsapp/whatsapp.route.js";
 
 import influencerRoutes from "./StaffCRM/Influencers/Influencers.routes.js";
@@ -117,6 +119,10 @@ app.use(`/api/${VERSION}/client-portal`, ClientPortalRoutes);
 
 // Content Task Routes
 app.use(`/api/${VERSION}/content-tasks`, ContentTaskRoutes);
+
+// Content Calendar Google Sheets Routes
+app.use(`/api/${VERSION}/content-calendar`, ContentCalendarRoutes);
+app.use(`/api/${VERSION}/client-portal/content-calendar`, ContentCalendarClientRoutes);
 
 // Lead Routes
 app.use(`/api/${VERSION}/leads`, LeadsRoutes);

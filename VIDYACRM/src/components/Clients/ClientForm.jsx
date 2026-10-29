@@ -9,8 +9,8 @@ import ClientServices from "./components/ClientServices";
 import ClientDocuments from "./components/ClientDocuments";
 import ClientCredentials from "./components/ClientCredentials";
 import ClientPortalSettings from "./components/ClientPortalSettings";
-import ClientContentTasks from "./components/ClientContentTasks";
-import { FiArrowLeft, FiCheckCircle, FiEdit2, FiExternalLink } from "react-icons/fi";
+import ContentCalendarManager from "./components/ContentCalendarManager";
+import { FiArrowLeft, FiCheckCircle, FiEdit2, FiExternalLink, FiCalendar } from "react-icons/fi";
 import InlineLoader from "../UI/InlineLoader";
 
 export default function ClientForm({ mode = "view", initialData = null }) {
@@ -32,6 +32,10 @@ export default function ClientForm({ mode = "view", initialData = null }) {
   const readOnly = isView;
 
   const [loading, setLoading] = useState(false);
+  const [updatingBasic, setUpdatingBasic] = useState(false);
+  const [updatingServices, setUpdatingServices] = useState(false);
+  const [updatingPortal, setUpdatingPortal] = useState(false);
+
   const [photoPreview, setPhotoPreview] = useState(null);
   const [initialized, setInitialized] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -96,9 +100,59 @@ export default function ClientForm({ mode = "view", initialData = null }) {
     return null;
   };
 
-  /* ================= SAVE ================= */
+  /* ================= INDEPENDENT SECTION UPDATES ================= */
+
+  // 1. Update Basic Information
+  const handleUpdateBasicInfo = async (basicData) => {
+    if (!form._id) return;
+    try {
+      setUpdatingBasic(true);
+      const res = await updateClient(form._id, basicData);
+      if (!res.success) throw new Error(res.message);
+      toast.success("Basic Information updated successfully");
+      setIsDirty(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update basic info");
+    } finally {
+      setUpdatingBasic(false);
+    }
+  };
+
+  // 2. Update Active Services
+  const handleUpdateServices = async (servicesList) => {
+    if (!form._id) return;
+    try {
+      setUpdatingServices(true);
+      const res = await updateClient(form._id, { services: servicesList });
+      if (!res.success) throw new Error(res.message);
+      toast.success("Active Services updated successfully");
+      setIsDirty(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update services");
+    } finally {
+      setUpdatingServices(false);
+    }
+  };
+
+  // 3. Update Client Portal Settings
+  const handleUpdatePortalSettings = async (portalData) => {
+    if (!form._id) return;
+    try {
+      setUpdatingPortal(true);
+      const res = await updateClient(form._id, portalData);
+      if (!res.success) throw new Error(res.message);
+      toast.success("Client Portal Settings updated successfully");
+      setIsDirty(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to update portal settings");
+    } finally {
+      setUpdatingPortal(false);
+    }
+  };
+
+  /* ================= SAVE (Used for Onboarding / Create) ================= */
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (loading) return;
 
     const validationError = validateForm();
@@ -110,20 +164,20 @@ export default function ClientForm({ mode = "view", initialData = null }) {
     try {
       setLoading(true);
       // eslint-disable-next-line no-unused-vars
-      const { credentials, documents, transactions, ...rest } = form;
+      const { credentials, documents, transactions, invoices, ...rest } = form;
       const finalData = { ...rest };
-      
+
       if (!(form.profilePhoto instanceof File)) {
         delete finalData.profilePhoto;
       }
-      
+
       let res;
       if (isCreate) res = await createClient(finalData);
-      if (isEdit) res = await updateClient(form._id, finalData);
+      else res = await updateClient(form._id, finalData);
 
       if (!res.success) throw new Error(res.message);
 
-      toast.success("Saved successfully");
+      toast.success(isCreate ? "Client created successfully" : "Client updated successfully");
       setIsDirty(false);
       navigate(`/${pathPrefix}/clients`);
     } catch (err) {
@@ -151,8 +205,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
 
   return (
     <div className={styles.pageContainer}>
-      <form className={styles.formCard} onSubmit={handleSave}>
-        
+      <div className={styles.formCard}>
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.titleWrapper}>
@@ -169,22 +222,22 @@ export default function ClientForm({ mode = "view", initialData = null }) {
                 {isCreate ? "Onboard New Client" : isEdit ? "Edit Client Profile" : "Client Portfolio"}
               </h2>
               <p className={styles.subHeading}>
-                {isCreate 
-                  ? "Enter details to create a new client portfolio." 
-                  : isEdit 
-                    ? "Update the client's core details." 
+                {isCreate
+                  ? "Enter details to create a new client portfolio."
+                  : isEdit
+                    ? "Update each segment independently using the buttons below."
                     : "Viewing client portfolio."}
               </p>
             </div>
           </div>
-          
+
           <div className={styles.headerActions}>
             {isView && (
               <button
                 type="button"
                 className={styles.primaryBtn}
                 onClick={() => navigate(`/${pathPrefix}/clients/${form._id}/portal`)}
-                style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}
+                style={{ backgroundColor: "#10b981", borderColor: "#10b981" }}
               >
                 <FiExternalLink /> Portal View
               </button>
@@ -199,15 +252,27 @@ export default function ClientForm({ mode = "view", initialData = null }) {
               </button>
             )}
 
-            {!isView && (
+            {isCreate && (
               <button
-                type="submit"
+                type="button"
+                onClick={handleSave}
                 disabled={loading}
                 className={styles.primaryBtn}
               >
                 {loading && <InlineLoader size={16} />}
-                <span>{loading ? "Saving..." : isEdit ? "Update Client" : "Save Client"}</span>
+                <span>{loading ? "Saving..." : "Save Client"}</span>
                 {!loading && <FiCheckCircle />}
+              </button>
+            )}
+
+            {isEdit && (
+              <button
+                type="button"
+                className={styles.primaryBtn}
+                onClick={() => navigate(`/${pathPrefix}/clients/${form._id}/portal`)}
+                style={{ backgroundColor: "#0F5C44", borderColor: "#0F5C44" }}
+              >
+                <FiExternalLink /> View Portal
               </button>
             )}
           </div>
@@ -215,6 +280,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
 
         {/* FORM BODY (BENTO GRID) */}
         <div className={styles.formBody}>
+          {/* SEGMENT 1: BASIC INFORMATION */}
           <div className={styles.bentoSection}>
             <ClientBasicInfo
               form={form}
@@ -222,27 +288,50 @@ export default function ClientForm({ mode = "view", initialData = null }) {
               readOnly={readOnly}
               photoPreview={photoPreview}
               setPhotoPreview={setPhotoPreview}
+              isEdit={isEdit}
+              onUpdate={handleUpdateBasicInfo}
+              updating={updatingBasic}
             />
           </div>
 
+          {/* SEGMENT 2: ACTIVE SERVICES */}
           <div className={styles.bentoSection}>
             <ClientServices
               services={form.services}
               setForm={setFormWithDirty}
               isView={isView}
+              isEdit={isEdit}
+              onUpdate={handleUpdateServices}
+              updating={updatingServices}
             />
           </div>
 
+          {/* SEGMENT 3: CLIENT PORTAL SETTINGS */}
           <div className={styles.bentoSection}>
             <ClientPortalSettings
               form={form}
               setForm={setFormWithDirty}
               readOnly={readOnly}
+              isEdit={isEdit}
+              onUpdate={handleUpdatePortalSettings}
+              updating={updatingPortal}
             />
           </div>
 
+          {/* SEGMENT 4: CONTENT CALENDAR */}
+          {form._id && (
+              <ContentCalendarManager
+                clientId={form._id}
+                readOnly={readOnly}
+                onSpreadsheetUpdated={(url) =>
+                  setForm((prev) => ({ ...prev, contentCalendarLink: url }))
+                }
+              />
+          )}
+
           {!isCreate && (
             <>
+              {/* SEGMENT 5: DOCUMENTS */}
               <div className={styles.bentoSection}>
                 <ClientDocuments
                   form={form}
@@ -254,6 +343,7 @@ export default function ClientForm({ mode = "view", initialData = null }) {
                 />
               </div>
 
+              {/* SEGMENT 6: CREDENTIALS */}
               <div className={styles.bentoSection}>
                 <ClientCredentials
                   form={form}
@@ -264,18 +354,10 @@ export default function ClientForm({ mode = "view", initialData = null }) {
                   deleteCredential={deleteCredential}
                 />
               </div>
-
-              <div className={styles.bentoSection}>
-                <ClientContentTasks
-                  clientId={form._id}
-                  readOnly={readOnly}
-                />
-              </div>
             </>
           )}
         </div>
-        
-      </form>
+      </div>
     </div>
   );
 }
