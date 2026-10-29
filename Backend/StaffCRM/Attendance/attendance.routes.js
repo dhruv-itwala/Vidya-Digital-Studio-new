@@ -6,6 +6,7 @@ import { roleCheck } from "../middleware/role.middleware.js";
 import {
   requireOfficeWifi,
   verifyOfficeWifi,
+  verifyOfficeWifiAsync,
   getClientPublicIp,
   getDynamicOfficeNetwork,
   invalidateOfficeWifiCache,
@@ -16,16 +17,16 @@ import OfficeNetwork from "./officeNetwork.model.js";
 const attendanceRoutes = express.Router();
 
 /* ================= PUBLIC NETWORK CHECK ================= */
-attendanceRoutes.get("/wifi-check", (req, res) => {
-  const result = verifyOfficeWifi(req);
+attendanceRoutes.get("/wifi-check", async (req, res) => {
+  const result = await verifyOfficeWifiAsync(req);
   res.status(200).json({
     status: "success",
     data: result,
   });
 });
 
-attendanceRoutes.get("/my-ip", (req, res) => {
-  const result = verifyOfficeWifi(req);
+attendanceRoutes.get("/my-ip", async (req, res) => {
+  const result = await verifyOfficeWifiAsync(req);
   res.status(200).json({
     status: "success",
     message: "Vidya Digital Studio Network Inspector",

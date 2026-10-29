@@ -16,6 +16,7 @@ export interface UserProfile {
   phone?: string;
   role: "administrative" | "admin" | "employee" | "hr" | "intern";
   designation?: string;
+  requireOfficeWifi?: boolean;
   profilePicture?: {
     url: string;
     public_id?: string;

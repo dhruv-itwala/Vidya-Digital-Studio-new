@@ -27,6 +27,10 @@ export const updateUserAPI = (id, data) => api.put(`/users/${id}`, data);
 // INACTIVE (Soft delete)
 export const inactiveUserAPI = (id) => api.patch(`/users/${id}/inactive`);
 
+// TOGGLE OFFICE WI-FI RESTRICTION
+export const toggleUserWifiRestrictionAPI = (id, requireOfficeWifi) =>
+  api.patch(`/users/${id}/wifi-restriction`, { requireOfficeWifi });
+
 // DELETE (Hard delete)
 export const deleteUserAPI = (id) => api.delete(`/users/${id}`);
 

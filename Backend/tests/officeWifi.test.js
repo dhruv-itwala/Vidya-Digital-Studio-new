@@ -126,5 +126,35 @@ describe("Studio Wi-Fi & Office IP Verification Tests", () => {
     assert.equal(res.isOfficeWifi, true);
     assert.equal(res.clientLocalIp, "192.168.0.149");
   });
+
+  test("7. requireOfficeWifi allows WFH / On-site employees (requireOfficeWifi: false) from any outside IP", async () => {
+    process.env.NODE_ENV = "production";
+    process.env.OFFICE_WIFI_IPS = "103.21.54.10";
+
+    const wfhReq = {
+      user: {
+        _id: "650000000000000000000001",
+        name: "Remote Employee",
+        requireOfficeWifi: false,
+      },
+      headers: { "x-forwarded-for": "203.0.113.195" },
+      socket: { remoteAddress: "203.0.113.195" },
+    };
+
+    let nextCalled = false;
+    let nextError = null;
+
+    await new Promise((resolve) => {
+      requireOfficeWifi(wfhReq, {}, (err) => {
+        if (err) nextError = err;
+        else nextCalled = true;
+        resolve();
+      });
+    });
+
+    assert.equal(nextCalled, true);
+    assert.equal(nextError, null);
+    assert.equal(wfhReq.officeWifi.isExempt, true);
+  });
 });
 

@@ -59,3 +59,42 @@ export const fetchCurrentProfile = async (
   return res.data.data;
 };
 
+export const getAllEmployeesForAdmin = async (
+  token: string,
+): Promise<UserProfile[]> => {
+  const config = await getKioskConfig();
+
+  const res = await axios.get<{ success: boolean; users: UserProfile[] }>(
+    `${config.apiUrl}/users/admin/all`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: 10000,
+    },
+  );
+
+  return res.data.users || [];
+};
+
+export const toggleEmployeeWifiRestriction = async (
+  token: string,
+  userId: string,
+  requireOfficeWifi: boolean,
+): Promise<{ success: boolean; message: string; user: UserProfile }> => {
+  const config = await getKioskConfig();
+
+  const res = await axios.patch(
+    `${config.apiUrl}/users/${userId}/wifi-restriction`,
+    { requireOfficeWifi },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: 10000,
+    },
+  );
+
+  return res.data;
+};
+

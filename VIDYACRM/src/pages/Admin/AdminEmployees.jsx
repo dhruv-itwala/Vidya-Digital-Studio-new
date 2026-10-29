@@ -3,6 +3,7 @@ import {
   deleteUserAPI,
   getAllUsersForAdminAPI,
   inactiveUserAPI,
+  toggleUserWifiRestrictionAPI,
 } from "../../api/admin.api";
 import EmployeeModal from "./EmployeeModal";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +23,7 @@ export default function AdminEmployees() {
   const [rowsPerPage] = useState(100);
   const [loading, setLoading] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
+  const [togglingWifiId, setTogglingWifiId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
@@ -84,6 +86,7 @@ export default function AdminEmployees() {
                 <th>Profile</th>
                 <th>Email Address</th>
                 <th>Role</th>
+                <th>Office Wi-Fi</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -92,7 +95,7 @@ export default function AdminEmployees() {
             <tbody>
               {currentUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="5">
+                  <td colSpan="6">
                     <div className={styles.emptyState}>No employees found.</div>
                   </td>
                 </tr>
@@ -124,6 +127,61 @@ export default function AdminEmployees() {
                       <span className={`${styles.rolePill} ${styles['role_' + u.role?.toLowerCase()]}`}>
                         {u.role.toUpperCase()}
                       </span>
+                    </td>
+
+                    <td>
+                      <div className={styles.wifiCell}>
+                        <label className={styles.switch}>
+                          <input
+                            type="checkbox"
+                            checked={u.requireOfficeWifi ?? false}
+                            disabled={togglingWifiId === u._id || deletingId === u._id}
+                            onChange={async () => {
+                              const nextVal = !(u.requireOfficeWifi ?? false);
+                              const modeName = nextVal
+                                ? "Office Wi-Fi Required"
+                                : "Anywhere (WFH / On-site)";
+                              try {
+                                setTogglingWifiId(u._id);
+                                setUsers((prev) =>
+                                  prev.map((item) =>
+                                    item._id === u._id
+                                      ? { ...item, requireOfficeWifi: nextVal }
+                                      : item,
+                                  ),
+                                );
+                                await toggleUserWifiRestrictionAPI(u._id, nextVal);
+                                toast.success(`${u.name}: set to ${modeName}`);
+                              } catch (err) {
+                                setUsers((prev) =>
+                                  prev.map((item) =>
+                                    item._id === u._id
+                                      ? { ...item, requireOfficeWifi: !nextVal }
+                                      : item,
+                                  ),
+                                );
+                                toast.error(
+                                  err?.response?.data?.message ||
+                                    err?.message ||
+                                    "Failed to update Wi-Fi restriction",
+                                );
+                              } finally {
+                                setTogglingWifiId(null);
+                              }
+                            }}
+                          />
+                          <span className={styles.slider}></span>
+                        </label>
+                        <span
+                          className={`${styles.wifiPill} ${
+                            u.requireOfficeWifi
+                              ? styles.wifiOffice
+                              : styles.wifiRemote
+                          }`}
+                        >
+                          {u.requireOfficeWifi ? "Office Only" : "WFH / Anywhere"}
+                        </span>
+                      </div>
                     </td>
                     
                     <td>

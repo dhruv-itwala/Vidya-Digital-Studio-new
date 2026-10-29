@@ -45,6 +45,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     salary: user?.salary || "",
     salesTarget: "",
     isActive: user?.isActive ?? true,
+    requireOfficeWifi: user?.requireOfficeWifi ?? false,
     customPermissions: user?.customPermissions || [],
   });
 
@@ -465,6 +466,23 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 <span className={styles.slider}></span>
                 <span className={styles.toggleText}>Active Account Status</span>
               </label>
+            </div>
+
+            <div className={styles.inputGroupFull} style={{marginTop: '8px'}}>
+              <label className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={form.requireOfficeWifi}
+                  onChange={(e) => handleChange("requireOfficeWifi", e.target.checked)}
+                />
+                <span className={styles.slider}></span>
+                <span className={styles.toggleText}>
+                  Require Studio Wi-Fi (Offline / In-Studio Staff)
+                </span>
+              </label>
+              <small style={{ color: "#64748b", fontSize: "0.8rem", marginLeft: "54px", display: "block" }}>
+                When ON, employee can only punch attendance on Studio Wi-Fi. When OFF, employee can punch from anywhere (WFH / On-site).
+              </small>
             </div>
 
             <div className={styles.inputGroupFull} style={{marginTop: '16px'}}>

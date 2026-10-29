@@ -148,6 +148,47 @@ export const inactiveUser = asyncHandler(async (req, res) => {
   });
 });
 
+/* ================= TOGGLE OFFICE WI-FI RESTRICTION ================= */
+export const toggleWifiRestriction = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { requireOfficeWifi } = req.body;
+
+  const targetUser = await User.findById(id);
+  if (!targetUser) throw new AppError("User not found", 404);
+
+  if (typeof requireOfficeWifi === "boolean") {
+    targetUser.requireOfficeWifi = requireOfficeWifi;
+  } else {
+    targetUser.requireOfficeWifi = !targetUser.requireOfficeWifi;
+  }
+
+  await targetUser.save();
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    severity: "INFO",
+    module: "Users",
+    action: "UPDATE",
+    entityId: targetUser._id,
+    entityName: targetUser.name,
+    description: `${req.user.name} set Wi-Fi restriction to ${targetUser.requireOfficeWifi ? "REQUIRED (Office)" : "EXEMPT (WFH/On-site)"} for '${targetUser.name}'`,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: `Office Wi-Fi rule updated for ${targetUser.name}: ${targetUser.requireOfficeWifi ? "Office Wi-Fi Required" : "Work from Home / On-site Allowed"}`,
+    user: {
+      _id: targetUser._id,
+      name: targetUser.name,
+      email: targetUser.email,
+      role: targetUser.role,
+      requireOfficeWifi: targetUser.requireOfficeWifi,
+    },
+  });
+});
+
 /* ================= DELETE USER ================= */
 export const deleteUser = asyncHandler(async (req, res) => {
   const result = await deleteUserService(req.user, req.params.id);

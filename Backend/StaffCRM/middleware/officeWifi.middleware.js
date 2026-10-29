@@ -164,16 +164,28 @@ export const verifyOfficeWifi = (req) => {
 
 /**
  * Middleware that blocks punch requests if the user is not connected to Studio Wi-Fi.
+ * Exempts employees whose work mode is set to WFH / On-site (requireOfficeWifi === false).
  */
 export const requireOfficeWifi = async (req, res, next) => {
   try {
+    // If user is authenticated and NOT flagged for office Wi-Fi restriction
+    // (i.e. requireOfficeWifi === false, meaning WFH / On-site / Remote), allow punch!
+    if (req.user && req.user.requireOfficeWifi === false) {
+      req.officeWifi = {
+        isOfficeWifi: true,
+        isExempt: true,
+        reason: "Employee is configured for Work from Home / On-site attendance.",
+      };
+      return next();
+    }
+
     const wifiStatus = await verifyOfficeWifiAsync(req);
     req.officeWifi = wifiStatus;
 
     if (!wifiStatus.isOfficeWifi) {
       return next(
         new AppError(
-          "Attendance punch blocked: You must be connected to Vidya Digital Studio Wi-Fi (192.168.0.x) to punch in or out.",
+          "Attendance punch blocked: You are configured for Office attendance. You must be connected to Vidya Digital Studio Wi-Fi (192.168.0.x) to punch in or out.",
           403,
         ),
       );

@@ -236,6 +236,35 @@ input:disabled + .slider {
   cursor: not-allowed;
 }
 
+/* Wi-Fi Restriction Cell & Pills */
+.wifiCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wifiPill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.wifiOffice {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.wifiRemote {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
 /* Actions */
 .actionGroup {
   display: flex;

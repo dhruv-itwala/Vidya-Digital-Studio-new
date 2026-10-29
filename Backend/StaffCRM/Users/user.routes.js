@@ -13,6 +13,7 @@ import {
   getDashboardOverview,
   uploadProfilePhoto,
   updateNotificationPreferences,
+  toggleWifiRestriction,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { roleCheck } from "../middleware/role.middleware.js";
@@ -44,6 +45,11 @@ userRoutes.get("/admin/all", roleCheck("admin", "hr"), getAllUsersForAdmin);
 userRoutes.post("/", roleCheck("admin", "hr"), createUser);
 userRoutes.put("/:id", roleCheck("admin", "hr"), updateUser);
 userRoutes.patch("/:id/inactive", roleCheck("admin", "hr"), inactiveUser);
+userRoutes.patch(
+  "/:id/wifi-restriction",
+  roleCheck("admin", "hr"),
+  toggleWifiRestriction,
+);
 userRoutes.delete("/:id", roleCheck("admin", "hr"), deleteUser);
 
 export default userRoutes;

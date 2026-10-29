@@ -13,6 +13,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -26,6 +27,10 @@ import {
   setCurrentIpAsOffice,
   updateOfficeNetworkConfig,
 } from "../api/attendance.api";
+import {
+  getAllEmployeesForAdmin,
+  toggleEmployeeWifiRestriction,
+} from "../api/auth.api";
 import { authenticateKiosk } from "../services/biometric.service";
 import { clearAuthSession } from "../services/storage.service";
 import { SuccessOverlay } from "../components/SuccessOverlay";
@@ -84,6 +89,9 @@ export const EmployeePunchScreen: React.FC<Props> = ({
   // Admin / HR Wi-Fi Configuration State
   const [adminModalVisible, setAdminModalVisible] = useState(false);
   const [adminLoading, setAdminLoading] = useState(false);
+  const [adminTab, setAdminTab] = useState<"employees" | "network">("employees");
+  const [employeesList, setEmployeesList] = useState<UserProfile[]>([]);
+  const [employeeSearch, setEmployeeSearch] = useState("");
   const [detectedIp, setDetectedIp] = useState("");
   const [configuredIps, setConfiguredIps] = useState("");
   const [localSubnet, setLocalSubnet] = useState("192.168.0.");
@@ -93,14 +101,18 @@ export const EmployeePunchScreen: React.FC<Props> = ({
     setAdminModalVisible(true);
     setAdminLoading(true);
     try {
-      const data = await getOfficeNetworkConfig(token);
-      setDetectedIp(data.detectedClientIp || "");
-      setConfiguredIps((data.config?.officePublicIps || []).join(", "));
-      setLocalSubnet(data.config?.localSubnet || "192.168.0.");
-      if (data.config?.updatedAt) {
+      const [networkData, emps] = await Promise.all([
+        getOfficeNetworkConfig(token),
+        getAllEmployeesForAdmin(token),
+      ]);
+      setDetectedIp(networkData.detectedClientIp || "");
+      setConfiguredIps((networkData.config?.officePublicIps || []).join(", "));
+      setLocalSubnet(networkData.config?.localSubnet || "192.168.0.");
+      setEmployeesList(emps || []);
+      if (networkData.config?.updatedAt) {
         setLastUpdatedInfo(
-          `Last updated by ${data.config.updatedByName || "Admin"} on ${new Date(
-            data.config.updatedAt,
+          `Last updated by ${networkData.config.updatedByName || "Admin"} on ${new Date(
+            networkData.config.updatedAt,
           ).toLocaleString("en-IN")}`,
         );
       } else {
@@ -108,11 +120,28 @@ export const EmployeePunchScreen: React.FC<Props> = ({
       }
     } catch (err: any) {
       Alert.alert(
-        "Network Load Error",
-        err.response?.data?.message || err.message || "Failed to load network settings.",
+        "Admin Tools Error",
+        err.response?.data?.message || err.message || "Failed to load admin settings.",
       );
     } finally {
       setAdminLoading(false);
+    }
+  };
+
+  const handleToggleEmployeeWifi = async (empId: string, val: boolean) => {
+    setEmployeesList((prev) =>
+      prev.map((e) => (e._id === empId ? { ...e, requireOfficeWifi: val } : e)),
+    );
+    try {
+      await toggleEmployeeWifiRestriction(token, empId, val);
+    } catch (err: any) {
+      setEmployeesList((prev) =>
+        prev.map((e) => (e._id === empId ? { ...e, requireOfficeWifi: !val } : e)),
+      );
+      Alert.alert(
+        "Update Failed",
+        err.response?.data?.message || err.message || "Failed to update employee rule.",
+      );
     }
   };
 
@@ -235,7 +264,8 @@ export const EmployeePunchScreen: React.FC<Props> = ({
 
   // Handle Biometric Punch Action
   const handlePunchAction = async () => {
-    if (!wifiStatus.isStudioWifi) {
+    const isWifiRequired = user.requireOfficeWifi !== false;
+    if (isWifiRequired && !wifiStatus.isStudioWifi) {
       Alert.alert(
         "Studio Wi-Fi Required",
         "Attendance can only be marked while connected to Vidya Digital Studio Wi-Fi (192.168.0.x). Please connect to the office Wi-Fi network.",
@@ -398,39 +428,57 @@ export const EmployeePunchScreen: React.FC<Props> = ({
         </View>
 
         {/* Network Status Pill */}
-        <View
-          style={[
-            styles.networkBadge,
-            wifiStatus.isStudioWifi
-              ? styles.networkBadgeOnline
-              : styles.networkBadgeOffline,
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={wifiStatus.isStudioWifi ? "wifi-check" : "wifi-off"}
-            size={20}
-            color={wifiStatus.isStudioWifi ? "#10b981" : "#ef4444"}
-          />
-          <View style={styles.networkMeta}>
-            <Text
-              style={[
-                styles.networkTitle,
-                wifiStatus.isStudioWifi
-                  ? styles.networkTitleOnline
-                  : styles.networkTitleOffline,
-              ]}
-            >
-              {wifiStatus.isStudioWifi
-                ? "STUDIO WI-FI VERIFIED"
-                : "NOT ON STUDIO WI-FI"}
-            </Text>
-            <Text style={styles.networkSub}>
-              {wifiStatus.isStudioWifi
-                ? `IP: ${wifiStatus.localIp || "192.168.0.x"} • Ready to Punch`
-                : wifiStatus.message}
-            </Text>
+        {user.requireOfficeWifi === false ? (
+          <View style={[styles.networkBadge, styles.networkBadgeRemote]}>
+            <MaterialCommunityIcons
+              name="home-map-marker"
+              size={20}
+              color="#38bdf8"
+            />
+            <View style={styles.networkMeta}>
+              <Text style={[styles.networkTitle, { color: "#38bdf8" }]}>
+                WORK FROM HOME / ON-SITE
+              </Text>
+              <Text style={styles.networkSub}>
+                Office Wi-Fi exempt • Allowed to punch from any network
+              </Text>
+            </View>
           </View>
-        </View>
+        ) : (
+          <View
+            style={[
+              styles.networkBadge,
+              wifiStatus.isStudioWifi
+                ? styles.networkBadgeOnline
+                : styles.networkBadgeOffline,
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={wifiStatus.isStudioWifi ? "wifi-check" : "wifi-off"}
+              size={20}
+              color={wifiStatus.isStudioWifi ? "#10b981" : "#ef4444"}
+            />
+            <View style={styles.networkMeta}>
+              <Text
+                style={[
+                  styles.networkTitle,
+                  wifiStatus.isStudioWifi
+                    ? styles.networkTitleOnline
+                    : styles.networkTitleOffline,
+                ]}
+              >
+                {wifiStatus.isStudioWifi
+                  ? "STUDIO WI-FI VERIFIED"
+                  : "NOT ON STUDIO WI-FI"}
+              </Text>
+              <Text style={styles.networkSub}>
+                {wifiStatus.isStudioWifi
+                  ? `IP: ${wifiStatus.localIp || "192.168.0.x"} • Ready to Punch`
+                  : wifiStatus.message}
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Today's Attendance Overview Card */}
         <View style={styles.card}>
@@ -514,41 +562,47 @@ export const EmployeePunchScreen: React.FC<Props> = ({
 
         {/* Primary Biometric Punch Action Button */}
         <View style={styles.actionContainer}>
-          <TouchableOpacity
-            style={[
-              styles.punchButton,
-              nextAction === "PUNCH_IN"
-                ? styles.punchInButton
-                : styles.punchOutButton,
-              (!wifiStatus.isStudioWifi || actionLoading) &&
-                styles.punchButtonDisabled,
-            ]}
-            onPress={handlePunchAction}
-            disabled={!wifiStatus.isStudioWifi || actionLoading}
-            activeOpacity={0.8}
-          >
-            {actionLoading ? (
-              <ActivityIndicator size="large" color="#ffffff" />
-            ) : (
-              <>
-                <MaterialCommunityIcons
-                  name="fingerprint"
-                  size={36}
-                  color="#ffffff"
-                />
-                <Text style={styles.punchButtonTitle}>
-                  {nextAction === "PUNCH_IN"
-                    ? "PUNCH IN (BIOMETRIC)"
-                    : "PUNCH OUT (BIOMETRIC)"}
-                </Text>
-                <Text style={styles.punchButtonSub}>
-                  {wifiStatus.isStudioWifi
-                    ? "Touch fingerprint / Face ID to verify"
-                    : "Connect to Studio Wi-Fi to unlock"}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+          {(() => {
+            const isPunchAllowed =
+              user.requireOfficeWifi === false || wifiStatus.isStudioWifi;
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.punchButton,
+                  nextAction === "PUNCH_IN"
+                    ? styles.punchInButton
+                    : styles.punchOutButton,
+                  (!isPunchAllowed || actionLoading) &&
+                    styles.punchButtonDisabled,
+                ]}
+                onPress={handlePunchAction}
+                disabled={!isPunchAllowed || actionLoading}
+                activeOpacity={0.8}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator size="large" color="#ffffff" />
+                ) : (
+                  <>
+                    <MaterialCommunityIcons
+                      name="fingerprint"
+                      size={36}
+                      color="#ffffff"
+                    />
+                    <Text style={styles.punchButtonTitle}>
+                      {nextAction === "PUNCH_IN"
+                        ? "PUNCH IN (BIOMETRIC)"
+                        : "PUNCH OUT (BIOMETRIC)"}
+                    </Text>
+                    <Text style={styles.punchButtonSub}>
+                      {isPunchAllowed
+                        ? "Touch fingerprint / Face ID to verify"
+                        : "Connect to Studio Wi-Fi to unlock"}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            );
+          })()}
         </View>
       </ScrollView>
 
@@ -585,8 +639,8 @@ export const EmployeePunchScreen: React.FC<Props> = ({
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Office Wi-Fi Settings</Text>
-                <Text style={styles.modalSubtitle}>Admin & HR Dynamic Network Control</Text>
+                <Text style={styles.modalTitle}>Office Attendance Settings</Text>
+                <Text style={styles.modalSubtitle}>Admin & HR Control Panel</Text>
               </View>
               <TouchableOpacity
                 onPress={() => setAdminModalVisible(false)}
@@ -596,11 +650,126 @@ export const EmployeePunchScreen: React.FC<Props> = ({
               </TouchableOpacity>
             </View>
 
+            {/* Tab Selector */}
+            <View style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.tabBtn,
+                  adminTab === "employees" && styles.tabBtnActive,
+                ]}
+                onPress={() => setAdminTab("employees")}
+              >
+                <MaterialCommunityIcons
+                  name="account-cog"
+                  size={18}
+                  color={adminTab === "employees" ? "#ffffff" : "#9ca3af"}
+                />
+                <Text
+                  style={[
+                    styles.tabBtnText,
+                    adminTab === "employees" && styles.tabBtnTextActive,
+                  ]}
+                >
+                  Employee Rules
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.tabBtn,
+                  adminTab === "network" && styles.tabBtnActive,
+                ]}
+                onPress={() => setAdminTab("network")}
+              >
+                <MaterialCommunityIcons
+                  name="router-wireless"
+                  size={18}
+                  color={adminTab === "network" ? "#ffffff" : "#9ca3af"}
+                />
+                <Text
+                  style={[
+                    styles.tabBtnText,
+                    adminTab === "network" && styles.tabBtnTextActive,
+                  ]}
+                >
+                  Office Wi-Fi IP
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {adminLoading ? (
               <View style={styles.modalLoading}>
                 <ActivityIndicator size="large" color="#10b981" />
-                <Text style={styles.modalLoadingText}>Loading network settings...</Text>
+                <Text style={styles.modalLoadingText}>Loading settings...</Text>
               </View>
+            ) : adminTab === "employees" ? (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <Text style={styles.tabNotice}>
+                  Turn ON for employees working offline at the studio (must be on Studio Wi-Fi to punch).
+                  Turn OFF for employees working from home (WFH) or on-site.
+                </Text>
+
+                <TextInput
+                  style={styles.searchBar}
+                  placeholder="Search employee by name..."
+                  placeholderTextColor="#6b7280"
+                  value={employeeSearch}
+                  onChangeText={setEmployeeSearch}
+                />
+
+                {employeesList
+                  .filter(
+                    (e) =>
+                      e.name.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+                      (e.designation || "").toLowerCase().includes(employeeSearch.toLowerCase()),
+                  )
+                  .map((emp) => {
+                    const isRequired = emp.requireOfficeWifi === true;
+                    return (
+                      <View key={emp._id} style={styles.employeeRuleCard}>
+                        <View style={styles.empInfoCol}>
+                          <Text style={styles.empNameText}>{emp.name}</Text>
+                          <Text style={styles.empRoleText}>
+                            {emp.designation || emp.role.toUpperCase()}
+                          </Text>
+                          <View
+                            style={[
+                              styles.workBadge,
+                              isRequired
+                                ? styles.workBadgeOffice
+                                : styles.workBadgeRemote,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.workBadgeText,
+                                isRequired
+                                  ? { color: "#f59e0b" }
+                                  : { color: "#10b981" },
+                              ]}
+                            >
+                              {isRequired
+                                ? "🏢 In-Studio (Wi-Fi Required)"
+                                : "🏠 Remote (WFH / On-site)"}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <Switch
+                          value={isRequired}
+                          onValueChange={(val) =>
+                            handleToggleEmployeeWifi(emp._id, val)
+                          }
+                          trackColor={{ false: "#374151", true: "#10b981" }}
+                          thumbColor="#ffffff"
+                        />
+                      </View>
+                    );
+                  })}
+                {employeesList.length === 0 && (
+                  <Text style={styles.emptyListText}>No employees found.</Text>
+                )}
+              </ScrollView>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false}>
                 {/* 1-Click Set Current IP Box */}
@@ -790,6 +959,10 @@ const styles = StyleSheet.create({
   networkBadgeOffline: {
     backgroundColor: "rgba(239, 68, 68, 0.12)",
     borderColor: "rgba(239, 68, 68, 0.4)",
+  },
+  networkBadgeRemote: {
+    backgroundColor: "rgba(56, 189, 248, 0.12)",
+    borderColor: "rgba(56, 189, 248, 0.4)",
   },
   networkMeta: {
     flex: 1,
@@ -1037,5 +1210,100 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 15,
     fontWeight: "700",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: "#1f2937",
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+    gap: 6,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  tabBtnActive: {
+    backgroundColor: "#374151",
+  },
+  tabBtnText: {
+    color: "#9ca3af",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  tabBtnTextActive: {
+    color: "#ffffff",
+  },
+  tabNotice: {
+    color: "#9ca3af",
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 12,
+  },
+  searchBar: {
+    backgroundColor: "#1f2937",
+    color: "#ffffff",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 13,
+    borderWidth: 1,
+    borderColor: "#374151",
+    marginBottom: 14,
+  },
+  employeeRuleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#1f2937",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#374151",
+  },
+  empInfoCol: {
+    flex: 1,
+    marginRight: 12,
+  },
+  empNameText: {
+    color: "#f3f4f6",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  empRoleText: {
+    color: "#9ca3af",
+    fontSize: 11,
+    fontWeight: "500",
+    marginTop: 2,
+    textTransform: "uppercase",
+  },
+  workBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginTop: 6,
+  },
+  workBadgeOffice: {
+    backgroundColor: "rgba(245, 158, 11, 0.15)",
+  },
+  workBadgeRemote: {
+    backgroundColor: "rgba(16, 185, 129, 0.15)",
+  },
+  workBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  emptyListText: {
+    color: "#6b7280",
+    fontSize: 13,
+    textAlign: "center",
+    paddingVertical: 20,
   },
 });

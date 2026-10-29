@@ -45,6 +45,11 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
 
+    requireOfficeWifi: {
+      type: Boolean,
+      default: false,
+    },
+
     salary: { type: Number, min: 0 },
 
     joiningDate: {
