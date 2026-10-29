@@ -18,6 +18,7 @@ import servicePricesRoute from "./Quotation/ServicePrices/ServicePrice.routes.js
 import quotationRoutes from "./Quotation/Quote/routes/Quote.routes.js";
 import userRoutes from "./StaffCRM/Users/user.routes.js";
 import attendenceRoutes from "./StaffCRM/Attendance/attendance.routes.js";
+import kioskRoutes from "./StaffCRM/Kiosk/kiosk.routes.js";
 import reportRoutes from "./StaffCRM/Report/report.routes.js";
 import holidayRoutes from "./StaffCRM/Holidays/holiday.routes.js";
 import taskRoutes from "./StaffCRM/Tasks/task.routes.js";
@@ -88,6 +89,7 @@ app.use(`/api/${VERSION}/users`, userRoutes);
 
 // Attendence Routes
 app.use(`/api/${VERSION}/attendance`, attendenceRoutes);
+app.use(`/api/${VERSION}/kiosk`, kioskRoutes);
 
 // Holiday Routes
 app.use(`/api/${VERSION}/holiday`, holidayRoutes);

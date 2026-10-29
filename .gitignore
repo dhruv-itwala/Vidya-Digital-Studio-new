@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies and build output
 node_modules
 dist
 dist-ssr
@@ -23,10 +24,33 @@ dist-ssr
 *.sln
 *.sw?
 
+# Local environment runner
+powershell.cmd
+
+# Environment variables
 .env
-# Ignore full project folder
+.env.*
+
+# Project folders
 Frontend/
 PORTFOLIO/
 STAFFCRM2.0/
 .postman/
 postman/
+
+# Get Shit Done (GSD)
+.gsd/
+.gsd-*/
+.gsd_*/
+get-shit-done/
+get-shit-done-*/
+.gemini/
+.agents/
+.agent/
+adapters/
+scripts/
+
+GSD-STYLE.md
+model_capabilities.yaml
+PROJECT_RULES.md
+VERSION
