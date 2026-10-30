@@ -49,7 +49,7 @@ get-shit-done-*/
 .agent/
 adapters/
 scripts/
-
+.sample/
 GSD-STYLE.md
 model_capabilities.yaml
 PROJECT_RULES.md

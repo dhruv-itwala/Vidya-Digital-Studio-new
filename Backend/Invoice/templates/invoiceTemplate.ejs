@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Invoice <%= invoiceNumber %></title>
+    <style>
+      <%- css %>
+    </style>
+  </head>
+  <body>
+    <!-- ================= PAGE 1 ================= -->
+    <div class="sheet">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="logo-wrap">
+          <img src="<%= logoUrl %>" alt="Vidya Digital Studio" class="logo" />
+        </div>
+        <div class="company-address">
+          <div>196, Kabadi Market, Ward Number 9, Bapod,</div>
+          <div>Ajwa Rd, Vadodara, Gujarat 390019</div>
+          <div class="udyam-no">UDYAM - GJ-24 - 0184605</div>
+        </div>
+      </header>
+
+      <!-- CONTACT BAR -->
+      <div class="contact-bar">
+        <div>+91 7096413502</div>
+        <div>vidyadigitalstudio.com</div>
+        <div>contact@vidyadigitalstudio.com</div>
+      </div>
+
+      <!-- WATERMARK -->
+      <img src="<%= watermarkUrl %>" alt="" class="watermark" />
+
+      <!-- CONTENT -->
+      <div class="content-body">
+        <!-- INVOICE NUMBER & DATE BADGE -->
+        <div class="invoice-badge-bar">
+          <div>INVOICE NO. <%= invoiceNumber %></div>
+          <div><%= invoiceDate %></div>
+        </div>
+
+        <!-- BILLED TO -->
+        <div class="section-heading">Billed To</div>
+        <div class="billed-to-box">
+          <% if (client.name) { %>
+          <div class="client-line"><span class="label">Client Name:</span> <%= client.name %></div>
+          <% } %>
+          <% if (client.companyName) { %>
+          <div class="client-line"><span class="label">Company Name:</span> <%= client.companyName %></div>
+          <% } %>
+          <% if (client.address) { %>
+          <div class="client-line"><span class="label">Address:</span> <%= client.address %></div>
+          <% } %>
+          <% if (client.email) { %>
+          <div class="client-line"><span class="label">Email:</span> <%= client.email %></div>
+          <% } %>
+          <% if (client.phone) { %>
+          <div class="client-line"><span class="label">Phone:</span> <%= client.phone %></div>
+          <% } %>
+          <% if (client.gstNumber) { %>
+          <div class="client-line"><span class="label">GST / ABN:</span> <%= client.gstNumber %></div>
+          <% } %>
+        </div>
+
+        <!-- SERVICE DETAILS -->
+        <div class="section-heading">Service Details</div>
+        <div class="table-wrapper">
+          <table class="service-table">
+            <thead>
+              <tr>
+                <th style="width: 8%" class="center">Sr. No</th>
+                <th style="width: 27%">Service</th>
+                <th style="width: 45%">Description / Quantity</th>
+                <th style="width: 20%" class="right">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.forEach(function(item, idx) { %>
+              <tr>
+                <td class="center"><%= item.srNo || (idx + 1) %></td>
+                <td class="service-name"><%= item.service %></td>
+                <td class="description-cell"><%= item.description %></td>
+                <td class="right">₹<%= Number(item.amount || 0).toLocaleString('en-IN') %></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- BILLING SUMMARY -->
+        <div class="section-heading">Billing Summary</div>
+        <div class="billing-summary-section">
+          <div class="summary-list">
+            <% if (gstEnabled) { %>
+            <div class="summary-row">
+              <span class="summary-label">Subtotal:</span>
+              <span class="summary-value">₹<%= Number(subtotal || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">CGST (9%):</span>
+              <span class="summary-value">₹<%= Number(cgst || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">SGST (9%):</span>
+              <span class="summary-value">₹<%= Number(sgst || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row amount-payable-highlight">
+              <span class="summary-label">Total Amount:</span>
+              <span class="summary-value">₹<%= Number(totalAmount || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <% } else { %>
+            <div class="summary-row amount-payable-highlight">
+              <span class="summary-label">Total Amount:</span>
+              <span class="summary-value">₹<%= Number(totalAmount || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <% } %>
+
+            <% if (advanceAmount > 0) { %>
+            <div class="summary-row">
+              <span class="summary-label">Advance amount to be paid:</span>
+              <span class="summary-value">₹<%= Number(advanceAmount || 0).toLocaleString('en-IN') %></span>
+            </div>
+            <% } %>
+
+            <% if (remainingAmount > 0 || remainingDate) { %>
+            <div class="summary-row">
+              <span class="summary-label">Remaining payment amount and date:</span>
+              <span class="summary-value">₹<%= Number(remainingAmount || 0).toLocaleString('en-IN') %></span>
+              <% if (remainingDate) { %>
+              <span style="color: #444; font-weight: 500;">(Due: <%= remainingDate %>)</span>
+              <% } %>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 2 ================= -->
+    <div class="sheet">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="logo-wrap">
+          <img src="<%= logoUrl %>" alt="Vidya Digital Studio" class="logo" />
+        </div>
+        <div class="company-address">
+          <div>196, Kabadi Market, Ward Number 9, Bapod,</div>
+          <div>Ajwa Rd, Vadodara, Gujarat 390019</div>
+          <div class="udyam-no">UDYAM - GJ-24 - 0184605</div>
+        </div>
+      </header>
+
+      <!-- CONTACT BAR -->
+      <div class="contact-bar">
+        <div>+91 7096413502</div>
+        <div>vidyadigitalstudio.com</div>
+        <div>contact@vidyadigitalstudio.com</div>
+      </div>
+
+      <!-- WATERMARK -->
+      <img src="<%= watermarkUrl %>" alt="" class="watermark" />
+
+      <!-- CONTENT -->
+      <div class="content-body">
+        <div class="section-heading" style="font-size: 19px; margin-bottom: 14px;">TERMS & CONDITIONS</div>
+        <ol class="terms-list">
+          <% paymentTerms.forEach(function(term) { %>
+          <li><%= String(term).replace(/^\d+[\.\)]\s*/, '') %></li>
+          <% }); %>
+        </ol>
+
+        <!-- NOTES: Auto-hide if no notes are provided -->
+        <% if (notes && notes.length > 0) { %>
+        <div class="notes-box">
+          <div class="section-heading" style="font-size: 18px; margin-bottom: 10px;">Notes</div>
+          <ul class="notes-list">
+            <% notes.forEach(function(note) { %>
+            <li><%= note %></li>
+            <% }); %>
+          </ul>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- ================= PAGE 3 ================= -->
+    <div class="sheet">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="logo-wrap">
+          <img src="<%= logoUrl %>" alt="Vidya Digital Studio" class="logo" />
+        </div>
+        <div class="company-address">
+          <div>196, Kabadi Market, Ward Number 9, Bapod,</div>
+          <div>Ajwa Rd, Vadodara, Gujarat 390019</div>
+          <div class="udyam-no">UDYAM - GJ-24 - 0184605</div>
+        </div>
+      </header>
+
+      <!-- CONTACT BAR -->
+      <div class="contact-bar">
+        <div>+91 7096413502</div>
+        <div>vidyadigitalstudio.com</div>
+        <div>contact@vidyadigitalstudio.com</div>
+      </div>
+
+      <!-- WATERMARK -->
+      <img src="<%= watermarkUrl %>" alt="" class="watermark" />
+
+      <!-- CONTENT -->
+      <div class="content-body">
+        <div class="section-heading" style="font-size: 20px; margin-bottom: 14px;">Payment Details</div>
+
+        <div class="payment-grid">
+          <div class="bank-info">
+            <div class="bank-info-row"><span class="bank-label">Bank Name:</span> <%= bankDetails.bankName %></div>
+            <div class="bank-info-row"><span class="bank-label">Account Holder Name:</span> <%= bankDetails.accountHolderName %></div>
+            <div class="bank-info-row"><span class="bank-label">Account Number:</span> <%= bankDetails.accountNumber %></div>
+            <div class="bank-info-row"><span class="bank-label">IFSC Code:</span> <%= bankDetails.ifscCode %></div>
+            <div class="bank-info-row"><span class="bank-label">UPI ID:</span> <%= bankDetails.upiId %></div>
+          </div>
+
+          <div class="qr-section">
+            <img src="<%= qrCodeDataUri %>" alt="Payment QR Code" class="qr-code" />
+            <div class="qr-upi-label">UPI ID: <%= bankDetails.upiId %></div>
+          </div>
+        </div>
+
+        <div class="acknowledgement-section">
+          <div class="section-heading" style="font-size: 20px; margin-bottom: 12px;">Acknowledgement</div>
+          <div class="ack-text">
+            <strong>Thank you for choosing Vidya Digital Studio.</strong><br />
+            We appreciate your trust and look forward to working with you.
+          </div>
+          <div class="ack-notice">
+            By signing below, the Client acknowledges receipt of this invoice and confirms the payment terms.
+          </div>
+        </div>
+
+        <!-- SIGNATURES -->
+        <div class="signature-grid">
+          <div class="sig-box client">
+            <div class="sig-placeholder-space"></div>
+            <div class="sig-person-name"><%= client.name %></div>
+            <div class="sig-person-role"><%= client.designation || 'Owner' %>,</div>
+            <div class="sig-person-company"><%= client.companyName || client.name %></div>
+          </div>
+
+          <div class="sig-box founder">
+            <img src="<%= signatureUrl %>" alt="Signature" class="sig-image" />
+            <div class="sig-person-name">Dheemahi Joshi</div>
+            <div class="sig-person-role">Founder,</div>
+            <div class="sig-person-company">Vidya Digital Studio</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+

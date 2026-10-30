@@ -16,6 +16,7 @@ import { instagramRoutes } from "@it_dhruv/delta-instagram-feed";
 // Import Routes
 import servicePricesRoute from "./Quotation/ServicePrices/ServicePrice.routes.js";
 import quotationRoutes from "./Quotation/Quote/routes/Quote.routes.js";
+import invoiceRoutes from "./Invoice/routes/Invoice.routes.js";
 import userRoutes from "./StaffCRM/Users/user.routes.js";
 import attendenceRoutes from "./StaffCRM/Attendance/attendance.routes.js";
 import kioskRoutes from "./StaffCRM/Kiosk/kiosk.routes.js";
@@ -77,6 +78,9 @@ app.use(`/api/${VERSION}/service-prices`, servicePricesRoute);
 
 //Quotation Routes
 app.use(`/api/${VERSION}/quotation`, quotationRoutes);
+
+// Invoice Routes
+app.use(`/api/${VERSION}/invoice`, invoiceRoutes);
 
 // Whatsapp Routes
 app.use(`/api/${VERSION}/whatsapp`, whatsappRoutes);

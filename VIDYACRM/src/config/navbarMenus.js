@@ -16,6 +16,7 @@ export const NAVBAR_MENUS = {
     "divider",
     // Clients and sales
     { label: "Quotations", path: "/admin/quotations" },
+    { label: "Invoices", path: "/admin/invoices" },
     { label: "Leads", path: "/admin/leads" },
     { label: "Clients", path: "/admin/clients" },
     { label: "WhatsApp Chats", path: "/admin/whatsapp-chats" },
@@ -50,6 +51,7 @@ export const NAVBAR_MENUS = {
     "divider",
     // Clients and sales
     { label: "Quotations", path: "/admin/quotations" },
+    { label: "Invoices", path: "/admin/invoices" },
     { label: "Leads", path: "/admin/leads" },
     { label: "Clients", path: "/admin/clients" },
     { label: "WhatsApp Chats", path: "/admin/whatsapp-chats" },
@@ -102,6 +104,7 @@ export const NAVBAR_MENUS = {
     "divider",
     // Clients and sales
     { label: "Quotations", path: "/hr/quotations" },
+    { label: "Invoices", path: "/hr/invoices" },
     { label: "Leads", path: "/hr/leads" },
     { label: "Clients", path: "/hr/clients" },
     { label: "WhatsApp Chats", path: "/hr/whatsapp-chats" },

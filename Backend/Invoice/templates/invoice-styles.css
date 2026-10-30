@@ -1,0 +1,408 @@
+/* Backend/Invoice/templates/invoice-styles.css */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+:root {
+  --green: #0f5c44;
+  --header-height: 96px;
+  --contact-height: 44px;
+  --footer-height: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color: #111;
+  background-color: #fff;
+}
+
+/* ================= PAGE CONTAINER ================= */
+.sheet {
+  position: relative;
+  width: 210mm;
+  min-height: 297mm;
+  height: 297mm;
+  padding: 0;
+  margin: 0 auto;
+  page-break-after: always;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.sheet:last-child {
+  page-break-after: avoid;
+}
+
+/* ================= HEADER ================= */
+.header {
+  height: var(--header-height);
+  padding: 20px 48px 10px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  z-index: 10;
+  position: relative;
+}
+
+.logo {
+  height: 48px;
+  object-fit: contain;
+}
+
+.company-address {
+  text-align: right;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #222;
+  font-weight: 500;
+}
+
+.udyam-no {
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ================= CONTACT BAR ================= */
+.contact-bar {
+  width: 100%;
+  height: var(--contact-height);
+  background: var(--green);
+  color: #ffffff;
+  padding: 0 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  z-index: 10;
+  position: relative;
+}
+
+/* ================= WATERMARK ================= */
+.watermark {
+  position: absolute;
+  width: 60%;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.07;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ================= CONTENT BODY ================= */
+.content-body {
+  position: relative;
+  z-index: 2;
+  padding: 24px 48px 30px 48px;
+}
+
+/* ================= INVOICE META BADGE ================= */
+.invoice-badge-bar {
+  background: var(--green);
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+/* ================= BILLED TO ================= */
+.section-heading {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.2px;
+}
+
+.billed-to-box {
+  margin-bottom: 22px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #222;
+}
+
+.billed-to-box .client-line {
+  margin-bottom: 3px;
+}
+
+.billed-to-box .label {
+  font-weight: 700;
+  color: #000;
+}
+
+/* ================= SERVICE TABLE ================= */
+.table-wrapper {
+  margin-bottom: 20px;
+}
+
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  border: 1px solid #000;
+  table-layout: fixed;
+}
+
+.service-table th {
+  background-color: #f7f7f7;
+  border: 1px solid #000;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  color: #000;
+}
+
+.service-table th.center {
+  text-align: center;
+}
+
+.service-table th.right {
+  text-align: right;
+}
+
+.service-table td {
+  border: 1px solid #000;
+  padding: 10px 12px;
+  vertical-align: top;
+  line-height: 1.45;
+  color: #111;
+  word-wrap: break-word;
+}
+
+.service-table td.center {
+  text-align: center;
+  font-weight: 600;
+}
+
+.service-table td.right {
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.service-table td.service-name {
+  font-weight: 700;
+  color: #111;
+}
+
+.service-table td.description-cell {
+  white-space: pre-wrap;
+  color: #333;
+}
+
+/* ================= BILLING SUMMARY ================= */
+.billing-summary-section {
+  margin-top: 18px;
+  padding-top: 4px;
+}
+
+.summary-list {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #222;
+}
+
+.summary-row {
+  margin-bottom: 4px;
+}
+
+.summary-label {
+  font-weight: 700;
+  color: #000;
+}
+
+.summary-value {
+  font-weight: 700;
+  color: #000;
+}
+
+.amount-payable-highlight {
+  font-size: 15px;
+  font-weight: 800;
+  color: #000;
+  margin-bottom: 6px;
+}
+
+/* ================= PAGE 2: PAYMENT TERMS & NOTES ================= */
+.terms-list {
+  margin: 12px 0 20px 0;
+  padding-left: 22px;
+  list-style-type: decimal;
+}
+
+.terms-list li {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #222;
+  margin-bottom: 7px;
+  padding-left: 4px;
+}
+
+.terms-list li::marker {
+  font-weight: 700;
+  color: var(--green);
+}
+
+.notes-box {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.15);
+}
+
+.notes-list {
+  margin: 8px 0;
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.notes-list li {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+/* ================= PAGE 3: PAYMENT DETAILS & ACKNOWLEDGEMENT ================= */
+.payment-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 16px;
+  margin-bottom: 40px;
+}
+
+.bank-info {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #222;
+}
+
+.bank-info-row {
+  margin-bottom: 4px;
+}
+
+.bank-label {
+  font-weight: 700;
+  color: #000;
+}
+
+.qr-section {
+  width: 200px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qr-code {
+  width: 170px;
+  height: 170px;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.qr-upi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+  margin-top: 8px;
+  letter-spacing: 0.2px;
+}
+
+.acknowledgement-section {
+  margin-top: 32px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.15);
+  padding-top: 24px;
+}
+
+.ack-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #222;
+  margin-bottom: 12px;
+}
+
+.ack-notice {
+  font-size: 13.5px;
+  color: #333;
+  line-height: 1.5;
+  margin-top: 12px;
+  margin-bottom: 50px;
+}
+
+/* ================= SIGNATURES ================= */
+.signature-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 40px;
+  padding: 0 10px;
+}
+
+.sig-box {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sig-box.client {
+  align-items: flex-start;
+}
+
+.sig-box.founder {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.sig-placeholder-space {
+  height: 55px;
+}
+
+.sig-image {
+  height: 60px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+
+.sig-person-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 2px;
+}
+
+.sig-person-role {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.3;
+}
+
+.sig-person-company {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+}
+

@@ -190,12 +190,7 @@ export default function TopHeader({ onMenuClick }) {
         </div>
 
         <div className={styles.right}>
-          {/* Fake Global Search for SaaS look */}
-          <div className={styles.searchBox}>
-            <FiSearch className={styles.searchIcon} />
-            <input type="text" placeholder="Search..." className={styles.searchInput} />
-          </div>
-
+         
           {/* Notifications */}
           <div className={styles.notifWrapper} ref={notifRef}>
             <button

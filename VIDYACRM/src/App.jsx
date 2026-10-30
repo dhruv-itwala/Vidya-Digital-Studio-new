@@ -20,6 +20,8 @@ import "./App.css";
 
 // Lazy Loaded Components
 const AllQuotations = React.lazy(() => import("./pages/Admin/AllQuotations"));
+const AllInvoices = React.lazy(() => import("./pages/Invoices/AllInvoices"));
+const InvoiceBuilderPage = React.lazy(() => import("./pages/Invoices/InvoiceBuilderPage"));
 const Dashboard = React.lazy(() => import("./components/Dashboard/Dashboard"));
 const SeniorDashboard = React.lazy(
   () => import("./components/Dashboard/SeniorDashboard"),
@@ -231,6 +233,10 @@ export default function App() {
               <Route path="transactions" element={<ClientTransactions />} />
             </Route>
             <Route path="quotations" element={<AllQuotations />} />
+            <Route path="invoices" element={<AllInvoices />} />
+            <Route path="invoices/new" element={<InvoiceBuilderPage />} />
+            <Route path="invoices/create-invoice" element={<InvoiceBuilderPage />} />
+            <Route path="invoices/:id/edit" element={<InvoiceBuilderPage />} />
             <Route path="whatsapp-chats" element={<WhatsAppChats />} />
           </Route>
 
@@ -292,6 +298,10 @@ export default function App() {
               <Route path="transactions" element={<ClientTransactions />} />
             </Route>
             <Route path="quotations" element={<AllQuotations />} />
+            <Route path="invoices" element={<AllInvoices />} />
+            <Route path="invoices/new" element={<InvoiceBuilderPage />} />
+            <Route path="invoices/create-invoice" element={<InvoiceBuilderPage />} />
+            <Route path="invoices/:id/edit" element={<InvoiceBuilderPage />} />
             <Route path="notices" element={<NoticeBoard />} />
             <Route path="whatsapp-chats" element={<WhatsAppChats />} />
           </Route>
