@@ -24,6 +24,11 @@ describe("VidyaCrmApk Configuration & Asset Verification", () => {
       "Package name must be mystaff.vidyadigitalstudio.com",
     );
     assert.equal(expo.version, "1.3.90", "Version must match VIDYACRM version 1.3.90");
+    assert.ok(
+      ["default", "portrait", "landscape"].includes(expo.orientation),
+      "orientation must be a valid Expo/Android orientation ('default', 'portrait', or 'landscape')",
+    );
+    assert.notEqual(expo.orientation, "any", "orientation must not be 'any' as AAPT rejects it");
     assert.ok(expo.android.versionCode > 0, "versionCode must be a positive integer");
   });
 

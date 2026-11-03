@@ -3,7 +3,7 @@
     "name": "MyStaff",
     "slug": "mystaff",
     "version": "1.3.90",
-    "orientation": "any",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
