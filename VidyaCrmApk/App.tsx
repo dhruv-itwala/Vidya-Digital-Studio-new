@@ -24,7 +24,7 @@ import * as Network from "expo-network";
 
 // Configurable CRM target URL (defaults to production CRM, or LAN / custom via environment)
 const DEFAULT_CRM_URL =
-  process.env.EXPO_PUBLIC_CRM_URL || "https://backend.vidyadigitalstudio.com";
+  process.env.EXPO_PUBLIC_CRM_URL || "https://backend.vidyadigitalstudio.com/api/v1.0";
 
 export default function App() {
   const webViewRef = useRef<WebView>(null);
