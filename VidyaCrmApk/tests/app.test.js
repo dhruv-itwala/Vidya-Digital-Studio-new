@@ -74,5 +74,54 @@ describe("VidyaCrmApk Configuration & Asset Verification", () => {
     assert.ok(pkg.dependencies["react-native-webview"], "Must have react-native-webview");
     assert.ok(pkg.dependencies["expo"], "Must have expo dependency");
   });
+
+  test("1.5 patchGradleRepositories script accurately injects mavenCentral into settings.gradle and build.gradle", async () => {
+    const { patchGradleRepositories } = await import("../plugins/patch-gradle-repos.js");
+    const os = await import("node:os");
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "vds-gradle-test-"));
+
+    try {
+      const mockSettings = `pluginManagement {
+  includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json')"].execute(null, rootDir).text.trim()).getParentFile().toString())
+}
+plugins { id("com.facebook.react.settings") }
+include ':app'
+`;
+      const mockBuild = `buildscript {
+    repositories {
+        google()
+    }
+}
+allprojects {
+    repositories {
+        google()
+    }
+}
+`;
+      fs.writeFileSync(path.join(tmpDir, "settings.gradle"), mockSettings, "utf8");
+      fs.writeFileSync(path.join(tmpDir, "build.gradle"), mockBuild, "utf8");
+
+      const result = patchGradleRepositories(tmpDir);
+      assert.equal(result.modifiedSettings, true);
+      assert.equal(result.modifiedBuild, true);
+
+      const patchedSettings = fs.readFileSync(path.join(tmpDir, "settings.gradle"), "utf8");
+      assert.ok(patchedSettings.includes("mavenCentral()"), "settings.gradle must include mavenCentral()");
+      assert.ok(
+        patchedSettings.includes("dependencyResolutionManagement"),
+        "settings.gradle must include dependencyResolutionManagement",
+      );
+
+      const patchedBuild = fs.readFileSync(path.join(tmpDir, "build.gradle"), "utf8");
+      assert.ok(patchedBuild.includes("mavenCentral()"), "build.gradle must include mavenCentral()");
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test("1.6 withMavenCentral Expo config plugin file exists and loads cleanly", () => {
+    const pluginPath = path.join(rootDir, "plugins", "withMavenCentral.cjs");
+    assert.ok(fs.existsSync(pluginPath), "withMavenCentral.cjs must exist");
+  });
 });
 
