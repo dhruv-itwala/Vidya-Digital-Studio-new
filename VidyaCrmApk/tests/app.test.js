@@ -138,12 +138,16 @@ allprojects {
       "App.tsx must include in-app URL update and connect handling",
     );
     assert.ok(
+      appCode.includes("https://mystaff.vidyadigitalstudio.com"),
+      "App.tsx must include default live production frontend URL https://mystaff.vidyadigitalstudio.com",
+    );
+    assert.ok(
       appCode.includes("192.168.0.149:20254"),
-      "App.tsx must include default Studio LAN port 20254 fallback",
+      "App.tsx must include Studio LAN port 20254 fallback",
     );
   });
 
-  test("1.8 GitHub Actions workflow provides crm_url input parameter", () => {
+  test("1.8 GitHub Actions workflow defaults to live production frontend URL and provides crm_url input parameter", () => {
     const wfPath = path.resolve(rootDir, "..", ".github", "workflows", "build-vidyacrm-apk.yml");
     assert.ok(fs.existsSync(wfPath), "build-vidyacrm-apk.yml must exist");
 
@@ -151,6 +155,10 @@ allprojects {
     assert.ok(
       wfContent.includes("crm_url:"),
       "Workflow must include crm_url input for specifying server URL",
+    );
+    assert.ok(
+      wfContent.includes("https://mystaff.vidyadigitalstudio.com"),
+      "Workflow must default to https://mystaff.vidyadigitalstudio.com",
     );
     assert.ok(
       !wfContent.includes("http://backend.vidyadigitalstudio.com"),

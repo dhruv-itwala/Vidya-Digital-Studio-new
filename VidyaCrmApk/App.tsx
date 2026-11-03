@@ -25,9 +25,9 @@ import type {
 import * as Network from "expo-network";
 import * as SecureStore from "expo-secure-store";
 
-// Configurable fallback target (Local Wi-Fi LAN port 20254 or custom environment)
+// Configurable fallback target (defaults to live production, or custom environment)
 export const DEFAULT_CRM_URL =
-  process.env.EXPO_PUBLIC_CRM_URL || "http://192.168.0.149:20254";
+  process.env.EXPO_PUBLIC_CRM_URL || "https://mystaff.vidyadigitalstudio.com";
 
 const STORAGE_KEY_CRM_URL = "mystaff_crm_target_url";
 
@@ -244,11 +244,22 @@ export default function App() {
                 onChangeText={setInputUrl}
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="http://192.168.0.149:20254"
+                placeholder="https://mystaff.vidyadigitalstudio.com"
                 placeholderTextColor="#9ca3af"
               />
 
               <View style={styles.presetRow}>
+                <TouchableOpacity
+                  style={[styles.presetChip, styles.presetChipActive]}
+                  onPress={() => {
+                    const liveUrl = "https://mystaff.vidyadigitalstudio.com";
+                    setInputUrl(liveUrl);
+                    handleSaveUrl(liveUrl);
+                  }}
+                >
+                  <Text style={styles.presetChipText}>🌐 Live (mystaff.vidyadigitalstudio.com)</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   style={styles.presetChip}
                   onPress={() => {
@@ -257,7 +268,7 @@ export default function App() {
                     handleSaveUrl(localLan);
                   }}
                 >
-                  <Text style={styles.presetChipText}>🏢 Studio LAN (192.168.0.149:20254)</Text>
+                  <Text style={styles.presetChipText}>🏢 Local LAN (192.168.0.149:20254)</Text>
                 </TouchableOpacity>
               </View>
 
@@ -318,11 +329,22 @@ export default function App() {
               onChangeText={setInputUrl}
               autoCapitalize="none"
               autoCorrect={false}
-              placeholder="http://192.168.0.149:20254"
+              placeholder="https://mystaff.vidyadigitalstudio.com"
               placeholderTextColor="#9ca3af"
             />
 
             <View style={styles.presetRow}>
+              <TouchableOpacity
+                style={[styles.presetChip, styles.presetChipActive]}
+                onPress={() => {
+                  const liveUrl = "https://mystaff.vidyadigitalstudio.com";
+                  setInputUrl(liveUrl);
+                  handleSaveUrl(liveUrl);
+                }}
+              >
+                <Text style={styles.presetChipText}>🌐 Live (mystaff.vidyadigitalstudio.com)</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.presetChip}
                 onPress={() => {
@@ -331,7 +353,7 @@ export default function App() {
                   handleSaveUrl(localLan);
                 }}
               >
-                <Text style={styles.presetChipText}>🏢 Studio LAN (192.168.0.149:20254)</Text>
+                <Text style={styles.presetChipText}>🏢 Local LAN (192.168.0.149:20254)</Text>
               </TouchableOpacity>
             </View>
 
@@ -462,16 +484,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   presetRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
     marginBottom: 16,
   },
   presetChip: {
-    backgroundColor: "#ecfdf5",
+    backgroundColor: "#f3f4f6",
     borderWidth: 1,
-    borderColor: "#a7f3d0",
+    borderColor: "#e5e7eb",
     borderRadius: 6,
     paddingVertical: 6,
     paddingHorizontal: 10,
     alignSelf: "flex-start",
+  },
+  presetChipActive: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#a7f3d0",
   },
   presetChipText: {
     fontSize: 12,
