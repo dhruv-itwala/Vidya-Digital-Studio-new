@@ -114,4 +114,38 @@ describe("MyStaff Native Android Kotlin Verification", () => {
     const unitTestPath = path.join(rootDir, "app", "src", "test", "java", "mystaff", "vidyadigitalstudio", "com", "MyStaffUnitTest.kt");
     assert.ok(fs.existsSync(unitTestPath), "MyStaffUnitTest.kt must exist");
   });
+
+  test("1.7 Jetpack Compose alignments and Color imports are clean with zero mismatches", () => {
+    const kotlinRoot = path.join(rootDir, "app", "src", "main", "java", "mystaff", "vidyadigitalstudio", "com");
+
+    function scanKotlinFiles(dir) {
+      let files = [];
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          files = files.concat(scanKotlinFiles(fullPath));
+        } else if (entry.isFile() && entry.name.endsWith(".kt")) {
+          files.push(fullPath);
+        }
+      }
+      return files;
+    }
+
+    const allKtFiles = scanKotlinFiles(kotlinRoot);
+    for (const filePath of allKtFiles) {
+      const code = fs.readFileSync(filePath, "utf8");
+      assert.ok(
+        !code.includes("horizontalAlignment = Alignment.CenterVertically"),
+        `${filePath} must NOT use Alignment.CenterVertically for horizontalAlignment`,
+      );
+      assert.ok(
+        !code.includes("verticalAlignment = Alignment.CenterHorizontally"),
+        `${filePath} must NOT use Alignment.CenterHorizontally for verticalAlignment`,
+      );
+    }
+
+    const loginCode = fs.readFileSync(path.join(kotlinRoot, "ui", "screens", "auth", "LoginScreen.kt"), "utf8");
+    assert.ok(loginCode.includes("import androidx.compose.ui.graphics.Color"), "LoginScreen must import Color");
+  });
 });
