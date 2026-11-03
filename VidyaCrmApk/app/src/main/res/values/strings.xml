@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">MyStaff</string>
+    <string name="tagline">Vidya Digital Studio Management</string>
+    <string name="login_title">Welcome to MyStaff</string>
+    <string name="login_subtitle">Sign in to manage studio attendance, tasks &amp; clients</string>
+    <string name="email_or_phone_label">Email or Phone Number</string>
+    <string name="password_label">Password</string>
+    <string name="sign_in_button">Sign In to MyStaff</string>
+    
+    <!-- Navigation Tabs -->
+    <string name="tab_home">Home</string>
+    <string name="tab_attendance">Attendance</string>
+    <string name="tab_tasks">Tasks</string>
+    <string name="tab_crm">CRM</string>
+    <string name="tab_profile">Profile</string>
+</resources>
+

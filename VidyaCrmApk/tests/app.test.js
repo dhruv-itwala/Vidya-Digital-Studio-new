@@ -8,162 +8,110 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 
-describe("VidyaCrmApk Configuration & Asset Verification", () => {
-  test("1.1 app.json has correct app name, package name, and version", () => {
-    const appJsonPath = path.join(rootDir, "app.json");
-    assert.ok(fs.existsSync(appJsonPath), "app.json must exist");
+describe("MyStaff Native Android Kotlin Verification", () => {
+  test("1.1 Root Gradle project files exist and define MyStaff project", () => {
+    const settingsPath = path.join(rootDir, "settings.gradle.kts");
+    const buildPath = path.join(rootDir, "build.gradle.kts");
+    const gradlePropsPath = path.join(rootDir, "gradle.properties");
 
-    const content = JSON.parse(fs.readFileSync(appJsonPath, "utf8"));
-    const expo = content.expo;
-    assert.ok(expo, "app.json must have expo configuration");
+    assert.ok(fs.existsSync(settingsPath), "settings.gradle.kts must exist");
+    assert.ok(fs.existsSync(buildPath), "build.gradle.kts must exist");
+    assert.ok(fs.existsSync(gradlePropsPath), "gradle.properties must exist");
 
-    assert.equal(expo.name, "MyStaff", "App name must be MyStaff");
-    assert.equal(
-      expo.android.package,
-      "mystaff.vidyadigitalstudio.com",
+    const settingsContent = fs.readFileSync(settingsPath, "utf8");
+    assert.ok(settingsContent.includes('rootProject.name = "MyStaff"'), "Project name must be MyStaff");
+    assert.ok(settingsContent.includes('include(":app")'), "Must include :app module");
+  });
+
+  test("1.2 App module build.gradle.kts configures Kotlin, Compose, and mystaff package", () => {
+    const appBuildPath = path.join(rootDir, "app", "build.gradle.kts");
+    assert.ok(fs.existsSync(appBuildPath), "app/build.gradle.kts must exist");
+
+    const appBuildContent = fs.readFileSync(appBuildPath, "utf8");
+    assert.ok(
+      appBuildContent.includes('applicationId = "mystaff.vidyadigitalstudio.com"'),
       "Package name must be mystaff.vidyadigitalstudio.com",
     );
-    assert.equal(expo.version, "1.3.90", "Version must match VIDYACRM version 1.3.90");
+    assert.ok(appBuildContent.includes("compose = true"), "Jetpack Compose must be enabled");
+    assert.ok(appBuildContent.includes("com.squareup.retrofit2"), "Retrofit must be included");
+    assert.ok(appBuildContent.includes("androidx.security:security-crypto"), "EncryptedSharedPreferences must be included");
     assert.ok(
-      ["default", "portrait", "landscape"].includes(expo.orientation),
-      "orientation must be a valid Expo/Android orientation ('default', 'portrait', or 'landscape')",
-    );
-    assert.notEqual(expo.orientation, "any", "orientation must not be 'any' as AAPT rejects it");
-    assert.ok(expo.android.versionCode > 0, "versionCode must be a positive integer");
-  });
-
-  test("1.2 app.json includes necessary native Android permissions and cleartext traffic", () => {
-    const appJsonPath = path.join(rootDir, "app.json");
-    const content = JSON.parse(fs.readFileSync(appJsonPath, "utf8"));
-    const android = content.expo.android;
-
-    assert.ok(android.permissions.includes("INTERNET"), "Must include INTERNET permission");
-    assert.ok(android.permissions.includes("CAMERA"), "Must include CAMERA permission");
-    assert.ok(
-      android.permissions.includes("ACCESS_NETWORK_STATE"),
-      "Must include ACCESS_NETWORK_STATE",
-    );
-
-    const buildProps = content.expo.plugins.find(
-      (p) => Array.isArray(p) && p[0] === "expo-build-properties",
-    );
-    assert.ok(buildProps, "Must include expo-build-properties plugin");
-    assert.equal(
-      buildProps[1].android.usesCleartextTraffic,
-      true,
-      "usesCleartextTraffic must be true for HTTP endpoints",
+      appBuildContent.includes("https://backend.vidyadigitalstudio.com/api/v1.0/"),
+      "Base API URL must point to backend.vidyadigitalstudio.com",
     );
   });
 
-  test("1.3 Required branding and splash assets exist", () => {
-    const assetsDir = path.join(rootDir, "assets");
-    assert.ok(fs.existsSync(path.join(assetsDir, "icon.png")), "icon.png must exist");
-    assert.ok(
-      fs.existsSync(path.join(assetsDir, "adaptive-icon.png")),
-      "adaptive-icon.png must exist",
-    );
-    assert.ok(fs.existsSync(path.join(assetsDir, "splash.png")), "splash.png must exist");
+  test("1.3 AndroidManifest.xml configures MyStaffApplication and required native permissions", () => {
+    const manifestPath = path.join(rootDir, "app", "src", "main", "AndroidManifest.xml");
+    assert.ok(fs.existsSync(manifestPath), "AndroidManifest.xml must exist");
+
+    const manifestContent = fs.readFileSync(manifestPath, "utf8");
+    assert.ok(manifestContent.includes("android.permission.INTERNET"), "Must require INTERNET");
+    assert.ok(manifestContent.includes("android.permission.ACCESS_NETWORK_STATE"), "Must require ACCESS_NETWORK_STATE");
+    assert.ok(manifestContent.includes("android.permission.ACCESS_WIFI_STATE"), "Must require ACCESS_WIFI_STATE");
+    assert.ok(manifestContent.includes('android:name=".MyStaffApplication"'), "Application class must be MyStaffApplication");
+    assert.ok(manifestContent.includes('android:name=".MainActivity"'), "MainActivity must be declared");
   });
 
-  test("1.4 package.json is valid with proper dependencies", () => {
-    const pkgPath = path.join(rootDir, "package.json");
-    assert.ok(fs.existsSync(pkgPath), "package.json must exist");
+  test("1.4 Kotlin MVVM architecture files are all present", () => {
+    const kotlinRoot = path.join(rootDir, "app", "src", "main", "java", "mystaff", "vidyadigitalstudio", "com");
 
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-    assert.equal(pkg.main, "index.ts");
-    assert.ok(pkg.dependencies["react-native-webview"], "Must have react-native-webview");
-    assert.ok(pkg.dependencies["expo"], "Must have expo dependency");
-  });
+    const requiredFiles = [
+      "MyStaffApplication.kt",
+      "MainActivity.kt",
+      "data/local/TokenManager.kt",
+      "data/api/AuthInterceptor.kt",
+      "data/api/ApiClient.kt",
+      "data/api/MyStaffApiService.kt",
+      "data/models/AuthModels.kt",
+      "data/models/AttendanceModels.kt",
+      "data/models/TaskModels.kt",
+      "data/models/LeaveModels.kt",
+      "data/models/CrmModels.kt",
+      "data/repository/AuthRepository.kt",
+      "data/repository/AttendanceRepository.kt",
+      "data/repository/TaskRepository.kt",
+      "data/repository/CrmRepository.kt",
+      "ui/theme/Color.kt",
+      "ui/theme/Type.kt",
+      "ui/theme/Theme.kt",
+      "ui/navigation/Screen.kt",
+      "ui/navigation/NavGraph.kt",
+      "ui/components/AppTopBar.kt",
+      "ui/components/AppBottomBar.kt",
+      "ui/components/StatCard.kt",
+      "ui/components/StatusBadge.kt",
+      "ui/screens/auth/LoginScreen.kt",
+      "ui/screens/dashboard/DashboardScreen.kt",
+      "ui/screens/attendance/AttendanceScreen.kt",
+      "ui/screens/tasks/TasksScreen.kt",
+      "ui/screens/leaves/LeavesScreen.kt",
+      "ui/screens/crm/CrmHubScreen.kt",
+      "ui/screens/profile/ProfileScreen.kt",
+      "viewmodel/AuthViewModel.kt",
+      "viewmodel/DashboardViewModel.kt",
+      "viewmodel/AttendanceViewModel.kt",
+      "viewmodel/TaskViewModel.kt",
+      "viewmodel/CrmViewModel.kt",
+    ];
 
-  test("1.5 patchGradleRepositories script accurately injects mavenCentral into settings.gradle and build.gradle", async () => {
-    const { patchGradleRepositories } = await import("../plugins/patch-gradle-repos.js");
-    const os = await import("node:os");
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "vds-gradle-test-"));
-
-    try {
-      const mockSettings = `pluginManagement {
-  includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json')"].execute(null, rootDir).text.trim()).getParentFile().toString())
-}
-plugins { id("com.facebook.react.settings") }
-include ':app'
-`;
-      const mockBuild = `buildscript {
-    repositories {
-        google()
-    }
-}
-allprojects {
-    repositories {
-        google()
-    }
-}
-`;
-      fs.writeFileSync(path.join(tmpDir, "settings.gradle"), mockSettings, "utf8");
-      fs.writeFileSync(path.join(tmpDir, "build.gradle"), mockBuild, "utf8");
-
-      const result = patchGradleRepositories(tmpDir);
-      assert.equal(result.modifiedSettings, true);
-      assert.equal(result.modifiedBuild, true);
-
-      const patchedSettings = fs.readFileSync(path.join(tmpDir, "settings.gradle"), "utf8");
-      assert.ok(patchedSettings.includes("mavenCentral()"), "settings.gradle must include mavenCentral()");
-      assert.ok(
-        patchedSettings.includes("dependencyResolutionManagement"),
-        "settings.gradle must include dependencyResolutionManagement",
-      );
-
-      const patchedBuild = fs.readFileSync(path.join(tmpDir, "build.gradle"), "utf8");
-      assert.ok(patchedBuild.includes("mavenCentral()"), "build.gradle must include mavenCentral()");
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+    for (const relFile of requiredFiles) {
+      const fullPath = path.join(kotlinRoot, relFile);
+      assert.ok(fs.existsSync(fullPath), `Missing required Kotlin file: ${relFile}`);
     }
   });
 
-  test("1.6 withMavenCentral Expo config plugin file exists and loads cleanly", () => {
-    const pluginPath = path.join(rootDir, "plugins", "withMavenCentral.cjs");
-    assert.ok(fs.existsSync(pluginPath), "withMavenCentral.cjs must exist");
+  test("1.5 Brand drawables and XML resources are configured", () => {
+    const resDir = path.join(rootDir, "app", "src", "main", "res");
+    assert.ok(fs.existsSync(path.join(resDir, "values", "strings.xml")), "strings.xml must exist");
+    assert.ok(fs.existsSync(path.join(resDir, "values", "colors.xml")), "colors.xml must exist");
+    assert.ok(fs.existsSync(path.join(resDir, "values", "themes.xml")), "themes.xml must exist");
+    assert.ok(fs.existsSync(path.join(resDir, "drawable", "ic_launcher.png")), "ic_launcher.png must exist");
+    assert.ok(fs.existsSync(path.join(resDir, "drawable", "green_logo.png")), "green_logo.png must exist");
   });
 
-  test("1.7 App.tsx provides in-app server URL configuration and persistent storage", () => {
-    const appTsxPath = path.join(rootDir, "App.tsx");
-    assert.ok(fs.existsSync(appTsxPath), "App.tsx must exist");
-
-    const appCode = fs.readFileSync(appTsxPath, "utf8");
-    assert.ok(
-      appCode.includes("expo-secure-store"),
-      "App.tsx must import and use expo-secure-store for persisting target CRM URL",
-    );
-    assert.ok(
-      appCode.includes("Save & Connect") || appCode.includes("handleSaveUrl"),
-      "App.tsx must include in-app URL update and connect handling",
-    );
-    assert.ok(
-      appCode.includes("https://mystaff.vidyadigitalstudio.com"),
-      "App.tsx must include default live production frontend URL https://mystaff.vidyadigitalstudio.com",
-    );
-    assert.ok(
-      appCode.includes("192.168.0.149:20254"),
-      "App.tsx must include Studio LAN port 20254 fallback",
-    );
-  });
-
-  test("1.8 GitHub Actions workflow defaults to live production frontend URL and provides crm_url input parameter", () => {
-    const wfPath = path.resolve(rootDir, "..", ".github", "workflows", "build-vidyacrm-apk.yml");
-    assert.ok(fs.existsSync(wfPath), "build-vidyacrm-apk.yml must exist");
-
-    const wfContent = fs.readFileSync(wfPath, "utf8");
-    assert.ok(
-      wfContent.includes("crm_url:"),
-      "Workflow must include crm_url input for specifying server URL",
-    );
-    assert.ok(
-      wfContent.includes("https://mystaff.vidyadigitalstudio.com"),
-      "Workflow must default to https://mystaff.vidyadigitalstudio.com",
-    );
-    assert.ok(
-      !wfContent.includes("http://backend.vidyadigitalstudio.com"),
-      "Workflow must not default to broken backend domain http://backend.vidyadigitalstudio.com",
-    );
+  test("1.6 Kotlin Unit tests exist for models and business logic", () => {
+    const unitTestPath = path.join(rootDir, "app", "src", "test", "java", "mystaff", "vidyadigitalstudio", "com", "MyStaffUnitTest.kt");
+    assert.ok(fs.existsSync(unitTestPath), "MyStaffUnitTest.kt must exist");
   });
 });
-

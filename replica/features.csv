@@ -1,0 +1,24 @@
+id,category,feature_name,priority,web_status,android_kotlin_status,notes
+F01,Auth,Staff Login with Credentials,Must,yes,yes,Email/phone + password with JWT
+F02,Auth,JWT Token Persistence & Auto-Refresh,Must,yes,yes,Stored in EncryptedSharedPreferences
+F03,Auth,Logout & Session Clearing,Must,yes,yes,Clears local storage and redirects to Login
+F04,Dashboard,Overview Metrics & Stat Cards,Must,yes,yes,Attendance status, assigned tasks, notices
+F05,Dashboard,Quick Punch Action Bar,Must,yes,yes,One-tap Punch In / Punch Out
+F06,Attendance,Office Wi-Fi / IP Validation,Must,yes,yes,Validates studio network before punch
+F07,Attendance,Punch-In with Timestamp,Must,yes,yes,Records start time and status
+F08,Attendance,Punch-Out with Duration Calculation,Must,yes,yes,Calculates daily working minutes
+F09,Attendance,Break In / Break Out Tracking,Should,yes,yes,Pauses work timer for lunch/tea breaks
+F10,Attendance,My Attendance History,Must,yes,yes,List of past daily punches with status badges
+F11,Tasks,Assigned Tasks List,Must,yes,yes,Tabs for Pending, In Progress, Completed
+F12,Tasks,Task Status Update,Must,yes,yes,Change task status with optional comment
+F13,Todo,Personal Daily To-Do Checklist,Should,yes,yes,Quick task add, toggle complete, delete
+F14,Leaves,Leave Balance Summary,Must,yes,yes,Displays Casual, Sick, and Earned leave balances
+F15,Leaves,Apply for Leave Form,Must,yes,yes,Select date range, reason, and leave type
+F16,Leaves,My Leave Applications History,Must,yes,yes,Cards showing approval status (Pending/Approved/Declined)
+F17,Leaves,HR Leave Approval / Rejection,Could,yes,yes,Role-gated actions for HR/Admin
+F18,Clients,Client Directory & Search,Should,yes,yes,Searchable client list with phone and company
+F19,Leads,Sales Leads Pipeline,Should,yes,yes,Lead stages, contact information, service required
+F20,Invoices,Invoices Summary & Status,Should,yes,yes,List invoices with Paid/Partial/Pending badges
+F21,Holidays,Studio Holiday Calendar,Should,yes,yes,Upcoming holiday list
+F22,Profile,Staff Profile Details & Designation,Must,yes,yes,Shows name, role, department, contact info
+

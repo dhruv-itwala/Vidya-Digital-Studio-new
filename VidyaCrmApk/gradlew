@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Gradle start-up script for POSIX
+DIRNAME=""
+case "$0" in
+  /*) DIRNAME=`dirname "$0"` ;;
+  *)  DIRNAME=`dirname "$PWD/$0"` ;;
+esac
+
+APP_BASE_NAME=`basename "$0"`
+APP_HOME="$DIRNAME"
+
+# Check if gradle is installed globally or wrapper jar is available
+if [ -f "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" ]; then
+  CLASSPATH="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
+  exec java -Dorg.gradle.appname="$APP_BASE_NAME" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
+else
+  # Delegate to gradle CLI available on the system
+  exec gradle "$@"
+fi
+
