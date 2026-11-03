@@ -123,5 +123,39 @@ allprojects {
     const pluginPath = path.join(rootDir, "plugins", "withMavenCentral.cjs");
     assert.ok(fs.existsSync(pluginPath), "withMavenCentral.cjs must exist");
   });
+
+  test("1.7 App.tsx provides in-app server URL configuration and persistent storage", () => {
+    const appTsxPath = path.join(rootDir, "App.tsx");
+    assert.ok(fs.existsSync(appTsxPath), "App.tsx must exist");
+
+    const appCode = fs.readFileSync(appTsxPath, "utf8");
+    assert.ok(
+      appCode.includes("expo-secure-store"),
+      "App.tsx must import and use expo-secure-store for persisting target CRM URL",
+    );
+    assert.ok(
+      appCode.includes("Save & Connect") || appCode.includes("handleSaveUrl"),
+      "App.tsx must include in-app URL update and connect handling",
+    );
+    assert.ok(
+      appCode.includes("192.168.0.149:20254"),
+      "App.tsx must include default Studio LAN port 20254 fallback",
+    );
+  });
+
+  test("1.8 GitHub Actions workflow provides crm_url input parameter", () => {
+    const wfPath = path.resolve(rootDir, "..", ".github", "workflows", "build-vidyacrm-apk.yml");
+    assert.ok(fs.existsSync(wfPath), "build-vidyacrm-apk.yml must exist");
+
+    const wfContent = fs.readFileSync(wfPath, "utf8");
+    assert.ok(
+      wfContent.includes("crm_url:"),
+      "Workflow must include crm_url input for specifying server URL",
+    );
+    assert.ok(
+      !wfContent.includes("http://backend.vidyadigitalstudio.com"),
+      "Workflow must not default to broken backend domain http://backend.vidyadigitalstudio.com",
+    );
+  });
 });
 
