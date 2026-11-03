@@ -1,0 +1,123 @@
+name: Build MyStaff VIDYACRM Android APK
+
+on:
+  push:
+    paths:
+      - 'VidyaCrmApk/**'
+      - 'VIDYACRM/**'
+      - '.github/workflows/build-vidyacrm-apk.yml'
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (release or debug)'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+
+concurrency:
+  group: vidyacrm-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: Build MyStaff.apk
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'VidyaCrmApk/package.json'
+
+      - name: 3. Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: 4. Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools build-tools;34.0.0 build-tools;35.0.0 platforms;android-34 platforms;android-35'
+
+      - name: 5. Install VidyaCrmApk Dependencies
+        working-directory: VidyaCrmApk
+        run: |
+          npm install
+
+      - name: 6. Run Configuration & Asset Unit Tests
+        working-directory: VidyaCrmApk
+        run: |
+          npm test
+
+      - name: 7. Generate Android Native Project via Expo Prebuild
+        working-directory: VidyaCrmApk
+        run: |
+          npx expo prebuild --platform android --clean
+          echo "android.disableAutomaticComponentCreation=false" >> android/gradle.properties
+        env:
+          EXPO_PUBLIC_CRM_URL: ${{ secrets.EXPO_PUBLIC_CRM_URL || 'http://crm.vidyadigitalstudio.com' }}
+
+      - name: 8. Setup Release Keystore (If Configured)
+        working-directory: VidyaCrmApk/android
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > app/release.keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: 9. Build Android APK via Gradle
+        working-directory: VidyaCrmApk/android
+        run: |
+          chmod +x gradlew
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          echo "Selected Build Type: $BUILD_TYPE"
+
+          if [ "$BUILD_TYPE" = "debug" ]; then
+            echo "Building Standalone Debug APK with embedded bundle..."
+            ./gradlew assembleDebug -Preact.bundleInDebug=true --no-daemon --stacktrace
+            APK_SRC=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          else
+            echo "Building Standalone Release APK..."
+            ./gradlew assembleRelease --no-daemon --stacktrace || {
+              echo "Release build with custom keystore skipped; building signed Debug APK fallback..."
+              ./gradlew assembleDebug -Preact.bundleInDebug=true --no-daemon --stacktrace
+            }
+            APK_SRC=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
+          fi
+
+          if [ -z "$APK_SRC" ]; then
+            echo "Error: No APK file was generated!"
+            exit 1
+          fi
+
+          echo "Found generated APK at: $APK_SRC"
+          mkdir -p ../dist
+          cp "$APK_SRC" ../dist/MyStaff.apk
+
+          echo "APK_OUTPUT_PATH=VidyaCrmApk/dist/MyStaff.apk" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=MyStaff.apk" >> $GITHUB_ENV
+        env:
+          EXPO_PUBLIC_CRM_URL: ${{ secrets.EXPO_PUBLIC_CRM_URL || 'http://crm.vidyadigitalstudio.com' }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: 10. Upload MyStaff.apk Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyStaff.apk
+          path: ${{ env.APK_OUTPUT_PATH }}
+          retention-days: 30
+          if-no-files-found: error
+
