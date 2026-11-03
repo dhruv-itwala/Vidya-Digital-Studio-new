@@ -9,6 +9,11 @@ import { parseIST } from "../utils/date.utils.js";
 import cloudinary from "../../config/cloudinary.config.js";
 import bcrypt from "bcryptjs";
 import { extractSpreadsheetId } from "../ContentCalendar/googleSheetsAuth.service.js";
+import {
+  encryptText,
+  decryptCredentials,
+  encryptCredentials,
+} from "../utils/encryption.utils.js";
 
 /* ================= CREATE CLIENT ================= */
 export const createClientService = async (data, userId, file) => {
@@ -35,6 +40,19 @@ export const createClientService = async (data, userId, file) => {
     }
   }
 
+  // Hash portal password if provided
+  if (data.password && String(data.password).trim()) {
+    const salt = await bcrypt.genSalt(10);
+    data.password = await bcrypt.hash(String(data.password).trim(), salt);
+  } else {
+    delete data.password;
+  }
+
+  // Encrypt initial credentials if provided
+  if (data.credentials && Array.isArray(data.credentials)) {
+    data.credentials = encryptCredentials(data.credentials);
+  }
+
   // Sync Google Sheets config if content calendar link provided
   if (data.contentCalendarLink) {
     try {
@@ -51,44 +69,14 @@ export const createClientService = async (data, userId, file) => {
     }
   }
 
-  return await Client.create(data);
+  const client = await Client.create(data);
+  if (client.credentials) {
+    client.credentials = decryptCredentials(client.credentials);
+  }
+  return client;
 };
 
 /* ================= GET ALL CLIENTS ================= */
-// export const getAllClientsService = async ({
-//   page = 1,
-//   limit = 10,
-//   search,
-// }) => {
-//   const query = {};
-
-//   if (search) {
-//     query.$or = [
-//       { clientName: { $regex: search, $options: "i" } },
-//       { ownerName: { $regex: search, $options: "i" } },
-//       { email: { $regex: search, $options: "i" } },
-//       { phone: { $regex: search, $options: "i" } },
-//     ];
-//   }
-
-//   const skip = (page - 1) * limit;
-
-//   const [clients, total] = await Promise.all([
-//     Client.find(query)
-//       .populate("createdBy", "name email")
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(limit),
-//     Client.countDocuments(query),
-//   ]);
-
-//   return {
-//     total,
-//     page: Number(page),
-//     pages: Math.ceil(total / limit),
-//     data: clients,
-//   };
-// };
 export const getAllClientsService = async ({
   page = 1,
   limit = 25,
@@ -113,6 +101,7 @@ export const getAllClientsService = async ({
 
   const [clients, total] = await Promise.all([
     Client.find(query)
+      .select("-password -credentials")
       .populate("createdBy", "name email")
       .sort({
         isActive: -1,
@@ -132,18 +121,22 @@ export const getAllClientsService = async ({
     data: clients,
   };
 };
+
 /* ================= GET CLIENT BY ID ================= */
 export const getClientByIdService = async (clientId) => {
   if (!mongoose.Types.ObjectId.isValid(clientId)) {
     throw new AppError("Invalid client id", 400);
   }
 
-  const client = await Client.findById(clientId).populate(
-    "createdBy",
-    "name email",
-  ).lean();
+  const client = await Client.findById(clientId)
+    .populate("createdBy", "name email")
+    .lean();
 
   if (!client) throw new AppError("Client not found", 404);
+
+  if (client.credentials) {
+    client.credentials = decryptCredentials(client.credentials);
+  }
 
   return client;
 };
@@ -203,9 +196,9 @@ export const updateClientService = async (clientId, data, file) => {
   }
 
   // Hash password if provided
-  if (data.password) {
+  if (data.password && String(data.password).trim()) {
     const salt = await bcrypt.genSalt(10);
-    data.password = await bcrypt.hash(data.password, salt);
+    data.password = await bcrypt.hash(String(data.password).trim(), salt);
   } else {
     // Prevent accidental overwrite of password with empty string
     delete data.password;
@@ -228,10 +221,16 @@ export const updateClientService = async (clientId, data, file) => {
     }
   }
 
-  return Client.findByIdAndUpdate(clientId, data, {
+  const updated = await Client.findByIdAndUpdate(clientId, data, {
     new: true,
     runValidators: true,
   });
+
+  if (updated && updated.credentials) {
+    updated.credentials = decryptCredentials(updated.credentials);
+  }
+
+  return updated;
 };
 
 /* ================= TOGGLE CLIENT STATUS ================= */
@@ -286,13 +285,22 @@ export const addCredentialService = async (clientId, credentialData) => {
     throw new AppError("Invalid client id", 400);
   }
 
+  const credToSave = {
+    ...credentialData,
+    password: encryptText(credentialData.password || ""),
+  };
+
   const client = await Client.findByIdAndUpdate(
     clientId,
-    { $push: { credentials: credentialData } },
+    { $push: { credentials: credToSave } },
     { new: true, runValidators: true }
   );
 
   if (!client) throw new AppError("Client not found", 404);
+
+  if (client.credentials) {
+    client.credentials = decryptCredentials(client.credentials);
+  }
 
   return client;
 };
@@ -320,9 +328,9 @@ export const updateCredentialService = async (
 
   const existingCred = client.credentials[credIndex];
 
-  // Update password
+  // Update password with AES-256-GCM encryption
   if (credentialData.password !== undefined)
-    existingCred.password = credentialData.password;
+    existingCred.password = encryptText(credentialData.password);
 
   // Update other fields
   if (credentialData.platform !== undefined)
@@ -335,6 +343,10 @@ export const updateCredentialService = async (
     existingCred.note = credentialData.note;
 
   await client.save();
+
+  if (client.credentials) {
+    client.credentials = decryptCredentials(client.credentials);
+  }
 
   return client;
 };
@@ -358,6 +370,10 @@ export const deleteCredentialService = async (clientId, credentialId) => {
 
   client.credentials.splice(credIndex, 1);
   await client.save();
+
+  if (client.credentials) {
+    client.credentials = decryptCredentials(client.credentials);
+  }
 
   return client;
 };

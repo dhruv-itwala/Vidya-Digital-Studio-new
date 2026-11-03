@@ -24,6 +24,12 @@ export const markPayrollAsPaid = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+export const updatePayroll = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = await service.updatePayrollService(id, req.body);
+  res.json({ success: true, message: "Payroll updated successfully", data });
+});
+
 export const sendPayslip = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const result = await service.generateAndSendPayslipService(id);

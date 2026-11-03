@@ -9,6 +9,7 @@ import {
   getInvoiceById,
   updateInvoice,
   deleteInvoice,
+  updateInvoiceStatus,
 } from "../controllers/Invoice.controller.js";
 import {
   loginInvoice,
@@ -39,6 +40,7 @@ invoiceRoutes.post("/preview", previewInvoicePdf);
 invoiceRoutes.get("/", listInvoices);
 invoiceRoutes.get("/:id", getInvoiceById);
 invoiceRoutes.put("/:id", updateInvoice);
+invoiceRoutes.patch("/:id/status", updateInvoiceStatus);
 invoiceRoutes.delete("/:id", deleteInvoice);
 
 export default invoiceRoutes;

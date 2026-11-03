@@ -29,7 +29,7 @@
 .content p {
   font-size: 1.2rem;
   margin-bottom: 2rem;
-  color: var(--color-primary-light);
+  color: var(--color-navbar-button);
 }
 
 .button {

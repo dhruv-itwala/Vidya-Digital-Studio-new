@@ -1,56 +1,295 @@
+/* VIDYACRM/src/pages/Payroll/Payroll.module.css */
 .pageContainer {
   padding: 24px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  font-family: inherit;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.titleBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-primary, #0f5c44);
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .controls {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .select {
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
+  padding: 8px 14px;
+  border: 1px solid var(--color-border, #cbd5e1);
   border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  cursor: pointer;
 }
 
 .primaryBtn {
-  padding: 10px 16px;
-  background-color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: var(--color-primary, #0f5c44);
   color: white;
   border: none;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .primaryBtn:hover {
-  background-color: var(--color-primary-dark);
+  background-color: #0b4331;
 }
 
-.actionBtn {
-  padding: 6px 12px;
-  background-color: #16a34a;
-  color: white;
-  border: none;
+/* Schedule Banner */
+.scheduleBanner {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.scheduleInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scheduleIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #0f5c44;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.scheduleTitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #065f46;
+}
+
+.scheduleSub {
+  font-size: 0.8125rem;
+  color: #047857;
+  margin-top: 2px;
+}
+
+.payoutBadge {
+  background: #ffffff;
+  border: 1px solid #6ee7b7;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #065f46;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Summary stats strip */
+.summaryStrip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .summaryStrip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .summaryStrip {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summaryCard {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.summaryVal {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Table */
+.tableWrapper {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 950px;
+}
+
+.table th,
+.table td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  vertical-align: middle;
+}
+
+.table th {
+  background: #f8fafc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.table tr:hover td {
+  background: #f8fafc;
+}
+
+/* Editable Deduction Field */
+.deductionInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deductionInput {
+  width: 100px;
+  padding: 6px 10px;
   border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #dc2626;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  transition: all 0.15s ease;
+}
+
+.deductionInput:focus {
+  border-color: #0f5c44;
+  box-shadow: 0 0 0 2px rgba(15, 92, 68, 0.1);
+}
+
+.saveDeductionBtn {
+  background: #0f5c44;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
-  margin-right: 8px;
+}
+
+/* Status Dropdown */
+.statusSelect {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.status_paid,
+.status_salary_paid {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.status_pending,
+.status_draft {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.status_partial_paid,
+.status_partially_paid {
+  background: #f5f3ff;
+  color: #6b21a8;
+  border-color: #ddd6fe;
+}
+
+/* Partial Amount Popover */
+.partialBox {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+}
+
+.partialInput {
+  width: 80px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .sendBtn {
@@ -59,38 +298,12 @@
   color: white;
   border: none;
   border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.tableWrapper {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th, .table td {
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.table th {
-  background: var(--color-surface-hover);
-  font-weight: 600;
-}
-
-.status_draft {
-  color: #d97706;
-  font-weight: 600;
-}
-
-.status_paid {
-  color: #16a34a;
-  font-weight: 600;
+.sendBtn:hover {
+  background-color: #2563eb;
 }

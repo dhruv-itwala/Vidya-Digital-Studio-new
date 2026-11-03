@@ -1,5 +1,7 @@
 // Backend/StaffCRM/Users/user.model.js
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+
 const userSchema = new mongoose.Schema(
   {
     profilePicture: {
@@ -35,6 +37,21 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
     },
 
+    subrole: {
+      type: String,
+      enum: [
+        "sales",
+        "designing",
+        "development",
+        "editing",
+        "management",
+        "administrative",
+      ],
+      default: "management",
+      lowercase: true,
+      trim: true,
+    },
+
     customPermissions: {
       type: [String],
       default: [],
@@ -43,6 +60,29 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+
+    isTerminated: {
+      type: Boolean,
+      default: false,
+    },
+
+    terminationDate: {
+      type: Date,
+    },
+
+    terminationReason: {
+      type: String,
+      trim: true,
+    },
+
+    terminatedAt: {
+      type: Date,
+    },
+
+    terminatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
 
     requireOfficeWifi: {
@@ -101,6 +141,20 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Pre-save hook: Automatically hash password if modified and not already a bcrypt hash
+userSchema.pre("save", async function () {
+  if (!this.isModified("password") || !this.password) return;
+  if (
+    !this.password.startsWith("$2a$") &&
+    !this.password.startsWith("$2b$") &&
+    !this.password.startsWith("$2y$")
+  ) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+});
+
 userSchema.index({ isActive: 1, role: 1 });
+userSchema.index({ isTerminated: 1 });
 
 export default mongoose.model("User", userSchema);

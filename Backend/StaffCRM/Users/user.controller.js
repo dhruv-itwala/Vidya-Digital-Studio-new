@@ -7,6 +7,7 @@ import {
   deleteUserService,
   getEmployeeBirthdaysService,
   inactiveUserService,
+  terminateUserService,
   getAllUsersForAdminService,
   getDashboardOverviewService,
   uploadProfilePhotoService,
@@ -65,6 +66,7 @@ export const login = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      subrole: user.subrole || "management",
       designation: user.designation,
       requireOfficeWifi: user.requireOfficeWifi,
       profilePicture: user.profilePicture,
@@ -148,6 +150,33 @@ export const inactiveUser = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: `User ${user.isActive ? "activated" : "deactivated"} successfully`,
+    user,
+  });
+});
+
+/* ================= TERMINATE USER ================= */
+export const terminateUser = asyncHandler(async (req, res) => {
+  const { terminationDate, terminationReason } = req.body;
+  const user = await terminateUserService(req.user, req.params.id, {
+    terminationDate,
+    terminationReason,
+  });
+
+  logActivity({
+    req,
+    user: req.user,
+    category: "HR",
+    severity: "CRITICAL",
+    module: "Users",
+    action: "TERMINATION",
+    entityId: user._id,
+    entityName: user.name,
+    description: `${req.user.name} terminated user '${user.name}'. Reason: ${terminationReason}. Exit Date: ${new Date(terminationDate).toLocaleDateString("en-IN")}`,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: `${user.name} has been terminated and deactivated successfully`,
     user,
   });
 });

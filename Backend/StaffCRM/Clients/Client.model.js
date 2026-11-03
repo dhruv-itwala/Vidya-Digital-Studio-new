@@ -1,12 +1,21 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import { encryptText, decryptText } from "../utils/encryption.utils.js";
 
-const credentialSchema = new mongoose.Schema({
-  platform: { type: String, required: true },
-  username: String,
-  password: String,
-  note: String,
-  addedAt: { type: Date, default: Date.now },
-});
+const credentialSchema = new mongoose.Schema(
+  {
+    platform: { type: String, required: true },
+    username: String,
+    password: {
+      type: String,
+      set: (val) => encryptText(val),
+      get: (val) => decryptText(val),
+    },
+    note: String,
+    addedAt: { type: Date, default: Date.now },
+  },
+  { toJSON: { getters: true }, toObject: { getters: true } },
+);
 
 const documentSchema = new mongoose.Schema(
   {
@@ -68,7 +77,7 @@ const clientSchema = new mongoose.Schema(
       default: Date.now,
     },
 
-    // Client Portal Authentication
+    // Client Portal Authentication (hashed via bcrypt)
     password: { type: String, select: false },
 
     // Client Portal Details
@@ -110,7 +119,24 @@ const clientSchema = new mongoose.Schema(
       ref: "User",
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { getters: true },
+    toObject: { getters: true },
+  },
 );
+
+// Pre-save hook: Automatically hash password if modified and not already a bcrypt hash
+clientSchema.pre("save", async function () {
+  if (!this.isModified("password") || !this.password) return;
+  if (
+    !this.password.startsWith("$2a$") &&
+    !this.password.startsWith("$2b$") &&
+    !this.password.startsWith("$2y$")
+  ) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+});
 
 export default mongoose.model("Client", clientSchema);

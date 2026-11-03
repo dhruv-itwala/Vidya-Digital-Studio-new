@@ -38,6 +38,11 @@ export const updateInvoiceAPI = (id, data) => {
   return api.put(`/invoice/${id}`, data);
 };
 
+// Update invoice payment status (received / partial / pending)
+export const updateInvoiceStatusAPI = (id, data) => {
+  return api.patch(`/invoice/${id}/status`, data);
+};
+
 // Delete invoice
 export const deleteInvoiceAPI = (id) => {
   return api.delete(`/invoice/${id}`);

@@ -74,9 +74,18 @@ export default function MyPayslips() {
                       {new Date(0, p.month - 1).toLocaleString("default", { month: "long" })} {p.year}
                     </strong>
                   </td>
-                  <td>₹{p.baseSalary}</td>
-                  <td style={{ color: "red" }}>-₹{p.deductions}</td>
-                  <td style={{ fontWeight: 600, color: "green" }}>₹{p.netPay}</td>
+                  <td>₹{(p.baseSalary || 0).toLocaleString("en-IN")}</td>
+                  <td style={{ color: "#dc2626" }}>
+                    <div>-₹{(p.deductions || 0).toLocaleString("en-IN")}</div>
+                    {(p.absentDays > 0 || p.lateDays > 0) && (
+                      <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "2px" }}>
+                        {p.absentDays > 0 && `${p.absentDays} absent`}
+                        {p.absentDays > 0 && p.lateDays > 0 && " · "}
+                        {p.lateDays > 0 && `${p.lateDays} late (half-day)`}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ fontWeight: 700, color: "#0f5c44" }}>₹{(p.netPay || 0).toLocaleString("en-IN")}</td>
                   <td>
                     <button
                       className={styles.sendBtn}

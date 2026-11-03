@@ -16,7 +16,17 @@ import {
 
 const ClientPortalLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [clientInfo] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("clientData") || "null");
+    } catch (e) {
+      return null;
+    }
+  });
   const navigate = useNavigate();
+
+  const clientName = clientInfo?.clientName || clientInfo?.companyName || "Portal View";
+  const avatarUrl = clientInfo?.profilePhoto?.url || "";
 
   const handleLogout = () => {
     localStorage.removeItem("clientToken");
@@ -31,7 +41,6 @@ const ClientPortalLayout = () => {
     { path: "assets", icon: <FiKey />, label: "Assets & Logins" },
     { path: "documents", icon: <FiFolder />, label: "Documents" },
     { path: "invoices", icon: <FiFileText />, label: "Invoices" },
-    { path: "transactions", icon: <FiActivity />, label: "Transactions" },
   ];
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -41,7 +50,7 @@ const ClientPortalLayout = () => {
       {/* Mobile Header */}
       <div className={styles.mobileHeader}>
         <div className={styles.logoContainer}>
-          <span className={styles.logoText}>Portal View</span>
+          <span className={styles.logoText}>{clientName}</span>
         </div>
         <button className={styles.menuButton} onClick={toggleSidebar}>
           {sidebarOpen ? <FiX /> : <FiMenu />}
@@ -51,7 +60,7 @@ const ClientPortalLayout = () => {
       {/* Sidebar */}
       <div className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarHeader}>
-          <span className={styles.logoText}>Portal View</span>
+          <span className={styles.logoText}>{clientName}</span>
         </div>
 
         <nav className={styles.navMenu}>

@@ -9,6 +9,7 @@ import {
   deleteUser,
   getEmployeeBirthdays,
   inactiveUser,
+  terminateUser,
   getAllUsersForAdmin,
   getDashboardOverview,
   uploadProfilePhoto,
@@ -45,6 +46,7 @@ userRoutes.get("/admin/all", roleCheck("admin", "hr"), getAllUsersForAdmin);
 userRoutes.post("/", roleCheck("admin", "hr"), createUser);
 userRoutes.put("/:id", roleCheck("admin", "hr"), updateUser);
 userRoutes.patch("/:id/inactive", roleCheck("admin", "hr"), inactiveUser);
+userRoutes.patch("/:id/terminate", roleCheck("admin", "hr"), terminateUser);
 userRoutes.patch(
   "/:id/wifi-restriction",
   roleCheck("admin", "hr"),

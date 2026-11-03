@@ -46,6 +46,8 @@ import notificationRoutes from "./StaffCRM/Notifications/notification.routes.js"
 import ticketRoutes from "./StaffCRM/Tickets/ticket.routes.js";
 import payrollRoutes from "./StaffCRM/Payroll/payroll.routes.js";
 
+import financeRoutes from "./Finance/routes/Finance.routes.js";
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const VERSION = process.env.VERSION || "v1.0";
@@ -152,6 +154,9 @@ app.use(`/api/${VERSION}/tickets`, ticketRoutes);
 
 // Payroll Routes
 app.use(`/api/${VERSION}/payroll`, payrollRoutes);
+
+// Finance & Expenses Routes
+app.use(`/api/${VERSION}/finance`, financeRoutes);
 
 app.use(globalErrorHandler);
 

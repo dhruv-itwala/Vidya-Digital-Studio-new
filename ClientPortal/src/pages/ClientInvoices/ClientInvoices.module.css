@@ -1,0 +1,248 @@
+.pageContainer {
+  padding: 1.75rem 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+/* Summary Strip */
+.summaryStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.summaryCard {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summaryVal {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Invoices Table */
+.tableCard {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  padding: 0.9rem 1.25rem;
+  background: #f8fafc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+  color: #0f172a;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover {
+  background: #f8faf9;
+}
+
+.invoiceNum {
+  font-weight: 800;
+  color: #0f5c44;
+  font-size: 0.92rem;
+}
+
+.invoiceTitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.dateText {
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.dateSub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.amountVal {
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.remainingVal {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.badgePaid {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.badgePartial {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.badgePending {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+/* Actions */
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.downloadBtn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.downloadBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.payNowBtn {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: #0f5c44;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(15, 92, 68, 0.2);
+  transition: all 0.15s;
+}
+
+.payNowBtn:hover {
+  background: #0b4533;
+}
+
+/* Empty State */
+.emptyState {
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.emptyIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  color: #0f5c44;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.emptyState h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.emptyState p {
+  font-size: 0.85rem;
+  color: #64748b;
+  max-width: 380px;
+}

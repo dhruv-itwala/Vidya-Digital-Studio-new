@@ -17,6 +17,9 @@ export const NAVBAR_MENUS = {
     // Clients and sales
     { label: "Quotations", path: "/admin/quotations" },
     { label: "Invoices", path: "/admin/invoices" },
+    { label: "Finance & Cash Flow", path: "/admin/finance" },
+    { label: "Expenses & Bills", path: "/admin/expenses" },
+    { label: "Bank & Cash Accounts", path: "/admin/cash-accounts" },
     { label: "Leads", path: "/admin/leads" },
     { label: "Clients", path: "/admin/clients" },
     { label: "WhatsApp Chats", path: "/admin/whatsapp-chats" },
@@ -34,6 +37,7 @@ export const NAVBAR_MENUS = {
     { label: "HR Helpdesk", path: "/admin/hr-helpdesk" },
     { label: "Notice Board", path: "/admin/notices" },
   ],
+
   admin: [
     //General
     { label: "Dashboard", path: "/admin/dashboard" },
@@ -56,6 +60,13 @@ export const NAVBAR_MENUS = {
     { label: "Clients", path: "/admin/clients" },
     { label: "WhatsApp Chats", path: "/admin/whatsapp-chats" },
 
+     "divider",
+     // Finance
+    { label: "Finance & Cash Flow", path: "/admin/finance" },
+    { label: "Expenses & Bills", path: "/admin/expenses" },
+    { label: "Payroll", path: "/admin/payroll" },
+    { label: "Bank & Cash Accounts", path: "/admin/cash-accounts" },
+
     "divider",
     // general HR tools
     { label: "Employees", path: "/admin/employees" },
@@ -65,7 +76,6 @@ export const NAVBAR_MENUS = {
     { label: "Reports", path: "/admin/reports" },
     { label: "Leave Approvals", path: "/admin/leave-approval" },
     { label: "Settings", path: "/admin/settings" },
-    { label: "Payroll", path: "/admin/payroll" },
     { label: "HR Helpdesk", path: "/admin/hr-helpdesk" },
     { label: "Notice Board", path: "/admin/notices" },
   ],
@@ -108,6 +118,14 @@ export const NAVBAR_MENUS = {
     { label: "Leads", path: "/hr/leads" },
     { label: "Clients", path: "/hr/clients" },
     { label: "WhatsApp Chats", path: "/hr/whatsapp-chats" },
+
+     "divider",
+     // Finance
+    { label: "Finance & Cash Flow", path: "/admin/finance" },
+    { label: "Expenses & Bills", path: "/admin/expenses" },
+    { label: "Payroll", path: "/admin/payroll" },
+    { label: "Bank & Cash Accounts", path: "/admin/cash-accounts" },
+
     "divider",
     // general HR tools
     { label: "Mark Attendance", path: "/hr/mark-attendance" },
@@ -117,8 +135,7 @@ export const NAVBAR_MENUS = {
     { label: "Reports", path: "/hr/hrReports" },
     { label: "Leave Approvals", path: "/hr/hrLeaveApproval" },
     { label: "Settings", path: "/hr/settings" },
-    { label: "Payroll", path: "/hr/payroll" },
-    {label:"hr",path:"/hr/hr"},
+    {label: "hr",path: "/hr/hr"},
     { label: "HR Helpdesk", path: "/hr/hr-helpdesk" },
     { label: "Notice Board", path: "/hr/notices" },
   ],
@@ -144,8 +161,8 @@ export const NAVBAR_MENUS = {
 
 export const SECTION_TITLES = {
   administrative: ["General", "Creators", "Business", "HR Tools"],
-  admin: ["General", "Creators", "Business", "HR Tools"],
-  hr: ["General", "Creators", "Business", "HR Tools"],
+  admin: ["General", "Creators", "Business","Finance", "HR Tools"],
+  hr: ["General", "Creators", "Business","Finance", "HR Tools"],
   employee: ["General", "Creators", "Business", "Extra Tools"],
   intern: ["General", "Creators", "Business", "Extra Tools"],
 };

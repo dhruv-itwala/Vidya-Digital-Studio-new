@@ -42,6 +42,7 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
     address: user?.address || "",
     personalEmail: user?.personalEmail || "",
     role: user?.role || "employee",
+    subrole: user?.subrole || "management",
     salary: user?.salary || "",
     salesTarget: "",
     isActive: user?.isActive ?? true,
@@ -272,6 +273,51 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
             </div>
           )}
 
+          {user?.isTerminated && (
+            <div
+              style={{
+                background: "#fff1f2",
+                border: "1px solid #fecdd3",
+                borderRadius: "12px",
+                padding: "12px 16px",
+                marginBottom: "16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "#991b1b",
+                  fontWeight: 700,
+                  fontSize: "0.875rem",
+                }}
+              >
+                <span>⚠️ Employee Terminated</span>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    background: "#fee2e2",
+                    padding: "2px 8px",
+                    borderRadius: "100px",
+                    border: "1px solid #fca5a5",
+                  }}
+                >
+                  Exit:{" "}
+                  {user.terminationDate
+                    ? new Date(user.terminationDate).toLocaleDateString("en-IN")
+                    : "Recorded"}
+                </span>
+              </div>
+              <div style={{ fontSize: "0.8125rem", color: "#881337" }}>
+                <strong>Reason:</strong> {user.terminationReason || "N/A"}
+              </div>
+            </div>
+          )}
+
           <form
             className={styles.formGrid}
             onSubmit={(e) => {
@@ -433,6 +479,21 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
             </div>
 
             <div className={styles.grid2}>
+              <div className={styles.inputGroup}>
+                <label>Department / Subrole</label>
+                <select
+                  value={form.subrole || "management"}
+                  onChange={(e) => handleChange("subrole", e.target.value)}
+                  className={styles.selectField}
+                >
+                  <option value="sales">Sales</option>
+                  <option value="designing">Designing</option>
+                  <option value="development">Development</option>
+                  <option value="editing">Editing</option>
+                  <option value="management">Management</option>
+                  <option value="administrative">Administrative</option>
+                </select>
+              </div>
               <div className={styles.inputGroup}>
                 <label>Monthly Sales Target (Revenue)</label>
                 <input

@@ -1,8 +1,10 @@
 // Backend/Invoice/controllers/Invoice.controller.js
 import Invoice from "../models/Invoice.model.js";
 import Client from "../../StaffCRM/Clients/Client.model.js";
+import CashAccount from "../../Finance/models/CashAccount.model.js";
+import CashTransaction from "../../Finance/models/CashTransaction.model.js";
 import { generateInvoicePdfBuffer } from "../services/Pdf.service.js";
-import { uploadBufferToCloudinary } from "../../Quotation/Quote/services/Cloudinary.service.js";
+import { uploadBufferToCloudinary, deleteByPublicId } from "../../Quotation/Quote/services/Cloudinary.service.js";
 
 /* ================= GET NEXT INVOICE NUMBER ================= */
 export const getNextInvoiceNumber = async (req, res) => {
@@ -404,8 +406,9 @@ export const updateInvoice = async (req, res) => {
       bankDetails,
     });
 
-    // Upload updated PDF to Cloudinary
+    // Upload updated PDF to Cloudinary & delete old file
     let pdfUrl = invoice.pdfUrl;
+    const oldCloudinaryPublicId = invoice.cloudinaryPublicId;
     let cloudinaryPublicId = invoice.cloudinaryPublicId;
     try {
       const sanitizedName = (client.companyName || client.name || "Invoice")
@@ -418,6 +421,15 @@ export const updateInvoice = async (req, res) => {
       );
       pdfUrl = uploadResult.url;
       cloudinaryPublicId = uploadResult.public_id;
+
+      // Delete old invoice PDF from Cloudinary
+      if (oldCloudinaryPublicId && oldCloudinaryPublicId !== cloudinaryPublicId) {
+        try {
+          await deleteByPublicId(oldCloudinaryPublicId);
+        } catch (delErr) {
+          console.warn("[Invoice] Old Cloudinary file deletion failed on update:", delErr.message);
+        }
+      }
     } catch (uploadErr) {
       console.warn("[Invoice] Cloudinary upload warning on update:", uploadErr.message);
       pdfUrl = `data:application/pdf;base64,${pdfBuffer.toString("base64")}`;
@@ -476,6 +488,22 @@ export const deleteInvoice = async (req, res) => {
         message: "Invoice not found",
       });
     }
+
+    if (invoice.cloudinaryPublicId) {
+      try {
+        await deleteByPublicId(invoice.cloudinaryPublicId);
+      } catch (delErr) {
+        console.warn("[Invoice] Cloudinary file deletion failed on deleteInvoice:", delErr.message);
+      }
+    }
+
+    // Also remove from linked Client document embedded invoices if present
+    if (invoice.client?.clientId) {
+      await Client.findByIdAndUpdate(invoice.client.clientId, {
+        $pull: { invoices: { invoiceNumber: invoice.invoiceNumber } },
+      }).catch(() => {});
+    }
+
     return res.status(200).json({
       success: true,
       message: "Invoice deleted successfully",
@@ -484,6 +512,160 @@ export const deleteInvoice = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to delete invoice",
+      error: error.message,
+    });
+  }
+};
+
+/* ================= UPDATE INVOICE STATUS (RECEIVED / PARTIAL / PENDING) ================= */
+export const updateInvoiceStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, receivedAmount, cashAccountId, notes } = req.body;
+
+    const invoice = await Invoice.findById(id);
+    if (!invoice) {
+      return res.status(404).json({ success: false, message: "Invoice not found" });
+    }
+
+    const validStatuses = [
+      "received",
+      "paid",
+      "partial received",
+      "partial",
+      "pending",
+      "unpaid",
+    ];
+    const normalizedStatus = (status || "").toLowerCase().trim();
+
+    if (!validStatuses.includes(normalizedStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Allowed: 'received', 'partial received', 'pending'",
+      });
+    }
+
+    let deltaReceived = 0;
+
+    if (normalizedStatus === "received" || normalizedStatus === "paid") {
+      deltaReceived = Math.max(0, invoice.totalAmount - (invoice.advanceAmount || 0));
+      invoice.advanceAmount = invoice.totalAmount;
+      invoice.remainingAmount = 0;
+      invoice.status = "paid";
+    } else if (normalizedStatus === "partial received" || normalizedStatus === "partial") {
+      const added = Number(receivedAmount);
+      if (isNaN(added) || added <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Please specify a valid received amount for partial payment.",
+        });
+      }
+      deltaReceived = added;
+      const currentAdvance = invoice.advanceAmount || 0;
+      invoice.advanceAmount = Math.min(invoice.totalAmount, currentAdvance + added);
+      invoice.remainingAmount = Math.max(0, invoice.totalAmount - invoice.advanceAmount);
+      invoice.status = invoice.remainingAmount === 0 ? "paid" : "partial";
+    } else if (normalizedStatus === "pending" || normalizedStatus === "unpaid") {
+      invoice.status = (invoice.advanceAmount || 0) > 0 ? "partial" : "unpaid";
+      invoice.remainingAmount = Math.max(0, invoice.totalAmount - (invoice.advanceAmount || 0));
+    }
+
+    // Regenerate PDF with updated advance & remaining amounts & dynamic amount QR code
+    try {
+      const pdfBuffer = await generateInvoicePdfBuffer({
+        invoiceNumber: invoice.invoiceNumber,
+        invoiceDate: invoice.invoiceDate,
+        client: invoice.client,
+        items: invoice.items,
+        gstEnabled: invoice.gstEnabled,
+        subtotal: invoice.subtotal,
+        cgst: invoice.cgst,
+        sgst: invoice.sgst,
+        totalAmount: invoice.totalAmount,
+        advanceAmount: invoice.advanceAmount,
+        remainingAmount: invoice.remainingAmount,
+        remainingDate: invoice.remainingDate,
+        paymentTerms: invoice.paymentTerms,
+        notes: invoice.notes,
+        bankDetails: invoice.bankDetails,
+      });
+
+      const sanitizedName = (invoice.client?.companyName || invoice.client?.name || "Invoice")
+        .replace(/[^a-zA-Z0-9]/g, "_")
+        .slice(0, 30);
+      const filenameBase = `Invoice_${sanitizedName}_${Date.now()}`;
+      const uploadResult = await uploadBufferToCloudinary(pdfBuffer, filenameBase);
+
+      const oldCloudinaryPublicId = invoice.cloudinaryPublicId;
+      invoice.pdfUrl = uploadResult.url;
+      invoice.cloudinaryPublicId = uploadResult.public_id;
+
+      if (oldCloudinaryPublicId && oldCloudinaryPublicId !== uploadResult.public_id) {
+        try {
+          await deleteByPublicId(oldCloudinaryPublicId);
+        } catch (delErr) {
+          console.warn("[Invoice] Old Cloudinary file deletion failed on status update:", delErr.message);
+        }
+      }
+    } catch (pdfErr) {
+      console.warn("[Invoice] PDF regeneration warning on status update:", pdfErr.message);
+    }
+
+    await invoice.save();
+
+    // Also update embedded invoice in Client document if linked
+    if (invoice.client?.clientId) {
+      await Client.findOneAndUpdate(
+        { _id: invoice.client.clientId, "invoices.invoiceNumber": invoice.invoiceNumber },
+        {
+          $set: {
+            "invoices.$.status": invoice.status,
+            "invoices.$.url": invoice.pdfUrl,
+            "invoices.$.public_id": invoice.cloudinaryPublicId,
+          },
+        }
+      ).catch(() => {});
+    }
+
+    // If cashAccountId provided and money was collected, credit account and log transaction
+    if (cashAccountId && deltaReceived > 0) {
+      try {
+        const cashAcc = await CashAccount.findById(cashAccountId);
+        if (cashAcc) {
+          cashAcc.currentBalance += deltaReceived;
+          await cashAcc.save();
+
+          await CashTransaction.create({
+            cashAccountId: cashAcc._id,
+            type: "INCOME",
+            amount: deltaReceived,
+            balanceAfter: cashAcc.currentBalance,
+            category: "Client Invoice",
+            referenceId: invoice._id,
+            referenceModel: "Invoice",
+            description: `Payment received for ${invoice.invoiceNumber} (${invoice.client?.companyName || invoice.client?.name}): ${notes || "Invoice payment"}`,
+            performedBy: req.user?._id || req.user?.id,
+          });
+        }
+      } catch (accErr) {
+        console.warn("[Invoice] Cash account credit warning:", accErr.message);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Invoice marked as ${invoice.status}`,
+      data: invoice,
+      pdfUrl: invoice.pdfUrl,
+      downloadUrl: invoice.pdfUrl && invoice.pdfUrl.includes("/upload/")
+        ? invoice.pdfUrl.replace("/upload/", "/upload/fl_attachment/")
+        : invoice.pdfUrl,
+    });
+  } catch (error) {
+    console.error("[Invoice] Update Status Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update invoice status",
       error: error.message,
     });
   }

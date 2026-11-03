@@ -18,7 +18,22 @@ export const loginService = async (email, password) => {
   );
   if (!user) throw new AppError("Invalid credentials", 401);
 
-  const match = await bcrypt.compare(password, user.password);
+  let match = false;
+  if (
+    user.password.startsWith("$2a$") ||
+    user.password.startsWith("$2b$") ||
+    user.password.startsWith("$2y$")
+  ) {
+    match = await bcrypt.compare(password, user.password);
+  } else {
+    // Legacy plaintext password detected: verify and auto-upgrade to bcrypt hash
+    if (user.password === password) {
+      match = true;
+      user.password = await bcrypt.hash(password, 10);
+      await user.save();
+    }
+  }
+
   if (!match) throw new AppError("Invalid credentials", 401);
 
   return user;
@@ -116,8 +131,57 @@ export const inactiveUserService = async (loggedInUser, targetUserId) => {
   }
 
   user.isActive = !user.isActive;
+  // If reactivating a previously terminated employee, reset terminated status
+  if (user.isActive && user.isTerminated) {
+    user.isTerminated = false;
+  }
   await user.save();
 
+  return user;
+};
+
+/* ================= TERMINATE USER ================= */
+export const terminateUserService = async (
+  loggedInUser,
+  targetUserId,
+  { terminationDate, terminationReason }
+) => {
+  if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
+    throw new AppError("Invalid user id", 400);
+  }
+  if (!terminationDate) {
+    throw new AppError("Termination date is required", 400);
+  }
+  if (!terminationReason || !terminationReason.trim()) {
+    throw new AppError("Termination reason is required", 400);
+  }
+
+  const user = await User.findById(targetUserId);
+  if (!user) throw new AppError("User not found", 404);
+
+  // Prevent self termination
+  if (String(loggedInUser.id) === String(targetUserId)) {
+    throw new AppError("You cannot terminate your own account", 403);
+  }
+
+  // HR cannot terminate Admin
+  if (loggedInUser.role === "hr" && user.role === "admin") {
+    throw new AppError("HR cannot terminate Admin", 403);
+  }
+
+  // Employee cannot terminate
+  if (loggedInUser.role === "employee" || loggedInUser.role === "intern") {
+    throw new AppError("Access denied", 403);
+  }
+
+  user.isActive = false;
+  user.isTerminated = true;
+  user.terminationDate = new Date(terminationDate);
+  user.terminationReason = terminationReason.trim();
+  user.terminatedAt = new Date();
+  user.terminatedBy = loggedInUser.id || loggedInUser._id;
+
+  await user.save();
   return user;
 };
 
@@ -171,7 +235,10 @@ export const getAllUsersService = async () => {
 };
 
 export const getAllUsersForAdminService = async () => {
-  const users = await User.find().select("-password").lean();
+  const users = await User.find()
+    .select("-password")
+    .populate("terminatedBy", "name email")
+    .lean();
 
   const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
 

@@ -82,6 +82,7 @@
 | **`GET`** | `/api/v1.0/invoice` | 🔐 Authenticated<br/>`admin, hr` | List invoices (`listInvoices`) |
 | **`GET`** | `/api/v1.0/invoice/:id` | 🔐 Authenticated<br/>`admin, hr` | Get invoice by id (`getInvoiceById`) |
 | **`PUT`** | `/api/v1.0/invoice/:id` | 🔐 Authenticated<br/>`admin, hr` | Update & regenerate invoice (`updateInvoice`) |
+| **`PATCH`** | `/api/v1.0/invoice/:id/status` | 🔐 Authenticated<br/>`admin, hr` | Update payment status (received / partial / pending) (`updateInvoiceStatus`) |
 | **`DELETE`** | `/api/v1.0/invoice/:id` | 🔐 Authenticated<br/>`admin, hr` | Delete invoice (`deleteInvoice`) |
 
 ### WhatsApp CRM
@@ -113,6 +114,7 @@
 | **`POST`** | `/api/v1.0/users` | 🔐 Authenticated<br/>`admin, hr` | Create user (`createUser`) |
 | **`PUT`** | `/api/v1.0/users/:id` | 🔐 Authenticated<br/>`admin, hr` | Update user (`updateUser`) |
 | **`PATCH`** | `/api/v1.0/users/:id/inactive` | 🔐 Authenticated<br/>`admin, hr` | Inactive user (`inactiveUser`) |
+| **`PATCH`** | `/api/v1.0/users/:id/terminate` | 🔐 Authenticated<br/>`admin, hr` | Terminate & deactivate user with date and reason (`terminateUser`) |
 | **`DELETE`** | `/api/v1.0/users/:id` | 🔐 Authenticated<br/>`admin, hr` | Delete user (`deleteUser`) |
 
 ### Attendance Management
@@ -378,9 +380,31 @@
 | **`POST`** | `/api/v1.0/payroll/generate` | 🔐 Authenticated<br/>`admin, hr` | Generate draft payrolls (`generateDraftPayrolls`) |
 | **`GET`** | `/api/v1.0/payroll` | 🔐 Authenticated<br/>`admin, hr` | Get payrolls by month (`getPayrollsByMonth`) |
 | **`PUT`** | `/api/v1.0/payroll/:id/pay` | 🔐 Authenticated<br/>`admin, hr` | Mark payroll as paid (`markPayrollAsPaid`) |
+| **`PUT`** | `/api/v1.0/payroll/:id` | 🔐 Authenticated<br/>`admin, hr` | Update deductions, status & partial payment (`updatePayroll`) |
 | **`POST`** | `/api/v1.0/payroll/:id/send` | 🔐 Authenticated<br/>`admin, hr` | Send payslip (`sendPayslip`) |
+
+### Finance Operations & Expense Management
+* **File:** `Finance/routes/Finance.routes.js`
+* **Prefix:** `/api/v1.0/finance`
+
+| Method | Endpoint | Auth / Permission | Description / Handler |
+| :--- | :--- | :--- | :--- |
+| **`GET`** | `/api/v1.0/finance/overview` | 🔐 Authenticated<br/>`admin, hr` | Get cash flow metrics, free cash & invariants (`getFinanceDashboardMetrics`) |
+| **`POST`** | `/api/v1.0/finance/expenses` | 🔐 Authenticated<br/>`admin, hr` | Create new expense or recurring bill (`createExpense`) |
+| **`GET`** | `/api/v1.0/finance/expenses` | 🔐 Authenticated<br/>`admin, hr` | List all expenses with filters & overdue days (`getAllExpenses`) |
+| **`GET`** | `/api/v1.0/finance/expenses/:id` | 🔐 Authenticated<br/>`admin, hr` | Get expense details & payment history (`getExpenseById`) |
+| **`PUT`** | `/api/v1.0/finance/expenses/:id` | 🔐 Authenticated<br/>`admin, hr` | Update expense details or status (`updateExpense`) |
+| **`DELETE`** | `/api/v1.0/finance/expenses/:id` | 🔐 Authenticated<br/>`admin, hr` | Delete expense record (`deleteExpense`) |
+| **`POST`** | `/api/v1.0/finance/expenses/:id/payout` | 🔐 Authenticated<br/>`admin, hr` | Record expense payout & deduct bank balance (`recordExpensePayout`) |
+| **`POST`** | `/api/v1.0/finance/accounts` | 🔐 Authenticated<br/>`admin, hr` | Create cash or bank account (`createCashAccount`) |
+| **`GET`** | `/api/v1.0/finance/accounts` | 🔐 Authenticated<br/>`admin, hr` | List all active bank/cash accounts (`getAllCashAccounts`) |
+| **`GET`** | `/api/v1.0/finance/accounts/:id` | 🔐 Authenticated<br/>`admin, hr` | Get cash account details & audit log (`getCashAccountById`) |
+| **`PUT`** | `/api/v1.0/finance/accounts/:id` | 🔐 Authenticated<br/>`admin, hr` | Update account details (`updateCashAccount`) |
+| **`POST`** | `/api/v1.0/finance/accounts/:id/adjust` | 🔐 Authenticated<br/>`admin, hr` | Reconcile or adjust account balance (`adjustAccountBalance`) |
+| **`POST`** | `/api/v1.0/finance/accounts/transfer` | 🔐 Authenticated<br/>`admin, hr` | Transfer funds between accounts (`transferBetweenAccounts`) |
+| **`GET`** | `/api/v1.0/finance/transactions` | 🔐 Authenticated<br/>`admin, hr` | Audit trail of all cash & bank transactions (`getCashTransactions`) |
 
 
 ---
 
-*Total Registered Backend Routes Documented:* **146 endpoints**
+*Total Registered Backend Routes Documented:* **162 endpoints**

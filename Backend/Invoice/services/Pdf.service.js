@@ -6,6 +6,7 @@ import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import ejs from "ejs";
 import { fileURLToPath } from "url";
+import { generateUpiUrl, generateQrSvg } from "./qrGenerator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -147,7 +148,6 @@ export const generateInvoicePdfBuffer = async ({
     const cssPath = path.join(__dirname, "../templates/invoice-styles.css");
 
     const css = fs.readFileSync(cssPath, "utf8");
-    const qrCodeDataUri = getQrCodeDataUri();
 
     const defaultPaymentTerms = [
       "Payment is due within 3 days of the invoice date.",
@@ -174,6 +174,44 @@ export const generateInvoicePdfBuffer = async ({
       upiId: bankDetails.upiId || "dheemahi2@okhdfcbank",
     };
 
+    // Calculate exact payable amount for dynamic QR Code
+    const numRemaining = Number(remainingAmount);
+    const numAdvance = Number(advanceAmount) || 0;
+    const numTotal = Number(totalAmount) || 0;
+
+    let payableAmount = 0;
+    if (numRemaining > 0) {
+      payableAmount = numRemaining;
+    } else if (numAdvance > 0 && numAdvance >= numTotal) {
+      payableAmount = 0;
+    } else {
+      payableAmount = numTotal;
+    }
+
+    // Generate Dynamic NPCI UPI QR Code with pre-filled amount and invoice number
+    let qrCodeDataUri = "";
+    if (payableAmount > 0) {
+      try {
+        const upiUrl = generateUpiUrl({
+          upiId: finalBankDetails.upiId,
+          payeeName: "Vidya Digital Studio",
+          amount: payableAmount,
+          note: `Invoice ${invoiceNumber}`,
+        });
+        const svgString = generateQrSvg(upiUrl, 200, 2);
+        if (svgString) {
+          qrCodeDataUri = `data:image/svg+xml;base64,${Buffer.from(svgString).toString("base64")}`;
+        }
+      } catch (qrErr) {
+        console.warn("[Invoice PDF] Dynamic QR generation failed, using static:", qrErr.message);
+        qrCodeDataUri = getQrCodeDataUri();
+      }
+    }
+
+    if (!qrCodeDataUri) {
+      qrCodeDataUri = getQrCodeDataUri();
+    }
+
     const parsedNotes = Array.isArray(notes)
       ? notes.filter((n) => n && n.trim().length > 0)
       : typeof notes === "string" && notes.trim()
@@ -199,6 +237,7 @@ export const generateInvoicePdfBuffer = async ({
       paymentTerms: finalPaymentTerms,
       notes: parsedNotes,
       bankDetails: finalBankDetails,
+      payableAmount,
       css,
       qrCodeDataUri,
       logoUrl:

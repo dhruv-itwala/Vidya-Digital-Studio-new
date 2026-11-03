@@ -74,7 +74,14 @@ const InvoiceSchema = new mongoose.Schema(
     cloudinaryPublicId: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["unpaid", "paid", "partial", "pending"],
+      enum: [
+        "unpaid",
+        "paid",
+        "partial",
+        "pending",
+        "received",
+        "partial received",
+      ],
       default: "unpaid",
     },
     emailSent: { type: Boolean, default: false },

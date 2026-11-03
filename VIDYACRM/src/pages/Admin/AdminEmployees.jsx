@@ -6,6 +6,8 @@ import {
   toggleUserWifiRestrictionAPI,
 } from "../../api/admin.api";
 import EmployeeModal from "./EmployeeModal";
+import TerminateEmployeeModal from "./TerminateEmployeeModal";
+import TerminationDetailsModal from "./TerminationDetailsModal";
 import { useAuth } from "../../context/AuthContext";
 import styles from "./AdminEmployees.module.css";
 import toast from "react-hot-toast";
@@ -13,12 +15,15 @@ import Loader from "../../components/Loader/Loader";
 import InlineLoader from "../../components/UI/InlineLoader";
 import { FaUserEdit } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
-import { FiPlus, FiUser } from "react-icons/fi";
+import { FiPlus, FiUser, FiUserX, FiSlash, FiFileText } from "react-icons/fi";
 
 export default function AdminEmployees() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
+  const [terminatingUser, setTerminatingUser] = useState(null);
+  const [viewingTerminationUser, setViewingTerminationUser] = useState(null);
+  const [subroleFilter, setSubroleFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage] = useState(100);
   const [loading, setLoading] = useState(false);
@@ -45,12 +50,17 @@ export default function AdminEmployees() {
     }
   };
 
+  const filteredUsers = users.filter((u) => {
+    if (subroleFilter === "all") return true;
+    return (u.subrole || "management").toLowerCase() === subroleFilter.toLowerCase();
+  });
+
   const indexOfLastUser = currentPage * rowsPerPage;
-  const currentUsers = users.slice(
+  const currentUsers = filteredUsers.slice(
     indexOfLastUser - rowsPerPage,
     indexOfLastUser,
   );
-  const totalPages = Math.ceil(users.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
 
   useEffect(() => {
     if (user && user.role !== "admin" && user.role !== "hr") {
@@ -79,6 +89,29 @@ export default function AdminEmployees() {
 
       {/* ================= TABLE ================= */}
       <div className={styles.tableCard}>
+        {/* Department Filter Bar */}
+        <div className={styles.filterBar}>
+          <label style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--color-text-muted)" }}>
+            Department / Subrole:
+          </label>
+          <select
+            className={styles.filterSelect}
+            value={subroleFilter}
+            onChange={(e) => {
+              setSubroleFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+          >
+            <option value="all">All Departments ({users.length})</option>
+            <option value="sales">Sales</option>
+            <option value="designing">Designing</option>
+            <option value="development">Development</option>
+            <option value="editing">Editing</option>
+            <option value="management">Management</option>
+            <option value="administrative">Administrative</option>
+          </select>
+        </div>
+
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
@@ -86,6 +119,7 @@ export default function AdminEmployees() {
                 <th>Profile</th>
                 <th>Email Address</th>
                 <th>Role</th>
+                <th>Department</th>
                 <th>Office Wi-Fi</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -95,8 +129,8 @@ export default function AdminEmployees() {
             <tbody>
               {currentUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="6">
-                    <div className={styles.emptyState}>No employees found.</div>
+                  <td colSpan="7">
+                    <div className={styles.emptyState}>No employees found for this department.</div>
                   </td>
                 </tr>
               ) : (
@@ -126,6 +160,12 @@ export default function AdminEmployees() {
                     <td>
                       <span className={`${styles.rolePill} ${styles['role_' + u.role?.toLowerCase()]}`}>
                         {u.role.toUpperCase()}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className={`${styles.subrolePill} ${styles['subrole_' + (u.subrole || 'management').toLowerCase()]}`}>
+                        {(u.subrole || "management").toUpperCase()}
                       </span>
                     </td>
 
@@ -185,30 +225,44 @@ export default function AdminEmployees() {
                     </td>
                     
                     <td>
-                      <label className={styles.switch}>
-                        <input
-                          type="checkbox"
-                          checked={u.isActive}
-                          disabled={togglingId === u._id || deletingId === u._id}
-                          onChange={async () => {
-                            const action = u.isActive ? "Deactivate" : "Activate";
-                            const ok = confirm(`${action} ${u.name}?`);
-                            if (!ok) return;
+                      <div className={styles.statusCell}>
+                        {u.isTerminated ? (
+                          <button
+                            type="button"
+                            className={styles.terminatedBadge}
+                            onClick={() => setViewingTerminationUser(u)}
+                            title="Click to view termination details"
+                          >
+                            <FiSlash size={11} />
+                            <span>Terminated</span>
+                          </button>
+                        ) : (
+                          <label className={styles.switch}>
+                            <input
+                              type="checkbox"
+                              checked={u.isActive}
+                              disabled={togglingId === u._id || deletingId === u._id}
+                              onChange={async () => {
+                                const action = u.isActive ? "Deactivate" : "Activate";
+                                const ok = confirm(`${action} ${u.name}?`);
+                                if (!ok) return;
 
-                            try {
-                              setTogglingId(u._id);
-                              await inactiveUserAPI(u._id);
-                              toast.success(`${u.name} ${u.isActive ? "deactivated" : "activated"}`);
-                              await load();
-                            } catch (err) {
-                              toast.error(err?.response?.data?.message || err?.message || `Failed to ${action.toLowerCase()} user`);
-                            } finally {
-                              setTogglingId(null);
-                            }
-                          }}
-                        />
-                        <span className={styles.slider}></span>
-                      </label>
+                                try {
+                                  setTogglingId(u._id);
+                                  await inactiveUserAPI(u._id);
+                                  toast.success(`${u.name} ${u.isActive ? "deactivated" : "activated"}`);
+                                  await load();
+                                } catch (err) {
+                                  toast.error(err?.response?.data?.message || err?.message || `Failed to ${action.toLowerCase()} user`);
+                                } finally {
+                                  setTogglingId(null);
+                                }
+                              }}
+                            />
+                            <span className={styles.slider}></span>
+                          </label>
+                        )}
+                      </div>
                     </td>
                     
                     <td>
@@ -221,6 +275,34 @@ export default function AdminEmployees() {
                         >
                           <FaUserEdit />
                         </button>
+
+                        {u.isTerminated ? (
+                          <button
+                            type="button"
+                            onClick={() => setViewingTerminationUser(u)}
+                            className={styles.actionInfo}
+                            title="View Termination Record"
+                          >
+                            <FiFileText />
+                          </button>
+                        ) : (
+                          (user.role === "admin" || user.role === "hr") && (
+                            <button
+                              type="button"
+                              disabled={
+                                togglingId === u._id ||
+                                deletingId === u._id ||
+                                (user.role === "hr" && u.role === "admin") ||
+                                user._id === u._id
+                              }
+                              onClick={() => setTerminatingUser(u)}
+                              className={styles.actionTerminate}
+                              title={`Terminate ${u.name}`}
+                            >
+                              <FiUserX />
+                            </button>
+                          )
+                        )}
 
                         {(user.role === "admin" || user.role === "hr") && (
                           <button
@@ -285,13 +367,35 @@ export default function AdminEmployees() {
         )}
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* ================= MODALS ================= */}
       {editingUser && (
         <EmployeeModal
           user={editingUser}
           onClose={() => setEditingUser(null)}
           onSaved={() => {
             setEditingUser(null);
+            load();
+          }}
+        />
+      )}
+
+      {terminatingUser && (
+        <TerminateEmployeeModal
+          employee={terminatingUser}
+          onClose={() => setTerminatingUser(null)}
+          onSuccess={() => {
+            setTerminatingUser(null);
+            load();
+          }}
+        />
+      )}
+
+      {viewingTerminationUser && (
+        <TerminationDetailsModal
+          employee={viewingTerminationUser}
+          onClose={() => setViewingTerminationUser(null)}
+          onReactivated={() => {
+            setViewingTerminationUser(null);
             load();
           }}
         />

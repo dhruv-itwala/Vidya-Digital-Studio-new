@@ -1,10 +1,12 @@
 .layoutContainer {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   background-color: #f3f4f6; /* light gray background */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: #1f2937;
   overflow: hidden;
+  width: 100%;
 }
 
 /* Sidebar */
@@ -16,6 +18,10 @@
   flex-direction: column;
   transition: transform 0.3s ease-in-out;
   z-index: 50;
+  height: 100vh;
+  height: 100dvh;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .sidebarHeader {
@@ -103,7 +109,9 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .contentWrapper {

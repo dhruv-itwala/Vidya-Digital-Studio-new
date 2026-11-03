@@ -118,18 +118,23 @@
 
             <% if (advanceAmount > 0) { %>
             <div class="summary-row">
-              <span class="summary-label">Advance amount to be paid:</span>
-              <span class="summary-value">₹<%= Number(advanceAmount || 0).toLocaleString('en-IN') %></span>
+              <span class="summary-label">Amount Paid / Received:</span>
+              <span class="summary-value" style="color: #059669; font-weight: 600;">₹<%= Number(advanceAmount || 0).toLocaleString('en-IN') %></span>
             </div>
             <% } %>
 
-            <% if (remainingAmount > 0 || remainingDate) { %>
+            <% if (remainingAmount > 0) { %>
             <div class="summary-row">
-              <span class="summary-label">Remaining payment amount and date:</span>
-              <span class="summary-value">₹<%= Number(remainingAmount || 0).toLocaleString('en-IN') %></span>
+              <span class="summary-label">Remaining Balance Due:</span>
+              <span class="summary-value" style="color: #dc2626; font-weight: 700;">₹<%= Number(remainingAmount || 0).toLocaleString('en-IN') %></span>
               <% if (remainingDate) { %>
-              <span style="color: #444; font-weight: 500;">(Due: <%= remainingDate %>)</span>
+              <span style="color: #64748b; font-size: 11px; margin-left: 6px;">(Due: <%= remainingDate %>)</span>
               <% } %>
+            </div>
+            <% } else if (advanceAmount > 0 && Number(advanceAmount) >= Number(totalAmount)) { %>
+            <div class="summary-row">
+              <span class="summary-label">Payment Status:</span>
+              <span class="summary-value" style="color: #059669; font-weight: 700; text-transform: uppercase;">PAID IN FULL</span>
             </div>
             <% } %>
           </div>
@@ -222,8 +227,17 @@
           </div>
 
           <div class="qr-section">
-            <img src="<%= qrCodeDataUri %>" alt="Payment QR Code" class="qr-code" />
-            <div class="qr-upi-label">UPI ID: <%= bankDetails.upiId %></div>
+            <% if (remainingAmount <= 0 && Number(advanceAmount) >= Number(totalAmount)) { %>
+              <div style="border: 2px dashed #059669; border-radius: 8px; padding: 22px 20px; text-align: center; background: #ecfdf5; min-width: 170px;">
+                <div style="color: #059669; font-weight: 800; font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase;">Payment Received</div>
+                <div style="color: #047857; font-size: 12px; margin-top: 6px; font-weight: 600;">₹0.00 Balance Due</div>
+                <div style="color: #64748b; font-size: 10px; margin-top: 4px;">Thank you for your business!</div>
+              </div>
+            <% } else { %>
+              <img src="<%= qrCodeDataUri %>" alt="Payment QR Code" class="qr-code" />
+              <div class="qr-upi-label">Scan to Pay<%= Number(advanceAmount) > 0 ? " Balance" : "" %>: ₹<%= (typeof payableAmount === 'number' ? payableAmount : remainingAmount || totalAmount || 0).toLocaleString('en-IN') %></div>
+              <div class="qr-upi-sub" style="font-size: 10px; color: #64748b; margin-top: 3px;">Pre-filled in GPay / PhonePe / Paytm</div>
+            <% } %>
           </div>
         </div>
 

@@ -184,6 +184,44 @@
 .role_employee { background: #dbeafe; color: #1e40af; }
 .role_intern { background: #fef9c3; color: #854d0e; }
 
+/* Subrole / Department Pill */
+.subrolePill {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+.subrole_sales { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.subrole_designing { background: #fdf2f8; color: #9d174d; border-color: #fbcfe8; }
+.subrole_development { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+.subrole_editing { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+.subrole_management { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
+.subrole_administrative { background: #f8fafc; color: #0f172a; border-color: #cbd5e1; }
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filterSelect {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: #ffffff;
+  color: var(--color-text);
+  outline: none;
+  cursor: pointer;
+}
+
 /* Toggle Switch */
 .switch {
   position: relative;
@@ -272,7 +310,7 @@ input:disabled + .slider {
   align-items: center;
 }
 
-.actionEdit, .actionDelete {
+.actionEdit, .actionDelete, .actionTerminate, .actionInfo {
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -292,9 +330,57 @@ input:disabled + .slider {
 .actionDelete { color: #ef4444; }
 .actionDelete:hover:not(:disabled) { background: #fef2f2; }
 
-.actionEdit:disabled, .actionDelete:disabled {
+.actionTerminate {
+  color: #dc2626;
+  background: #fef2f2;
+}
+.actionTerminate:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.actionInfo {
+  color: #475569;
+  background: #f1f5f9;
+}
+.actionInfo:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.actionEdit:disabled, .actionDelete:disabled, .actionTerminate:disabled, .actionInfo:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.statusCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminatedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.terminatedBadge:hover {
+  background: #fecdd3;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
 }
 
 /* ================= PAGINATION ================= */

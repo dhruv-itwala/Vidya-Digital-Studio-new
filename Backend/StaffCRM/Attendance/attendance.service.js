@@ -416,8 +416,13 @@ export const getAllEmployeesAttendanceService = async (date) => {
   const nowDay = todayISTUTC();
 
   const [users, records, workRecords, holiday, leaves] = await Promise.all([
-    User.find({ isActive: true })
-      .select("name email role")
+    User.find({
+      $or: [
+        { isActive: true },
+        { isTerminated: true, terminationDate: { $gte: day } },
+      ],
+    })
+      .select("name email role isTerminated terminationDate")
       .lean(),
     Attendance.find({ date: day }).lean(),
     WorkRecord.find({ date: day }).lean(),
@@ -549,12 +554,18 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
   const toDate = parseISTDateOnly(to);
   const nowDay = todayISTUTC();
 
-  const userFilter = { isActive: true };
+  const userFilter = {
+    $or: [
+      { isActive: true },
+      { isTerminated: true, terminationDate: { $gte: fromDate } },
+    ],
+  };
   if (userIds) {
     const ids = (Array.isArray(userIds) ? userIds : userIds.split(","))
       .map((id) => id?.trim())
       .filter(Boolean);
     if (ids.length > 0) {
+      delete userFilter.$or;
       userFilter._id = { $in: ids };
     }
   }
@@ -597,24 +608,31 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
       const att = attMap.get(key);
       const work = workMap.get(key);
       
+      const curKey = toISTDateKey(current);
+      const matchingLeave = leaves.find(
+        (l) =>
+          String(l.user) === String(u._id) &&
+          curKey >= toISTDateKey(l.fromDate) &&
+          curKey <= toISTDateKey(l.toDate)
+      );
+
       let status = null;
-      if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
+      if (matchingLeave) {
+        if (matchingLeave.type === "UNPAID") {
+          status = matchingLeave.isHalfDay ? "HALF_DAY" : "ABSENT";
+        } else {
+          status = matchingLeave.isHalfDay ? "HALF_DAY" : "LEAVE";
+        }
+      } else if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
         // Strict rule: Login after 10:30 AM IST automatically becomes HALF_DAY
         status = "HALF_DAY";
       } else if (att) {
         status = att.status;
       } else {
-        const matchingLeave = leaves.find(l => String(l.user) === String(u._id) && current >= l.fromDate && current <= l.toDate);
         if (current > nowDay) {
           if (isHol) status = "HOLIDAY";
-          else if (matchingLeave) {
-            status = matchingLeave.type === "UNPAID" ? "ABSENT" : "LEAVE";
-          }
         } else {
-          if (isHol) status = "HOLIDAY";
-          else {
-            status = matchingLeave ? (matchingLeave.type === "UNPAID" ? "ABSENT" : "LEAVE") : "ABSENT";
-          }
+          status = isHol ? "HOLIDAY" : "ABSENT";
         }
       }
 
@@ -693,8 +711,13 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   const mongoDate = parseIST(selectedKey);
 
   const [users, records] = await Promise.all([
-    User.find({ isActive: true })
-      .select("name role profilePicture")
+    User.find({
+      $or: [
+        { isActive: true },
+        { isTerminated: true, terminationDate: { $gte: mongoDate } },
+      ],
+    })
+      .select("name role profilePicture isTerminated terminationDate")
       .lean(),
     WorkRecord.find({ date: mongoDate }).lean(),
   ]);
@@ -904,16 +927,17 @@ export const getAllUsersWeeklyProgressService = async (weekStart) => {
   };
 
   return progress
+    .filter((p) => p.user)
     .sort(
       (a, b) =>
-        (priority[a.user.role] || 99) - (priority[b.user.role] || 99) ||
-        a.user.name.localeCompare(b.user.name),
+        (priority[a.user?.role] || 99) - (priority[b.user?.role] || 99) ||
+        (a.user?.name || "").localeCompare(b.user?.name || ""),
     )
     .map((p) => ({
-      userId: p.user._id,
-      name: p.user.name,
-      email: p.user.email,
-      role: p.user.role,
+      userId: p.user?._id,
+      name: p.user?.name,
+      email: p.user?.email,
+      role: p.user?.role,
       weekStart: p.weekStart,
       weekEnd: p.weekEnd,
       totalMinutes: p.totalMinutes,

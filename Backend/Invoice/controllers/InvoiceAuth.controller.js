@@ -35,7 +35,22 @@ export const loginInvoice = async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch = false;
+    if (
+      user.password.startsWith("$2a$") ||
+      user.password.startsWith("$2b$") ||
+      user.password.startsWith("$2y$")
+    ) {
+      isMatch = await bcrypt.compare(password, user.password);
+    } else {
+      // Legacy plaintext password detected: verify and auto-upgrade to bcrypt hash
+      if (user.password === password) {
+        isMatch = true;
+        user.password = await bcrypt.hash(password, 10);
+        await user.save();
+      }
+    }
+
     if (!isMatch) {
       return res.status(401).json({
         success: false,

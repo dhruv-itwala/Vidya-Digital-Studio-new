@@ -22,6 +22,9 @@ import "./App.css";
 const AllQuotations = React.lazy(() => import("./pages/Admin/AllQuotations"));
 const AllInvoices = React.lazy(() => import("./pages/Invoices/AllInvoices"));
 const InvoiceBuilderPage = React.lazy(() => import("./pages/Invoices/InvoiceBuilderPage"));
+const FinanceDashboardPage = React.lazy(() => import("./pages/Finance/FinanceDashboardPage"));
+const ExpensesPage = React.lazy(() => import("./pages/Finance/ExpensesPage"));
+const CashAccountsPage = React.lazy(() => import("./pages/Finance/CashAccountsPage"));
 const Dashboard = React.lazy(() => import("./components/Dashboard/Dashboard"));
 const SeniorDashboard = React.lazy(
   () => import("./components/Dashboard/SeniorDashboard"),
@@ -98,7 +101,6 @@ const ClientProfile = React.lazy(() => import("./pages/ClientPortal/ClientProfil
 const ClientAssets = React.lazy(() => import("./pages/ClientPortal/ClientAssets"));
 const ClientDocuments = React.lazy(() => import("./pages/ClientPortal/ClientDocuments"));
 const ClientInvoices = React.lazy(() => import("./pages/ClientPortal/ClientInvoices"));
-const ClientTransactions = React.lazy(() => import("./pages/ClientPortal/ClientTransactions"));
 const ClientCalendar = React.lazy(() => import("./pages/ClientPortal/ClientCalendar"));
 
 export default function App() {
@@ -230,7 +232,6 @@ export default function App() {
               <Route path="assets" element={<ClientAssets />} />
               <Route path="documents" element={<ClientDocuments />} />
               <Route path="invoices" element={<ClientInvoices />} />
-              <Route path="transactions" element={<ClientTransactions />} />
             </Route>
             <Route path="quotations" element={<AllQuotations />} />
             <Route path="invoices" element={<AllInvoices />} />
@@ -238,6 +239,9 @@ export default function App() {
             <Route path="invoices/create-invoice" element={<InvoiceBuilderPage />} />
             <Route path="invoices/:id/edit" element={<InvoiceBuilderPage />} />
             <Route path="whatsapp-chats" element={<WhatsAppChats />} />
+            <Route path="finance" element={<FinanceDashboardPage />} />
+            <Route path="expenses" element={<ExpensesPage />} />
+            <Route path="cash-accounts" element={<CashAccountsPage />} />
           </Route>
 
           {/* HR ROUTES */}
@@ -295,7 +299,6 @@ export default function App() {
               <Route path="assets" element={<ClientAssets />} />
               <Route path="documents" element={<ClientDocuments />} />
               <Route path="invoices" element={<ClientInvoices />} />
-              <Route path="transactions" element={<ClientTransactions />} />
             </Route>
             <Route path="quotations" element={<AllQuotations />} />
             <Route path="invoices" element={<AllInvoices />} />
@@ -304,6 +307,9 @@ export default function App() {
             <Route path="invoices/:id/edit" element={<InvoiceBuilderPage />} />
             <Route path="notices" element={<NoticeBoard />} />
             <Route path="whatsapp-chats" element={<WhatsAppChats />} />
+            <Route path="finance" element={<FinanceDashboardPage />} />
+            <Route path="expenses" element={<ExpensesPage />} />
+            <Route path="cash-accounts" element={<CashAccountsPage />} />
           </Route>
 
           {/* EMPLOYEE ROUTES */}
@@ -349,7 +355,6 @@ export default function App() {
               <Route path="assets" element={<ClientAssets />} />
               <Route path="documents" element={<ClientDocuments />} />
               <Route path="invoices" element={<ClientInvoices />} />
-              <Route path="transactions" element={<ClientTransactions />} />
             </Route>
 
             <Route path="all-tasks" element={<AdminTasks />} />

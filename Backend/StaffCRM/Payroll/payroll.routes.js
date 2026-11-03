@@ -15,6 +15,7 @@ router.use(roleCheck("admin", "hr"));
 router.post("/generate", ctrl.generateDraftPayrolls);
 router.get("/", ctrl.getPayrollsByMonth);
 router.put("/:id/pay", ctrl.markPayrollAsPaid);
+router.put("/:id", ctrl.updatePayroll);
 router.post("/:id/send", ctrl.sendPayslip);
 
 export default router;

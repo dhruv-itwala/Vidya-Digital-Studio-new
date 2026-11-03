@@ -106,6 +106,13 @@ export const CANONICAL_FIELD_SYNONYMS = {
     "post status",
     "posting status",
     "upload",
+    "uploaded status",
+    "publish status",
+    "published status",
+    "live status",
+    "upload state",
+    "uploadstate",
+    "upload_status",
   ],
 };
 
@@ -191,7 +198,15 @@ export const normalizeWorkStatus = (rawStatus) => {
 export const normalizeUploadStatus = (rawStatus) => {
   if (!rawStatus) return "";
   const lower = rawStatus.toLowerCase().trim();
-  if (lower.includes("upload") || lower.includes("pub") || lower.includes("live") || lower.includes("posted"))
+  if (
+    lower.includes("upload") ||
+    lower.includes("pub") ||
+    lower.includes("live") ||
+    lower.includes("posted") ||
+    lower === "done" ||
+    lower === "yes" ||
+    lower === "y"
+  )
     return "Uploaded";
   if (lower.includes("sched") || lower.includes("queue")) return "Scheduled";
   if (lower.includes("pend") || lower.includes("draft") || lower.includes("wait")) return "Pending";

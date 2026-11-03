@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Loader from "../../components/Loader/Loader";
 import InvoicePreviewModal from "./InvoicePreviewModal";
+import InvoiceStatusModal from "./InvoiceStatusModal";
 import { getAllInvoicesAPI, deleteInvoiceAPI } from "../../api/invoice.api";
 import styles from "./AllInvoices.module.css";
 import toast from "react-hot-toast";
@@ -30,6 +31,10 @@ export default function AllInvoices() {
   // Preview modal state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewInv, setPreviewInv] = useState(null);
+
+  // Status modal state
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [statusInv, setStatusInv] = useState(null);
 
   const location = useLocation();
   const basePath = location.pathname.startsWith("/hr") ? "/hr/invoices" : "/admin/invoices";
@@ -233,8 +238,8 @@ export default function AllInvoices() {
                 {filteredInvoices.map((inv) => {
                   const status = (inv.status || "unpaid").toLowerCase();
                   let badgeClass = styles.statusUnpaid;
-                  if (status === "paid") badgeClass = styles.statusPaid;
-                  else if (status === "partial") badgeClass = styles.statusPartial;
+                  if (status === "paid" || status === "received") badgeClass = styles.statusPaid;
+                  else if (status === "partial" || status === "partial received") badgeClass = styles.statusPartial;
 
                   return (
                     <tr key={inv._id || inv.invoiceNumber}>
@@ -274,6 +279,20 @@ export default function AllInvoices() {
                       </td>
                       <td>
                         <div className={styles.actionsCell} style={{ justifyContent: "flex-end" }}>
+                          <button
+                            type="button"
+                            className={styles.tableActionBtn}
+                            style={{ color: "#0f5c44", borderColor: "#a7f3d0", background: "#f0fdf4" }}
+                            onClick={() => {
+                              setStatusInv(inv);
+                              setStatusModalOpen(true);
+                            }}
+                            title="Update Payment Status (Received / Partial / Pending)"
+                          >
+                            <FiCheckCircle size={13} />
+                            <span>Status</span>
+                          </button>
+
                           {inv.pdfUrl && (
                             <button
                               type="button"
@@ -336,6 +355,19 @@ export default function AllInvoices() {
             setPreviewOpen(false);
             setPreviewInv(null);
           }}
+        />
+      )}
+
+      {/* Invoice Status Update Modal */}
+      {statusInv && (
+        <InvoiceStatusModal
+          isOpen={statusModalOpen}
+          invoice={statusInv}
+          onClose={() => {
+            setStatusModalOpen(false);
+            setStatusInv(null);
+          }}
+          onUpdated={fetchInvoices}
         />
       )}
     </div>

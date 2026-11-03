@@ -1,0 +1,205 @@
+.pageContainer {
+  padding: 1.75rem 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+/* Category Filter Bar */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.filterBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.filterBtnActive {
+  background: #0f5c44;
+  border-color: #0f5c44;
+  color: #ffffff;
+}
+
+.filterBtnActive:hover {
+  background: #0b4533;
+  color: #ffffff;
+}
+
+/* Document Grid / List */
+.documentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.docCard {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.docCard:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-md);
+}
+
+.docCardTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.docIconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #0f5c44;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.docMetaBlock {
+  flex: 1;
+  overflow: hidden;
+}
+
+.docName {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.docSubDetails {
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fileTypeBadge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.docCardActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.actionBtn {
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.viewBtn {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.viewBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.downloadBtn {
+  background: #0f5c44;
+  color: #ffffff;
+}
+
+.downloadBtn:hover {
+  background: #0b4533;
+}
+
+.emptyState {
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.emptyIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  color: #0f5c44;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
