@@ -14,7 +14,7 @@ Official standalone Android application wrapper for **Vidya Digital Studio Staff
 | **Version** | **`1.3.90`** (Version Code: `1390`) |
 | **Target Architecture** | ARM64 / ARMv7 / x86_64 Android 8.0+ (API 26+) |
 | **Primary Theme Color** | `#0f5c44` (Deep Forest Green) |
-| **Default Target URL** | `http://crm.vidyadigitalstudio.com` (configurable via `EXPO_PUBLIC_CRM_URL`) |
+| **Default Target URL** | `https://backend.vidyadigitalstudio.com` (configurable via `EXPO_PUBLIC_CRM_URL`) |
 
 ---
 
