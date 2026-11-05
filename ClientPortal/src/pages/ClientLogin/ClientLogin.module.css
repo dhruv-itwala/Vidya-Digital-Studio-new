@@ -3,18 +3,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8faf9;
+  background-color: #0b1120;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(6, 78, 59, 0.25) 0%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 0.5) 0%, transparent 50%);
   padding: 1.5rem;
+  position: relative;
 }
 
 .loginCard {
   background: #ffffff;
-  padding: 2.5rem;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  border: 1px solid var(--border);
+  padding: 2.75rem 2.25rem;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
   width: 100%;
   max-width: 440px;
+  position: relative;
+  z-index: 2;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .logoSection {
@@ -28,26 +34,26 @@
 .logoMark {
   width: 52px;
   height: 52px;
-  border-radius: 14px;
-  background: #0f5c44;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #059669 0%, #064e3b 100%);
   color: #ffffff;
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1rem;
-  box-shadow: 0 4px 12px rgba(15, 92, 68, 0.25);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 }
 
 .logoMarkCustom {
   background: #ffffff;
-  border: 2px solid #0f5c44;
-  box-shadow: 0 6px 18px rgba(15, 92, 68, 0.18);
-  color: #0f5c44;
+  border: 2px solid #059669;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.2);
+  color: #064e3b;
 }
 
 .logoImg {
@@ -58,36 +64,41 @@
 }
 
 .brandTitle {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   margin-bottom: 0.35rem;
   word-break: break-word;
-  transition: all 0.2s ease;
+  line-height: 1.25;
 }
 
 .brandSubtitle {
   color: #64748b;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 26px;
 }
 
+.defaultSubtext {
+  color: #64748b;
+  font-weight: 500;
+}
+
 .brandBadgeCustom {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #0f5c44;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #065f46;
   background: #ecfdf5;
-  padding: 3px 12px;
-  border-radius: 999px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
   border: 1px solid #a7f3d0;
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.25s ease-out;
 }
 
 .pulseDot {
@@ -95,7 +106,7 @@
   height: 6px;
   border-radius: 50%;
   background: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
 }
 
 .loginForm {
@@ -110,37 +121,49 @@
   gap: 0.4rem;
 }
 
-.inputGroup label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #334155;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.inputGroup input {
-  padding: 0.75rem 1rem;
+.label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.02em;
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fieldIcon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.45rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   outline: none;
   background: #f8fafc;
   color: #0f172a;
-  transition: all 0.2s;
-  width: 100%;
+  transition: all 0.15s ease;
 }
 
-.inputGroup input:focus {
+.inputField:focus {
   background: #ffffff;
-  border-color: #0f5c44;
-  box-shadow: 0 0 0 3px rgba(15, 92, 68, 0.12);
-}
-
-.passwordWrapper {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
 
 .passwordInput {
@@ -160,9 +183,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   transition: color 0.15s ease, background 0.15s ease;
-  z-index: 2;
 }
 
 .eyeToggleBtn:hover {
@@ -170,37 +192,57 @@
   background: #f1f5f9;
 }
 
-.eyeToggleBtn:focus {
-  outline: none;
-}
-
 .loginButton {
-  background-color: #0f5c44;
-  color: white;
-  padding: 0.85rem;
+  background: linear-gradient(135deg, #059669 0%, #064e3b 100%);
+  color: #ffffff;
+  padding: 0.85rem 1.25rem;
   border-radius: var(--radius-md);
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 600;
+  font-size: 0.92rem;
   margin-top: 0.5rem;
-  box-shadow: 0 4px 10px rgba(15, 92, 68, 0.2);
-  transition: background-color 0.2s, transform 0.1s ease;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 
-.loginButton:hover {
-  background-color: #0b4533;
+.loginButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #022c22 100%);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+  transform: translateY(-1px);
 }
 
-.loginButton:active {
-  transform: scale(0.99);
+.loginButton:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+.btnContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.securityFooter {
+  margin-top: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 500;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 1.25rem;
+}
+
+.shieldIcon {
+  color: #059669;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .loginCard {
+    padding: 2rem 1.5rem;
   }
 }

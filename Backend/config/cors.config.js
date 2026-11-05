@@ -10,7 +10,11 @@ const corsOptions = {
 
       if (
         hostname === allowedDomain ||
-        hostname.endsWith(`.${allowedDomain}`)
+        hostname.endsWith(`.${allowedDomain}`) ||
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname.startsWith("192.168.") ||
+        hostname.startsWith("10.")
       ) {
         return callback(null, true);
       }
@@ -22,7 +26,14 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "x-device-id",
+    "x-device-key",
+    "x-idempotency-key",
+    "x-client-timestamp",
+  ],
 };
 
 export default corsOptions;

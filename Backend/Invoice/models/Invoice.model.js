@@ -89,5 +89,9 @@ const InvoiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+InvoiceSchema.index({ "client.clientId": 1 });
+InvoiceSchema.index({ status: 1 });
+InvoiceSchema.index({ createdAt: -1 });
+
 export default mongoose.model("Invoice", InvoiceSchema);
 

@@ -13,8 +13,37 @@ const ClientInvoices = React.lazy(() => import("./pages/ClientInvoices/ClientInv
 const ClientCalendar = React.lazy(() => import("./pages/ClientCalendar/ClientCalendar"));
 
 const Loader = () => (
-  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontSize: "1.1rem", color: "#0f5c44", fontWeight: 700 }}>
-    Loading Client Workspace...
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+      background: "#f8fafc",
+      gap: "14px",
+    }}
+  >
+    <div
+      className="spin"
+      style={{
+        width: "28px",
+        height: "28px",
+        border: "3px solid #e2e8f0",
+        borderTopColor: "#059669",
+        borderRadius: "50%",
+      }}
+    />
+    <span
+      style={{
+        fontSize: "0.82rem",
+        fontWeight: 600,
+        color: "#64748b",
+        letterSpacing: "0.02em",
+      }}
+    >
+      Loading Client Workspace...
+    </span>
   </div>
 );
 
@@ -45,7 +74,20 @@ export default function App() {
           <Route path="*" element={<Navigate to="/client-portal" replace />} />
         </Routes>
       </Suspense>
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            borderRadius: "10px",
+            background: "#0f172a",
+            color: "#f8fafc",
+            fontSize: "0.82rem",
+            fontWeight: 500,
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.2)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+          },
+        }}
+      />
     </>
   );
 }

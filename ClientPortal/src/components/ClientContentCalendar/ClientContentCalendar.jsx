@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiCalendar,
   FiList,
@@ -510,13 +511,22 @@ export default function ClientContentCalendar() {
               onClick={() => handleTabChange(tab.title)}
               className={`${styles.tabBtn} ${selectedTab === tab.title ? styles.tabBtnActive : ""}`}
             >
-              <FiCalendar />
-              <span>{tab.title}</span>
-              {selectedTab === tab.title && filteredEntries.length > 0 && (
-                <span style={{ fontSize: "0.75rem", background: "#e0e7ff", color: "#3730a3", padding: "0.1rem 0.45rem", borderRadius: "999px", fontWeight: 600 }}>
-                  {filteredEntries.length}
-                </span>
+              {selectedTab === tab.title && (
+                <motion.div
+                  layoutId="activeMonthTabPill"
+                  className={styles.tabBtnActiveBg}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
               )}
+              <span className={styles.tabBtnLabel}>
+                <FiCalendar />
+                <span>{tab.title}</span>
+                {selectedTab === tab.title && filteredEntries.length > 0 && (
+                  <span className={styles.tabCountBadge}>
+                    {filteredEntries.length}
+                  </span>
+                )}
+              </span>
             </button>
           ))}
         </div>
@@ -594,14 +604,32 @@ export default function ClientContentCalendar() {
               onClick={() => setViewMode("table")}
               className={`${styles.viewBtn} ${viewMode === "table" ? styles.viewBtnActive : ""}`}
             >
-              <FiList /> Table
+              {viewMode === "table" && (
+                <motion.div
+                  layoutId="activeCalendarViewPill"
+                  className={styles.viewBtnActiveBg}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className={styles.viewBtnContent}>
+                <FiList /> Table
+              </span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode("calendar")}
               className={`${styles.viewBtn} ${viewMode === "calendar" ? styles.viewBtnActive : ""}`}
             >
-              <FiCalendar /> Calendar
+              {viewMode === "calendar" && (
+                <motion.div
+                  layoutId="activeCalendarViewPill"
+                  className={styles.viewBtnActiveBg}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className={styles.viewBtnContent}>
+                <FiCalendar /> Calendar
+              </span>
             </button>
           </div>
         </div>
@@ -817,85 +845,105 @@ export default function ClientContentCalendar() {
       )}
 
       {/* 5. READ-ONLY DETAIL MODAL FOR CLIENT */}
-      {activeEntry && (
-        <div className={styles.modalOverlay} onClick={() => setActiveEntry(null)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div>
-                <span className={styles.detailLabel}>Content Details</span>
-                <h3>{activeEntry.contentType || "Scheduled Content"}</h3>
-              </div>
-              <button
-                type="button"
-                className={styles.closeBtn}
-                onClick={() => setActiveEntry(null)}
-              >
-                <FiX />
-              </button>
-            </div>
-
-            <div className={styles.modalBody}>
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-                {activeEntry.contentType && (
-                  <div className={styles.platformPill}>
-                    <FaInstagram style={{ color: "#e1306c" }} />
-                    <span>{activeEntry.contentType}</span>
-                  </div>
-                )}
-                {getWorkStatusBadge(activeEntry.workStatus || activeEntry.status)}
-                {getUploadStatusBadge(activeEntry.uploadStatus)}
-              </div>
-
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Publishing Date</span>
-                <span className={styles.detailValue}>
-                  <FiClock style={{ marginRight: "0.4rem" }} />
-                  {formatDateDDMMYYYY(activeEntry.date)} ({activeEntry.day || deriveDayOfWeek(activeEntry.date)})
-                </span>
-              </div>
-
-              <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Content Description & Script</span>
-                <div className={styles.captionBox}>
-                  {activeEntry.contentDetails || activeEntry.title || activeEntry.caption || "No details provided"}
+      <AnimatePresence>
+        {activeEntry && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className={styles.modalOverlay}
+            onClick={() => setActiveEntry(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 12 }}
+              transition={{ type: "spring", duration: 0.32, bounce: 0.08 }}
+              className={styles.modalContent}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.modalHeader}>
+                <div>
+                  <span className={styles.detailLabel}>Content Details</span>
+                  <h3>{activeEntry.contentType || "Scheduled Content"}</h3>
                 </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  type="button"
+                  className={styles.closeBtn}
+                  onClick={() => setActiveEntry(null)}
+                >
+                  <FiX />
+                </motion.button>
               </div>
 
-              {activeEntry.adRun && (
+              <div className={styles.modalBody}>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                  {activeEntry.contentType && (
+                    <div className={styles.platformPill}>
+                      <FaInstagram style={{ color: "#e1306c" }} />
+                      <span>{activeEntry.contentType}</span>
+                    </div>
+                  )}
+                  {getWorkStatusBadge(activeEntry.workStatus || activeEntry.status)}
+                  {getUploadStatusBadge(activeEntry.uploadStatus)}
+                </div>
+
                 <div className={styles.detailRow}>
-                  <span className={styles.detailLabel}>Ad Run Date</span>
-                  <span style={{ color: "#059669", fontWeight: 600 }}>
-                    {formatDateDDMMYYYY(activeEntry.adRun)}
+                  <span className={styles.detailLabel}>Publishing Date</span>
+                  <span className={styles.detailValue}>
+                    <FiClock style={{ marginRight: "0.4rem" }} />
+                    {formatDateDDMMYYYY(activeEntry.date)} ({activeEntry.day || deriveDayOfWeek(activeEntry.date)})
                   </span>
                 </div>
-              )}
 
-              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
-                {(activeEntry.dataLink || activeEntry.creativeUrl) && (
-                  <a
-                    href={activeEntry.dataLink || activeEntry.creativeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={styles.btnPrimary}
-                  >
-                    <FiExternalLink /> Open Creative Data Link
-                  </a>
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Content Description & Script</span>
+                  <div className={styles.captionBox}>
+                    {activeEntry.contentDetails || activeEntry.title || activeEntry.caption || "No details provided"}
+                  </div>
+                </div>
+
+                {activeEntry.adRun && (
+                  <div className={styles.detailRow}>
+                    <span className={styles.detailLabel}>Ad Run Date</span>
+                    <span style={{ color: "#059669", fontWeight: 600 }}>
+                      {formatDateDDMMYYYY(activeEntry.adRun)}
+                    </span>
+                  </div>
                 )}
-              </div>
-            </div>
 
-            <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                onClick={() => setActiveEntry(null)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                  {(activeEntry.dataLink || activeEntry.creativeUrl) && (
+                    <motion.a
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      href={activeEntry.dataLink || activeEntry.creativeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.btnPrimary}
+                    >
+                      <FiExternalLink /> Open Creative Data Link
+                    </motion.a>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.modalFooter}>
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={() => setActiveEntry(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

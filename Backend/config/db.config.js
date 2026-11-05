@@ -16,9 +16,13 @@ export const connectDB = async () => {
 
     await mongoose.connect(URI, {
       serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 20,       // Keep up to 20 connections in pool for peak load
+      minPoolSize: 5,        // Keep warm connections ready
+      socketTimeoutMS: 45000,// Prevent hanging queries
+      maxIdleTimeMS: 30000,  // Recycle idle connections
     });
 
-    console.log("✅ MongoDB Connected Successfully");
+    console.log("✅ MongoDB Connected Successfully (Connection Pool: 5-20)");
 
     // Automatically check and encrypt any legacy plaintext passwords or platform credentials
     migratePlaintextPasswords().catch((err) => {

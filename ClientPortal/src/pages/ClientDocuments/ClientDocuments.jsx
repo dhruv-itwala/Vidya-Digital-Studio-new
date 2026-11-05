@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import clientApi from "../../api/clientAxios";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "./ClientDocuments.module.css";
 import {
   FiFile,
@@ -8,7 +9,28 @@ import {
   FiExternalLink,
   FiFolder,
   FiSearch,
+  FiFilter,
 } from "react-icons/fi";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.32, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 export default function ClientDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -59,26 +81,38 @@ export default function ClientDocuments() {
 
   if (loading) {
     return (
-      <div style={{ padding: "3rem", textAlign: "center", color: "#0f5c44", fontWeight: 700 }}>
-        Loading Documents...
+      <div className={styles.loadingContainer}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={styles.loadingCard}
+        >
+          <span className="spin" style={{ fontSize: "1.4rem", color: "#059669" }}>⟳</span>
+          <span style={{ fontWeight: 600, color: "#334155" }}>Loading Documents...</span>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className={styles.pageContainer}>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className={styles.pageContainer}
+    >
       {/* ================= HEADER ================= */}
-      <div className={styles.header}>
+      <motion.div variants={itemVariants} className={styles.header}>
         <div>
           <h1 className={styles.title}>Documents &amp; Deliverables</h1>
           <p className={styles.subtitle}>
             Contracts, scopes of work, creative guidelines, and final high-res project files.
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* ================= FILTER BAR ================= */}
-      <div className={styles.filterBar}>
+      <motion.div variants={itemVariants} className={styles.filterBar}>
         {[
           { key: "all", label: "All Documents" },
           { key: "contracts", label: "Contracts & SOWs" },
@@ -91,28 +125,40 @@ export default function ClientDocuments() {
             className={`${styles.filterBtn} ${selectedCategory === cat.key ? styles.filterBtnActive : ""}`}
             onClick={() => setSelectedCategory(cat.key)}
           >
-            {cat.label}
+            {selectedCategory === cat.key && (
+              <motion.div
+                layoutId="docCategoryActivePill"
+                className={styles.filterBtnActiveBg}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className={styles.filterBtnLabel}>{cat.label}</span>
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* ================= DOCUMENTS GRID ================= */}
       {filteredDocs.length > 0 ? (
-        <div className={styles.documentsGrid}>
+        <motion.div variants={itemVariants} className={styles.documentsGrid}>
           {filteredDocs.map((doc, idx) => {
-            const ext = (doc.name || "").split(".").pop() || doc.type || "FILE";
+            const ext = (doc.name || "").split(".").pop()?.toUpperCase() || doc.type || "FILE";
             const downloadUrl = doc.url?.includes("/upload/")
               ? doc.url.replace("/upload/", "/upload/fl_attachment/")
               : doc.url;
 
             return (
-              <div key={doc.public_id || idx} className={styles.docCard}>
+              <motion.div
+                key={doc.public_id || idx}
+                layout="position"
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                className={styles.docCard}
+              >
                 <div className={styles.docCardTop}>
                   <div className={styles.docIconWrap}>
                     <FiFileText />
                   </div>
                   <div className={styles.docMetaBlock}>
-                    <div className={styles.docName}>{doc.name}</div>
+                    <div className={styles.docName} title={doc.name}>{doc.name}</div>
                     <div className={styles.docSubDetails}>
                       <span className={styles.fileTypeBadge}>{ext}</span>
                       <span>{formatBytes(doc.size)}</span>
@@ -126,41 +172,47 @@ export default function ClientDocuments() {
                 </div>
 
                 <div className={styles.docCardActions}>
-                  <a
+                  <motion.a
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
                     href={doc.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`${styles.actionBtn} ${styles.viewBtn}`}
                     title="View Document in New Tab"
                   >
-                    <FiExternalLink size={13} /> View
-                  </a>
-                  <a
+                    <FiExternalLink size={13} />
+                    <span>View</span>
+                  </motion.a>
+                  <motion.a
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
                     href={downloadUrl}
                     download={doc.name}
                     className={`${styles.actionBtn} ${styles.downloadBtn}`}
                     title="Download File"
                   >
-                    <FiDownloadCloud size={13} /> Download
-                  </a>
+                    <FiDownloadCloud size={13} />
+                    <span>Download</span>
+                  </motion.a>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       ) : (
-        <div className={styles.emptyState}>
+        <motion.div variants={itemVariants} className={styles.emptyState}>
           <div className={styles.emptyIcon}>
             <FiFolder />
           </div>
-          <h3>No Documents Found</h3>
-          <p>
+          <h3 className={styles.emptyTitle}>No Documents Found</h3>
+          <p className={styles.emptyDesc}>
             {selectedCategory === "all"
               ? "All signed master contracts, briefs, and deliverables will appear here once uploaded by the studio."
               : `No files found in the "${selectedCategory}" category.`}
           </p>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

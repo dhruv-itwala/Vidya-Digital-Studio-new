@@ -108,5 +108,6 @@ const workRecordSchema = new mongoose.Schema(
 
 workRecordSchema.index({ user: 1, date: 1 }, { unique: true });
 workRecordSchema.index({ date: 1 });
+workRecordSchema.index({ punchOut: 1, date: 1 });
 
 export default mongoose.model("WorkRecord", workRecordSchema);

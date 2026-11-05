@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import clientApi from "../../api/clientAxios";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiCalendar,
   FiClock,
@@ -13,6 +14,9 @@ import {
   FiImage,
   FiFileText,
   FiRefreshCw,
+  FiArrowUpRight,
+  FiActivity,
+  FiShield,
 } from "react-icons/fi";
 import { FaGoogleDrive, FaInstagram } from "react-icons/fa";
 import styles from "./ClientDashboard.module.css";
@@ -20,6 +24,26 @@ import ClientContentCalendar, {
   parseDateToYMD,
 } from "../../components/ClientContentCalendar/ClientContentCalendar";
 import PaymentModal from "../../components/PaymentModal/PaymentModal";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 export default function ClientDashboard() {
   const [clientData, setClientData] = useState(null);
@@ -94,7 +118,6 @@ export default function ClientDashboard() {
       others: { total: 0, done: 0, scheduled: 0, pending: 0 },
     };
 
-    // 1. Check live calendar entries if present
     if (calendarEntries && calendarEntries.length > 0) {
       calendarEntries.forEach((entry) => {
         const type = (
@@ -105,7 +128,6 @@ export default function ClientDashboard() {
           ""
         ).toLowerCase();
 
-        // STRICTLY use Upload Status from the excel / google sheet (NEVER fallback to workStatus or entry.status)
         const rawUploadStatus = (
           entry.uploadStatus ||
           entry["Upload Status"] ||
@@ -118,7 +140,6 @@ export default function ClientDashboard() {
           .toLowerCase()
           .trim();
 
-        // Check if uploaded / live / published
         const isUploaded =
           rawUploadStatus === "uploaded" ||
           rawUploadStatus.startsWith("upload") ||
@@ -126,7 +147,6 @@ export default function ClientDashboard() {
           rawUploadStatus.includes("live") ||
           rawUploadStatus.includes("posted");
 
-        // Check if scheduled
         const isScheduled =
           rawUploadStatus === "scheduled" ||
           rawUploadStatus.startsWith("sched") ||
@@ -152,7 +172,6 @@ export default function ClientDashboard() {
       });
     }
 
-    // 2. Client plan package targets comparison / fallback
     if (clientData?.deliverables?.length > 0) {
       const packageTargets = { reels: 0, posts: 0, carousels: 0, others: 0 };
       clientData.deliverables.forEach((item) => {
@@ -167,20 +186,17 @@ export default function ClientDashboard() {
         }
       });
 
-      // If package targets exist, ensure total is at least the target contract count
       counts.reels.total = Math.max(counts.reels.total, packageTargets.reels);
       counts.posts.total = Math.max(counts.posts.total, packageTargets.posts);
       counts.carousels.total = Math.max(counts.carousels.total, packageTargets.carousels);
     }
 
-    // Default minimum realistic scope if entirely blank
     if (counts.reels.total === 0 && counts.posts.total === 0 && counts.carousels.total === 0) {
       counts.reels.total = 12;
       counts.posts.total = 8;
       counts.carousels.total = 4;
     }
 
-    // Calculate pending (total planned/contracted minus actually uploaded)
     counts.reels.pending = Math.max(0, counts.reels.total - counts.reels.done);
     counts.posts.pending = Math.max(0, counts.posts.total - counts.posts.done);
     counts.carousels.pending = Math.max(0, counts.carousels.total - counts.carousels.done);
@@ -191,8 +207,15 @@ export default function ClientDashboard() {
 
   if (loading) {
     return (
-      <div style={{ padding: "3rem", textAlign: "center", color: "#0f5c44", fontWeight: 700 }}>
-        Loading Client Workspace...
+      <div className={styles.loadingContainer}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={styles.loadingCard}
+        >
+          <span className="spin" style={{ fontSize: "1.4rem", color: "#059669" }}>⟳</span>
+          <span style={{ fontWeight: 600, color: "#334155" }}>Loading Executive Workspace...</span>
+        </motion.div>
       </div>
     );
   }
@@ -200,65 +223,87 @@ export default function ClientDashboard() {
   if (!clientData) {
     return (
       <div className={styles.pageContainer}>
-        <div style={{ padding: "2rem", color: "#dc2626", fontWeight: 600 }}>
-          Failed to load client details. Please try signing in again.
+        <div className={styles.errorCard}>
+          <FiAlertCircle size={20} color="#dc2626" />
+          <span>Failed to load client details. Please try signing in again.</span>
         </div>
       </div>
     );
   }
 
   const clientName = clientData.clientName || clientData.companyName || "Client";
-  const durationLabel = clientData.planDuration?.label || "Current Billing Cycle";
+  const durationLabel = clientData.planDuration?.label || "Current Active Retainer";
+
+  const reelsPct = Math.min(
+    100,
+    Math.round((deliverablesBreakdown.reels.done / (deliverablesBreakdown.reels.total || 1)) * 100)
+  );
+  const postsPct = Math.min(
+    100,
+    Math.round((deliverablesBreakdown.posts.done / (deliverablesBreakdown.posts.total || 1)) * 100)
+  );
+  const carouselsPct = Math.min(
+    100,
+    Math.round(
+      (deliverablesBreakdown.carousels.done / (deliverablesBreakdown.carousels.total || 1)) * 100
+    )
+  );
 
   return (
-    <div className={styles.pageContainer}>
-      {/* ================= HEADER ================= */}
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.welcomeTitle}>Welcome back, {clientName}</h1>
-          <div className={styles.welcomeSub}>
-            <span>Vidya Digital Studio Executive Client Portal</span>
-            <span className={styles.activeRetainerPill}>
-              <span className={styles.pulseGreen} />
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className={styles.pageContainer}
+    >
+      {/* ================= HEADER SECTION ================= */}
+      <motion.div variants={itemVariants} className={styles.header}>
+        <div className={styles.headerTitles}>
+          <div className={styles.topMetaRow}>
+            <span className={styles.retainerChip}>
+              <span className={styles.pulseDot} />
               Active Retainer Plan
             </span>
+            <span className={styles.metaDivider}>•</span>
+            <span className={styles.durationMeta}>{durationLabel}</span>
           </div>
+          <h1 className={styles.welcomeTitle}>Welcome back, {clientName}</h1>
+          <p className={styles.welcomeSub}>
+            Vidya Digital Studio Executive Client Portal &amp; Content Management Hub
+          </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => loadAllData(true)}
-          disabled={refreshing}
-          style={{
-            padding: "8px 14px",
-            borderRadius: "8px",
-            background: "#ffffff",
-            border: "1px solid #cbd5e1",
-            color: "#0f172a",
-            fontWeight: 600,
-            fontSize: "0.82rem",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
-        >
-          <FiRefreshCw size={13} className={refreshing ? "spin" : ""} />
-          <span>{refreshing ? "Syncing..." : "Sync Workspace"}</span>
-        </button>
-      </div>
+        <div className={styles.headerActions}>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            type="button"
+            onClick={() => loadAllData(true)}
+            disabled={refreshing}
+            className={styles.syncBtn}
+            title="Refresh workspace from live cloud sheets"
+          >
+            <FiRefreshCw size={13} className={refreshing ? "spin" : ""} />
+            <span>{refreshing ? "Syncing..." : "Sync Workspace"}</span>
+          </motion.button>
+        </div>
+      </motion.div>
 
       {/* ================= NOTIFICATIONS FEED ================= */}
-      <div className={styles.notificationsStack}>
-        {/* 1. Today's Posting Alert */}
+      <motion.div variants={itemVariants} className={styles.notificationsStack}>
+        {/* 1. Today's Scheduled Posting */}
         {todaysPosting ? (
-          <div className={`${styles.notificationCard} ${styles.notifPosting}`}>
+          <motion.div
+            whileHover={{ scale: 1.005 }}
+            className={`${styles.notificationCard} ${styles.notifPosting}`}
+          >
             <div className={styles.notifLeft}>
-              <div className={styles.notifIconWrap}>
+              <div className={styles.notifIconWrapPosting}>
                 <FaInstagram />
               </div>
               <div>
                 <div className={styles.notifTitle}>
-                  Today's Scheduled Posting: {todaysPosting.topic || todaysPosting.title || todaysPosting.contentType || "Scheduled Content"}
+                  Today's Scheduled Content: {todaysPosting.topic || todaysPosting.title || todaysPosting.contentType || "Scheduled Content"}
                 </div>
                 <div className={styles.notifMeta}>
                   {todaysPosting.contentType || "Instagram Post"} · Upload Status:{" "}
@@ -266,281 +311,318 @@ export default function ClientDashboard() {
                 </div>
               </div>
             </div>
-            <a href="#content-calendar" className={`${styles.notifActionBtn} ${styles.notifViewBtn}`}>
-              <FiCalendar size={13} /> View on Calendar
-            </a>
-          </div>
+            <motion.a
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+              href="#content-calendar"
+              className={styles.notifViewBtn}
+            >
+              <FiCalendar size={13} />
+              <span>View on Calendar</span>
+            </motion.a>
+          </motion.div>
         ) : (
           <div className={`${styles.notificationCard} ${styles.notifPosting}`}>
             <div className={styles.notifLeft}>
-              <div className={styles.notifIconWrap}>
+              <div className={styles.notifIconWrapCheck}>
                 <FiCheckCircle />
               </div>
               <div>
-                <div className={styles.notifTitle}>Content Pipeline Up to Date</div>
+                <div className={styles.notifTitle}>Content Pipeline Active</div>
                 <div className={styles.notifMeta}>
-                  No publishing scheduled for today ({new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short" })}). Next releases are mapped in the calendar.
+                  No publishing scheduled for today ({new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short" })}). All upcoming releases are tracked on the calendar below.
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* 2. Pending Payment Notification */}
+        {/* 2. Pending Payment Notice */}
         {pendingPayment && (
-          <div className={`${styles.notificationCard} ${styles.notifPayment}`}>
+          <motion.div
+            whileHover={{ scale: 1.005 }}
+            className={`${styles.notificationCard} ${styles.notifPayment}`}
+          >
             <div className={styles.notifLeft}>
-              <div className={styles.notifIconWrap}>
+              <div className={styles.notifIconWrapPayment}>
                 <FiDollarSign />
               </div>
               <div>
                 <div className={styles.notifTitle}>
-                  Pending Payment: Invoice #{pendingPayment.invoiceNumber}
+                  Outstanding Due: Invoice #{pendingPayment.invoiceNumber}
                 </div>
                 <div className={styles.notifMeta}>
-                  Outstanding due of{" "}
-                  <strong style={{ color: "#b45309" }}>
+                  Pending balance of{" "}
+                  <strong className={styles.paymentDueVal}>
                     ₹{(pendingPayment.remainingAmount || pendingPayment.amount || 0).toLocaleString("en-IN")}
                   </strong>{" "}
                   {pendingPayment.dueDate ? `· Due on ${new Date(pendingPayment.dueDate).toLocaleDateString("en-IN")}` : ""}
                 </div>
               </div>
             </div>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               type="button"
-              className={`${styles.notifActionBtn} ${styles.notifPayBtn}`}
+              className={styles.notifPayBtn}
               onClick={() => setActivePaymentInvoice(pendingPayment)}
             >
-              <FiDollarSign size={13} /> Pay Now
-            </button>
-          </div>
+              <FiDollarSign size={13} />
+              <span>Pay Now</span>
+            </motion.button>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
-      {/* ================= PLAN DETAILS & DURATION ================= */}
-      <div className={styles.planDurationBanner}>
-        <div className={styles.planInfoBlock}>
-          <div className={styles.planLabel}>Current Plan Scope &amp; Retainer</div>
+      {/* ================= PLAN SCOPE & DETAILS BANNER ================= */}
+      <motion.div variants={itemVariants} className={styles.planCard}>
+        <div className={styles.planMain}>
+          <div className={styles.planBadgeRow}>
+            <span className={styles.scopeTag}>Retainer Scope</span>
+          </div>
           <div className={styles.planTitle}>
             {clientData.planDetails
-              ? clientData.planDetails.slice(0, 70)
-              : "Creative Growth & Production Retainer"}
+              ? clientData.planDetails.slice(0, 85)
+              : "Creative Growth, Production & Brand Management"}
           </div>
-          <div className={styles.planScope}>
+          <p className={styles.planDesc}>
             {clientData.planDetails ||
               "Full-service content ideation, reels filming, graphic carousels, caption copywriting, and multi-platform publishing managed by Vidya Digital Studio."}
-          </div>
+          </p>
         </div>
 
-        <div className={styles.durationBlock}>
-          <FiClock className={styles.durationIcon} />
-          <div>
-            <div className={styles.durationLabel}>Billing Cycle Duration</div>
-            <div className={styles.durationVal}>{durationLabel}</div>
+        <div className={styles.planSide}>
+          <div className={styles.durationCard}>
+            <FiClock className={styles.durationIcon} />
+            <div>
+              <div className={styles.durationLabel}>Billing Cycle</div>
+              <div className={styles.durationVal}>{durationLabel}</div>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* ================= DELIVERABLES TARGET GRAPHICAL DASHBOARD ================= */}
-      <div>
-        <div className={styles.sectionHeading}>
-          <FiLayers color="#0f5c44" />
-          <span>Deliverables Target &amp; Progress</span>
+      {/* ================= DELIVERABLES TARGET BREAKDOWN ================= */}
+      <motion.div variants={itemVariants} className={styles.sectionBlock}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTitle}>
+            <FiLayers className={styles.sectionIcon} />
+            <span>Deliverables Target &amp; Progress</span>
+          </div>
+          <span className={styles.sectionSubtitle}>
+            Tracked strictly from live production sheet
+          </span>
         </div>
 
         <div className={styles.deliverablesGrid}>
-          {/* Reels Card */}
-          <div className={styles.deliverableCard}>
+          {/* 1. Reels Card */}
+          <motion.div
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            className={styles.deliverableCard}
+          >
             <div className={styles.deliverableTop}>
-              <div className={styles.deliverableFormat}>Instagram Reels</div>
-              <div className={`${styles.formatIconWrap} ${styles.reelsIcon}`}>
+              <span className={styles.formatLabel}>Instagram Reels</span>
+              <div className={`${styles.formatIcon} ${styles.reelsIcon}`}>
                 <FiPlayCircle />
               </div>
             </div>
-            <div className={styles.deliverableNumbers}>
-              <span className={styles.statLarge}>{deliverablesBreakdown.reels.done}</span>
-              <span className={styles.statMuted}>/ {deliverablesBreakdown.reels.total} Uploaded</span>
+
+            <div className={styles.deliverableMetrics}>
+              <div className={styles.metricBig}>
+                {deliverablesBreakdown.reels.done}
+                <span className={styles.metricMuted}>/ {deliverablesBreakdown.reels.total}</span>
+              </div>
+              <span className={styles.rateChip}>{reelsPct}% Uploaded</span>
             </div>
-            <div className={styles.progressBarTrack}>
-              <div
-                className={styles.progressBarFill}
-                style={{
-                  width: `${Math.min(
-                    100,
-                    Math.round(
-                      (deliverablesBreakdown.reels.done / (deliverablesBreakdown.reels.total || 1)) * 100
-                    )
-                  )}%`,
-                  background: "#db2777",
-                }}
+
+            <div className={styles.track}>
+              <motion.div
+                className={styles.fill}
+                initial={{ width: 0 }}
+                animate={{ width: `${reelsPct}%` }}
+                transition={{ duration: 0.85, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                style={{ background: "#db2777" }}
               />
             </div>
+
             <div className={styles.deliverableFoot}>
-              <span className={styles.doneBadge}>
-                {Math.round((deliverablesBreakdown.reels.done / (deliverablesBreakdown.reels.total || 1)) * 100)}% Uploaded
-              </span>
-              <span className={styles.pendingBadge}>
-                {deliverablesBreakdown.reels.pending} Reels Pending
+              <span className={styles.footDetail}>
+                {deliverablesBreakdown.reels.pending} pending
                 {deliverablesBreakdown.reels.scheduled > 0
-                  ? ` (${deliverablesBreakdown.reels.scheduled} Scheduled)`
+                  ? ` · ${deliverablesBreakdown.reels.scheduled} scheduled`
                   : ""}
               </span>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Posts Card */}
-          <div className={styles.deliverableCard}>
+          {/* 2. Static Posts Card */}
+          <motion.div
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            className={styles.deliverableCard}
+          >
             <div className={styles.deliverableTop}>
-              <div className={styles.deliverableFormat}>Static Graphics &amp; Posts</div>
-              <div className={`${styles.formatIconWrap} ${styles.postIcon}`}>
+              <span className={styles.formatLabel}>Static Graphics &amp; Posts</span>
+              <div className={`${styles.formatIcon} ${styles.postIcon}`}>
                 <FiImage />
               </div>
             </div>
-            <div className={styles.deliverableNumbers}>
-              <span className={styles.statLarge}>{deliverablesBreakdown.posts.done}</span>
-              <span className={styles.statMuted}>/ {deliverablesBreakdown.posts.total} Uploaded</span>
+
+            <div className={styles.deliverableMetrics}>
+              <div className={styles.metricBig}>
+                {deliverablesBreakdown.posts.done}
+                <span className={styles.metricMuted}>/ {deliverablesBreakdown.posts.total}</span>
+              </div>
+              <span className={styles.rateChip}>{postsPct}% Uploaded</span>
             </div>
-            <div className={styles.progressBarTrack}>
-              <div
-                className={styles.progressBarFill}
-                style={{
-                  width: `${Math.min(
-                    100,
-                    Math.round(
-                      (deliverablesBreakdown.posts.done / (deliverablesBreakdown.posts.total || 1)) * 100
-                    )
-                  )}%`,
-                  background: "#2563eb",
-                }}
+
+            <div className={styles.track}>
+              <motion.div
+                className={styles.fill}
+                initial={{ width: 0 }}
+                animate={{ width: `${postsPct}%` }}
+                transition={{ duration: 0.85, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                style={{ background: "#2563eb" }}
               />
             </div>
+
             <div className={styles.deliverableFoot}>
-              <span className={styles.doneBadge}>
-                {Math.round((deliverablesBreakdown.posts.done / (deliverablesBreakdown.posts.total || 1)) * 100)}% Uploaded
-              </span>
-              <span className={styles.pendingBadge}>
-                {deliverablesBreakdown.posts.pending} Posts Pending
+              <span className={styles.footDetail}>
+                {deliverablesBreakdown.posts.pending} pending
                 {deliverablesBreakdown.posts.scheduled > 0
-                  ? ` (${deliverablesBreakdown.posts.scheduled} Scheduled)`
+                  ? ` · ${deliverablesBreakdown.posts.scheduled} scheduled`
                   : ""}
               </span>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Carousels Card */}
-          <div className={styles.deliverableCard}>
+          {/* 3. Carousels Card */}
+          <motion.div
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
+            className={styles.deliverableCard}
+          >
             <div className={styles.deliverableTop}>
-              <div className={styles.deliverableFormat}>Multi-Slide Carousels</div>
-              <div className={`${styles.formatIconWrap} ${styles.carouselIcon}`}>
+              <span className={styles.formatLabel}>Multi-Slide Carousels</span>
+              <div className={`${styles.formatIcon} ${styles.carouselIcon}`}>
                 <FiLayers />
               </div>
             </div>
-            <div className={styles.deliverableNumbers}>
-              <span className={styles.statLarge}>{deliverablesBreakdown.carousels.done}</span>
-              <span className={styles.statMuted}>/ {deliverablesBreakdown.carousels.total} Uploaded</span>
+
+            <div className={styles.deliverableMetrics}>
+              <div className={styles.metricBig}>
+                {deliverablesBreakdown.carousels.done}
+                <span className={styles.metricMuted}>/ {deliverablesBreakdown.carousels.total}</span>
+              </div>
+              <span className={styles.rateChip}>{carouselsPct}% Uploaded</span>
             </div>
-            <div className={styles.progressBarTrack}>
-              <div
-                className={styles.progressBarFill}
-                style={{
-                  width: `${Math.min(
-                    100,
-                    Math.round(
-                      (deliverablesBreakdown.carousels.done / (deliverablesBreakdown.carousels.total || 1)) * 100
-                    )
-                  )}%`,
-                  background: "#7c3aed",
-                }}
+
+            <div className={styles.track}>
+              <motion.div
+                className={styles.fill}
+                initial={{ width: 0 }}
+                animate={{ width: `${carouselsPct}%` }}
+                transition={{ duration: 0.85, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                style={{ background: "#7c3aed" }}
               />
             </div>
+
             <div className={styles.deliverableFoot}>
-              <span className={styles.doneBadge}>
-                {Math.round((deliverablesBreakdown.carousels.done / (deliverablesBreakdown.carousels.total || 1)) * 100)}% Uploaded
-              </span>
-              <span className={styles.pendingBadge}>
-                {deliverablesBreakdown.carousels.pending} Carousels Pending
+              <span className={styles.footDetail}>
+                {deliverablesBreakdown.carousels.pending} pending
                 {deliverablesBreakdown.carousels.scheduled > 0
-                  ? ` (${deliverablesBreakdown.carousels.scheduled} Scheduled)`
+                  ? ` · ${deliverablesBreakdown.carousels.scheduled} scheduled`
                   : ""}
               </span>
             </div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* ================= WORKSPACE DIRECT JUMP LINKS ================= */}
+      <motion.div variants={itemVariants} className={styles.sectionBlock}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTitle}>
+            <FiExternalLink className={styles.sectionIcon} />
+            <span>Master Creative Workspaces</span>
           </div>
         </div>
-      </div>
 
-      {/* ================= WORKSPACE LINKS ================= */}
-      <div>
-        <div className={styles.sectionHeading}>
-          <FiExternalLink color="#0f5c44" />
-          <span>Client Workspace Links</span>
-        </div>
-
-        <div className={styles.workspaceLinksGrid}>
-          {/* Content Calendar */}
-          <a
+        <div className={styles.workspaceGrid}>
+          {/* Content Calendar Sheet Link */}
+          <motion.a
+            whileHover={{ y: -2, x: 2 }}
+            whileTap={{ scale: 0.98 }}
             href={clientData.contentCalendarLink || "#content-calendar"}
             target={clientData.contentCalendarLink ? "_blank" : "_self"}
             rel="noreferrer"
             className={styles.workspaceCard}
           >
             <div className={styles.workspaceCardLeft}>
-              <div className={`${styles.workspaceIconWrap} ${styles.calendarIconWrap}`}>
+              <div className={`${styles.wsIconWrap} ${styles.calendarIconWrap}`}>
                 <FiCalendar />
               </div>
               <div>
-                <div className={styles.workspaceTitle}>Content Calendar</div>
-                <div className={styles.workspaceSub}>
+                <div className={styles.wsTitle}>Content Calendar Sheet</div>
+                <div className={styles.wsSub}>
                   {clientData.googleSheetsConfig?.sheetTitle
-                    ? `${clientData.googleSheetsConfig.sheetTitle} (Live Synced)`
+                    ? `${clientData.googleSheetsConfig.sheetTitle} (Live Connected)`
                     : "Direct Google Sheet Calendar"}
                 </div>
               </div>
             </div>
-            <FiChevronRight className={styles.workspaceCardArrow} />
-          </a>
+            <FiChevronRight className={styles.wsArrow} />
+          </motion.a>
 
-          {/* Google Drive */}
-          <a
+          {/* Google Drive Link */}
+          <motion.a
+            whileHover={{ y: -2, x: 2 }}
+            whileTap={{ scale: 0.98 }}
             href={clientData.driveFolderLink || "#"}
             target={clientData.driveFolderLink ? "_blank" : "_self"}
             rel="noreferrer"
             className={styles.workspaceCard}
-            style={{ opacity: clientData.driveFolderLink ? 1 : 0.6 }}
+            style={{ opacity: clientData.driveFolderLink ? 1 : 0.65 }}
           >
             <div className={styles.workspaceCardLeft}>
-              <div className={`${styles.workspaceIconWrap} ${styles.driveIconWrap}`}>
+              <div className={`${styles.wsIconWrap} ${styles.driveIconWrap}`}>
                 <FaGoogleDrive />
               </div>
               <div>
-                <div className={styles.workspaceTitle}>Google Drive Assets</div>
-                <div className={styles.workspaceSub}>
+                <div className={styles.wsTitle}>Google Drive Assets</div>
+                <div className={styles.wsSub}>
                   {clientData.driveFolderLink
-                    ? "Raw Footage, High-Res Exports & Assets"
+                    ? "Raw Footage, 4K Master Exports & Brand Selects"
                     : "Drive Link Pending Assignment"}
                 </div>
               </div>
             </div>
-            <FiChevronRight className={styles.workspaceCardArrow} />
-          </a>
+            <FiChevronRight className={styles.wsArrow} />
+          </motion.a>
         </div>
-      </div>
+      </motion.div>
 
-      {/* ================= NATIVE CONTENT CALENDAR ================= */}
-      <div id="content-calendar" className={styles.calendarWrapper}>
-        <div className={styles.sectionHeading} style={{ marginBottom: "1rem" }}>
-          <FiCalendar color="#0f5c44" />
-          <span>Interactive Content Calendar</span>
+      {/* ================= EMBEDDED CONTENT CALENDAR ================= */}
+      <motion.div variants={itemVariants} id="content-calendar" className={styles.calendarSection}>
+        <div className={styles.sectionHeader} style={{ marginBottom: "1rem" }}>
+          <div className={styles.sectionTitle}>
+            <FiCalendar className={styles.sectionIcon} />
+            <span>Interactive Content Calendar</span>
+          </div>
+          <span className={styles.sectionSubtitle}>
+            Filter, inspect copy, and track posting status
+          </span>
         </div>
         <ClientContentCalendar />
-      </div>
+      </motion.div>
 
       {/* ================= PAYMENT MODAL ================= */}
-      {activePaymentInvoice && (
-        <PaymentModal
-          invoice={activePaymentInvoice}
-          onClose={() => setActivePaymentInvoice(null)}
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {activePaymentInvoice && (
+          <PaymentModal
+            invoice={activePaymentInvoice}
+            onClose={() => setActivePaymentInvoice(null)}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

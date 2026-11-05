@@ -3,16 +3,23 @@ import crypto from "crypto";
 const ALGORITHM = "aes-256-gcm";
 const PREFIX = "enc:v1:";
 
+let cachedKey = null;
+let lastSecret = null;
+
 /**
  * Derives a deterministic 32-byte key for AES-256-GCM encryption.
  * Prefers CREDENTIALS_ENCRYPTION_KEY, falls back to SHA-256(JWT_SECRET).
+ * Caches derived key buffer in memory to eliminate repeated hashing overhead.
  */
 export const getEncryptionKey = () => {
   const secret =
     process.env.CREDENTIALS_ENCRYPTION_KEY ||
     process.env.JWT_SECRET ||
     "vidya_digital_studio_credentials_salt_fallback_2026";
-  return crypto.createHash("sha256").update(String(secret)).digest();
+  if (cachedKey && lastSecret === secret) return cachedKey;
+  lastSecret = secret;
+  cachedKey = crypto.createHash("sha256").update(String(secret)).digest();
+  return cachedKey;
 };
 
 /**

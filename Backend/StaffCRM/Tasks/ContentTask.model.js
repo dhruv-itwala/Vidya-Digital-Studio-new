@@ -47,4 +47,8 @@ const contentTaskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+contentTaskSchema.index({ client: 1, publishDate: 1 });
+contentTaskSchema.index({ status: 1 });
+contentTaskSchema.index({ publishDate: 1 });
+
 export default mongoose.model("ContentTask", contentTaskSchema);

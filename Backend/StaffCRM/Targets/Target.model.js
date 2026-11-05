@@ -36,5 +36,6 @@ const targetSchema = new mongoose.Schema(
 
 // A user can only have one target per metric per month per year
 targetSchema.index({ user: 1, metric: 1, month: 1, year: 1 }, { unique: true });
+targetSchema.index({ month: 1, year: 1 });
 
 export default mongoose.model("Target", targetSchema);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import clientApi from "../../api/clientAxios";
+import { motion } from "framer-motion";
 import styles from "./ClientProfile.module.css";
 import {
   FiUser,
@@ -13,9 +14,30 @@ import {
   FiMessageSquare,
   FiCheck,
   FiCopy,
+  FiExternalLink,
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import toast from "react-hot-toast";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.32, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 export default function ClientProfile() {
   const [clientData, setClientData] = useState(null);
@@ -47,8 +69,15 @@ export default function ClientProfile() {
 
   if (loading) {
     return (
-      <div style={{ padding: "3rem", textAlign: "center", color: "#0f5c44", fontWeight: 700 }}>
-        Loading Profile...
+      <div className={styles.loadingContainer}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={styles.loadingCard}
+        >
+          <span className="spin" style={{ fontSize: "1.4rem", color: "#059669" }}>⟳</span>
+          <span style={{ fontWeight: 600, color: "#334155" }}>Loading Profile...</span>
+        </motion.div>
       </div>
     );
   }
@@ -56,7 +85,7 @@ export default function ClientProfile() {
   if (!clientData) {
     return (
       <div className={styles.pageContainer}>
-        <div style={{ color: "#dc2626", fontWeight: 600 }}>Failed to load profile.</div>
+        <div className={styles.errorCard}>Failed to load profile.</div>
       </div>
     );
   }
@@ -64,46 +93,56 @@ export default function ClientProfile() {
   const companyName = clientData.clientName || clientData.companyName || "Client Account";
   const avatarUrl = clientData.profilePhoto?.url || "";
   const services = clientData.services || [
-    "Reels Production",
-    "Social Media Management",
-    "Content Calendar",
+    "Reels Filming & Editing",
+    "Social Media Strategy",
+    "Content Calendar Management",
     "Graphic Design & Carousels",
+    "Caption Copywriting & Hashtags",
   ];
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Client Profile</h1>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className={styles.pageContainer}
+    >
+      <motion.div variants={itemVariants} className={styles.header}>
+        <h1 className={styles.title}>Client Profile &amp; Account</h1>
         <p className={styles.subtitle}>
-          Official contract details, enrolled services, and account executive support.
+          Official contract coordinates, enrolled studio services, and executive account support.
         </p>
-      </div>
+      </motion.div>
 
       <div className={styles.grid}>
         {/* Left Column: Account Details & Identity */}
-        <div className={styles.card}>
+        <motion.div
+          variants={itemVariants}
+          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className={styles.card}
+        >
           <div className={styles.identityHeader}>
             <div className={styles.avatarWrap}>
               {avatarUrl ? (
-                <img src={avatarUrl} alt={companyName} />
+                <img src={avatarUrl} alt={companyName} className={styles.avatarImg} />
               ) : (
-                companyName.charAt(0).toUpperCase()
+                <span>{companyName.charAt(0).toUpperCase()}</span>
               )}
             </div>
             <div className={styles.identityMeta}>
               <div className={styles.clientCompanyName}>{companyName}</div>
               <div className={styles.clientOwnerName}>
-                Owner / Authorized Rep: {clientData.ownerName || "Primary Stakeholder"}
+                Authorized Rep: {clientData.ownerName || "Primary Stakeholder"}
               </div>
               <div className={styles.statusPill}>
                 <span className={styles.statusDot} />
-                Active Retainer
+                <span>Active Retainer Plan</span>
               </div>
             </div>
           </div>
 
           <div className={styles.sectionTitle}>
-            <FiShield color="#0f5c44" />
+            <FiShield className={styles.sectionIcon} />
             <span>Contact &amp; Billing Coordinates</span>
           </div>
 
@@ -118,14 +157,16 @@ export default function ClientProfile() {
                 <div className={styles.detailValue}>{clientData.email || "N/A"}</div>
               </div>
               {clientData.email && (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
                   type="button"
                   onClick={() => copyToClipboard(clientData.email, "Email")}
-                  style={{ color: "#64748b", padding: "4px" }}
+                  className={styles.copyBtn}
                   title="Copy email"
                 >
-                  {copiedKey === "Email" ? <FiCheck color="#059669" /> : <FiCopy />}
-                </button>
+                  {copiedKey === "Email" ? <FiCheck color="#059669" size={13} /> : <FiCopy size={13} />}
+                </motion.button>
               )}
             </div>
 
@@ -139,14 +180,16 @@ export default function ClientProfile() {
                 <div className={styles.detailValue}>{clientData.phone || "N/A"}</div>
               </div>
               {clientData.phone && (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
                   type="button"
                   onClick={() => copyToClipboard(clientData.phone, "Phone")}
-                  style={{ color: "#64748b", padding: "4px" }}
+                  className={styles.copyBtn}
                   title="Copy phone"
                 >
-                  {copiedKey === "Phone" ? <FiCheck color="#059669" /> : <FiCopy />}
-                </button>
+                  {copiedKey === "Phone" ? <FiCheck color="#059669" size={13} /> : <FiCopy size={13} />}
+                </motion.button>
               )}
             </div>
 
@@ -180,64 +223,86 @@ export default function ClientProfile() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Column: Enrolled Services & Dedicated Studio Support */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div className={styles.rightCol}>
           {/* Services Card */}
-          <div className={styles.card}>
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -2, transition: { duration: 0.2 } }}
+            className={styles.card}
+          >
             <div className={styles.sectionTitle}>
-              <FiBox color="#0f5c44" />
+              <FiBox className={styles.sectionIcon} />
               <span>Enrolled Studio Services</span>
             </div>
 
             <div className={styles.servicesGrid}>
               {services.map((service, idx) => (
-                <div key={idx} className={styles.serviceTag}>
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.04, y: -1 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={styles.serviceTag}
+                >
                   <FiBox className={styles.serviceIcon} />
                   <span>{service}</span>
-                </div>
+                </motion.div>
               ))}
             </div>
 
             {clientData.planDetails && (
-              <div style={{ marginTop: "8px", padding: "10px 12px", background: "#f8fafc", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
-                  Retainer Scope Note
-                </div>
-                <p style={{ fontSize: "0.82rem", color: "#334155", marginTop: "4px" }}>
-                  {clientData.planDetails}
-                </p>
+              <div className={styles.scopeBox}>
+                <div className={styles.scopeLabel}>Retainer Scope Note</div>
+                <p className={styles.scopeText}>{clientData.planDetails}</p>
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Dedicated Studio Support Card */}
-          <div className={styles.supportCard}>
-            <div className={styles.supportTitle}>Dedicated Studio Support</div>
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -2, transition: { duration: 0.2 } }}
+            className={styles.supportCard}
+          >
+            <div className={styles.supportHeader}>
+              <div className={styles.supportIconWrap}>
+                <FaWhatsapp />
+              </div>
+              <div>
+                <div className={styles.supportTitle}>Dedicated Studio Support</div>
+                <div className={styles.supportSub}>Direct Account Executive &amp; Director Hotline</div>
+              </div>
+            </div>
             <p className={styles.supportText}>
-              Need immediate assistance, emergency posting requests, or scope expansions? Your account manager and creative director are directly available.
+              Need immediate revisions, emergency posting requests, or scope expansions? Your account manager and creative director are directly available.
             </p>
             <div className={styles.supportBtnRow}>
-              <a
-                href="https://wa.me/919999999999"
+              <motion.a
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                href="https://wa.me/919427507758"
                 target="_blank"
                 rel="noreferrer"
-                className={`${styles.supportBtn} ${styles.supportBtnPrimary}`}
+                className={`${styles.supportBtn} ${styles.supportBtnWhatsapp}`}
               >
-                <FaWhatsapp size={15} /> WhatsApp Studio
-              </a>
-              <a
+                <FaWhatsapp size={15} />
+                <span>WhatsApp Studio</span>
+              </motion.a>
+              <motion.a
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 href="mailto:contact@vidyadigitalstudio.com"
-                className={styles.supportBtn}
-                style={{ background: "#ffffff", border: "1px solid #a7f3d0", color: "#065f46" }}
+                className={`${styles.supportBtn} ${styles.supportBtnEmail}`}
               >
-                <FiMail size={15} /> Email Team
-              </a>
+                <FiMail size={15} />
+                <span>Email Team</span>
+              </motion.a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import clientApi from "../../api/clientAxios";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "./ClientInvoices.module.css";
 import {
   FiFileText,
@@ -9,8 +10,30 @@ import {
   FiClock,
   FiCreditCard,
   FiRefreshCw,
+  FiArrowUpRight,
+  FiShield,
 } from "react-icons/fi";
 import PaymentModal from "../../components/PaymentModal/PaymentModal";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.32, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 export default function ClientInvoices() {
   const [invoices, setInvoices] = useState([]);
@@ -27,7 +50,6 @@ export default function ClientInvoices() {
     else setLoading(true);
 
     try {
-      // First try dedicated /client-portal/invoices, fallback to /client-portal/me
       const res = await clientApi.get("/client-portal/invoices").catch(() => null);
       if (res?.data?.data) {
         setInvoices(res.data.data);
@@ -64,74 +86,92 @@ export default function ClientInvoices() {
 
   if (loading) {
     return (
-      <div style={{ padding: "3rem", textAlign: "center", color: "#0f5c44", fontWeight: 700 }}>
-        Loading Invoices &amp; Billing...
+      <div className={styles.loadingContainer}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={styles.loadingCard}
+        >
+          <span className="spin" style={{ fontSize: "1.4rem", color: "#059669" }}>⟳</span>
+          <span style={{ fontWeight: 600, color: "#334155" }}>Loading Invoices &amp; Billing...</span>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className={styles.pageContainer}>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className={styles.pageContainer}
+    >
       {/* ================= HEADER ================= */}
-      <div className={styles.header}>
+      <motion.div variants={itemVariants} className={styles.header}>
         <div>
           <h1 className={styles.title}>Invoices &amp; Billing</h1>
           <p className={styles.subtitle}>
-            Official Vidya Digital Studio invoices, payment receipts, and direct settlement.
+            Official Vidya Digital Studio invoices, payment receipts, and direct online settlement.
           </p>
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
           type="button"
           onClick={() => fetchInvoices(true)}
           disabled={refreshing}
-          style={{
-            padding: "8px 14px",
-            borderRadius: "8px",
-            background: "#ffffff",
-            border: "1px solid #cbd5e1",
-            color: "#0f172a",
-            fontWeight: 600,
-            fontSize: "0.82rem",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
+          className={styles.refreshBtn}
         >
           <FiRefreshCw size={13} className={refreshing ? "spin" : ""} />
-          <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
-        </button>
-      </div>
+          <span>{refreshing ? "Refreshing..." : "Refresh Ledger"}</span>
+        </motion.button>
+      </motion.div>
 
-      {/* ================= SUMMARY STRIP ================= */}
-      <div className={styles.summaryStrip}>
-        <div className={styles.summaryCard}>
+      {/* ================= FINANCIAL SUMMARY STRIP ================= */}
+      <motion.div variants={itemVariants} className={styles.summaryStrip}>
+        <motion.div
+          whileHover={{ y: -3, transition: { duration: 0.2 } }}
+          className={styles.summaryCard}
+        >
           <div className={styles.summaryLabel}>Total Billed</div>
           <div className={styles.summaryVal}>
             ₹{summary.totalBilled.toLocaleString("en-IN")}
           </div>
-        </div>
+          <div className={styles.summarySub}>Total services contracted</div>
+        </motion.div>
 
-        <div className={styles.summaryCard}>
+        <motion.div
+          whileHover={{ y: -3, transition: { duration: 0.2 } }}
+          className={styles.summaryCard}
+        >
           <div className={styles.summaryLabel}>Total Settled / Paid</div>
-          <div className={styles.summaryVal} style={{ color: "#059669" }}>
+          <div className={`${styles.summaryVal} ${styles.valPaid}`}>
             ₹{summary.totalPaid.toLocaleString("en-IN")}
           </div>
-        </div>
+          <div className={styles.summarySub}>Cleared receipts on record</div>
+        </motion.div>
 
-        <div className={styles.summaryCard}>
+        <motion.div
+          whileHover={{ y: -3, transition: { duration: 0.2 } }}
+          className={styles.summaryCard}
+        >
           <div className={styles.summaryLabel}>Outstanding Due</div>
           <div
-            className={styles.summaryVal}
-            style={{ color: summary.totalPending > 0 ? "#d97706" : "#059669" }}
+            className={`${styles.summaryVal} ${
+              summary.totalPending > 0 ? styles.valPending : styles.valPaid
+            }`}
           >
             ₹{summary.totalPending.toLocaleString("en-IN")}
           </div>
-        </div>
-      </div>
+          <div className={styles.summarySub}>
+            {summary.totalPending > 0 ? "Pending payment action" : "All accounts up to date"}
+          </div>
+        </motion.div>
+      </motion.div>
 
-      {/* ================= INVOICES TABLE ================= */}
-      <div className={styles.tableCard}>
+      {/* ================= INVOICES TABLE CARD ================= */}
+      <motion.div variants={itemVariants} className={styles.tableCard}>
         {invoices.length > 0 ? (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
@@ -139,7 +179,7 @@ export default function ClientInvoices() {
                 <tr>
                   <th>Invoice Details</th>
                   <th>Dates</th>
-                  <th>Total Amount</th>
+                  <th>Total Billed</th>
                   <th>Pending Balance</th>
                   <th>Status</th>
                   <th style={{ textAlign: "right" }}>Actions</th>
@@ -196,8 +236,9 @@ export default function ClientInvoices() {
 
                       <td>
                         <div
-                          className={styles.remainingVal}
-                          style={{ color: remaining > 0 ? "#dc2626" : "#059669" }}
+                          className={`${styles.remainingVal} ${
+                            remaining > 0 ? styles.remainingPending : styles.remainingZero
+                          }`}
                         >
                           {remaining > 0 ? `₹${remaining.toLocaleString("en-IN")}` : "₹0 (Settled)"}
                         </div>
@@ -205,35 +246,41 @@ export default function ClientInvoices() {
 
                       <td>
                         <span className={`${styles.badge} ${badgeClass}`}>
-                          {displayStatus === "paid" && <FiCheckCircle style={{ marginRight: 4 }} />}
-                          {displayStatus === "partially done" && <FiCreditCard style={{ marginRight: 4 }} />}
-                          {displayStatus === "pending" && <FiClock style={{ marginRight: 4 }} />}
-                          {displayStatus}
+                          {displayStatus === "paid" && <FiCheckCircle size={12} />}
+                          {displayStatus === "partially done" && <FiCreditCard size={12} />}
+                          {displayStatus === "pending" && <FiClock size={12} />}
+                          <span>{displayStatus}</span>
                         </span>
                       </td>
 
                       <td>
-                        <div className={styles.actionGroup} style={{ justifyContent: "flex-end" }}>
+                        <div className={styles.actionGroup}>
                           {pdfLink && (
-                            <a
+                            <motion.a
+                              whileHover={{ scale: 1.04 }}
+                              whileTap={{ scale: 0.96 }}
                               href={pdfLink}
                               target="_blank"
                               rel="noopener noreferrer"
                               className={styles.downloadBtn}
-                              title="Download official PDF"
+                              title="Download official PDF Invoice"
                             >
-                              <FiDownload size={13} /> PDF
-                            </a>
+                              <FiDownload size={13} />
+                              <span>PDF</span>
+                            </motion.a>
                           )}
 
                           {displayStatus !== "paid" && remaining > 0 && (
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.04 }}
+                              whileTap={{ scale: 0.96 }}
                               type="button"
                               className={styles.payNowBtn}
                               onClick={() => setActivePaymentInvoice(inv)}
                             >
-                              <FiDollarSign size={13} /> Pay Now
-                            </button>
+                              <FiDollarSign size={13} />
+                              <span>Pay Now</span>
+                            </motion.button>
                           )}
                         </div>
                       </td>
@@ -248,21 +295,23 @@ export default function ClientInvoices() {
             <div className={styles.emptyIcon}>
               <FiFileText />
             </div>
-            <h3>No Invoices Generated Yet</h3>
-            <p>
-              Your billing statements and retainer receipts will appear here once finalized by our finance team.
+            <h3 className={styles.emptyTitle}>No Invoices Generated Yet</h3>
+            <p className={styles.emptyDesc}>
+              Your official billing statements, retainer receipts, and GST invoices will appear here once finalized by our finance executive.
             </p>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* ================= PAYMENT MODAL ================= */}
-      {activePaymentInvoice && (
-        <PaymentModal
-          invoice={activePaymentInvoice}
-          onClose={() => setActivePaymentInvoice(null)}
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {activePaymentInvoice && (
+          <PaymentModal
+            invoice={activePaymentInvoice}
+            onClose={() => setActivePaymentInvoice(null)}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

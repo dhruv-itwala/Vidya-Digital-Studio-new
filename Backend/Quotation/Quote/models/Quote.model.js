@@ -40,4 +40,6 @@ const QuoteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+QuoteSchema.index({ createdAt: -1 });
+
 export default mongoose.model("Quote", QuoteSchema);

@@ -1,11 +1,30 @@
 .pageContainer {
-  padding: 1.75rem 2rem 3rem;
+  padding: 2rem 2.25rem 3.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  animation: fadeIn 0.3s ease-out;
+  gap: 1.75rem;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.loadingContainer {
+  padding: 4rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Header */
 .header {
   display: flex;
   justify-content: space-between;
@@ -15,89 +34,103 @@
 }
 
 .title {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-  margin-bottom: 4px;
+  color: var(--text-main);
+  letter-spacing: -0.03em;
 }
 
 .subtitle {
-  font-size: 0.88rem;
-  color: #64748b;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
-/* Category Filter Bar */
+/* Filter Bar */
 .filterBar {
   display: flex;
+  align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .filterBtn {
+  position: relative;
   padding: 6px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: #ffffff;
   border: 1px solid var(--border);
-  color: #475569;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   font-weight: 600;
-  transition: all 0.15s;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
 .filterBtn:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  color: var(--text-main);
+  border-color: var(--border-strong);
 }
 
 .filterBtnActive {
-  background: #0f5c44;
-  border-color: #0f5c44;
-  color: #ffffff;
+  color: #065f46;
+  font-weight: 700;
+  border-color: #a7f3d0;
 }
 
-.filterBtnActive:hover {
-  background: #0b4533;
-  color: #ffffff;
+.filterBtnActiveBg {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  z-index: 1;
 }
 
-/* Document Grid / List */
+.filterBtnLabel {
+  position: relative;
+  z-index: 2;
+}
+
+/* Documents Grid */
 .documentsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
 }
 
 .docCard {
   background: #ffffff;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
-  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
-  transition: all 0.2s;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
 }
 
 .docCard:hover {
-  border-color: #cbd5e1;
+  border-color: var(--border-strong);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .docCardTop {
   display: flex;
-  align-items: flex-start;
   gap: 12px;
 }
 
 .docIconWrap {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  background: #ecfdf5;
-  color: #0f5c44;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -107,99 +140,120 @@
 
 .docMetaBlock {
   flex: 1;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .docName {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: #0f172a;
-  word-break: break-word;
-  line-height: 1.35;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
 }
 
 .docSubDetails {
-  font-size: 0.74rem;
-  color: #64748b;
-  margin-top: 4px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
 }
 
 .fileTypeBadge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: #f1f5f9;
-  color: #334155;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
+  color: var(--text-secondary);
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
   text-transform: uppercase;
+  border: 1px solid var(--border);
 }
 
 .docCardActions {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-top: 1px solid var(--border);
   padding-top: 10px;
-  margin-top: 2px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .actionBtn {
-  flex: 1;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  transition: all 0.15s;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
 }
 
 .viewBtn {
-  background: #f1f5f9;
-  color: #334155;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 
 .viewBtn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: #f1f5f9;
+  color: var(--text-main);
+  border-color: var(--border-strong);
 }
 
 .downloadBtn {
-  background: #0f5c44;
-  color: #ffffff;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
 }
 
 .downloadBtn:hover {
-  background: #0b4533;
+  background: #d1fae5;
 }
 
+/* Empty State */
 .emptyState {
   padding: 4rem 2rem;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  background: #ffffff;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
 }
 
 .emptyIcon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #ecfdf5;
-  color: #0f5c44;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-full);
+  background: var(--bg-subtle);
+  color: var(--text-dim);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 8px;
+  font-size: 1.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.emptyTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.emptyDesc {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 1.25rem 1rem 2.5rem;
+  }
 }

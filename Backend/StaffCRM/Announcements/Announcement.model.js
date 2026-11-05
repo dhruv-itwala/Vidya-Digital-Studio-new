@@ -25,4 +25,6 @@ const announcementSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+announcementSchema.index({ createdAt: -1 });
+
 export default mongoose.model("Announcement", announcementSchema);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import clientApi from "../../api/clientAxios";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "./ClientAssets.module.css";
 import {
   FiKey,
@@ -30,6 +31,26 @@ import {
   FaWordpress,
 } from "react-icons/fa";
 import toast from "react-hot-toast";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.32, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 export default function ClientAssets() {
   const [credentials, setCredentials] = useState([]);
@@ -89,7 +110,7 @@ export default function ClientAssets() {
       setCredentials(creds);
       setClientData(client);
       if (isManualRefresh) {
-        toast.success("Assets & logins refreshed");
+        toast.success("Assets & platform logins synced");
       }
     } catch (error) {
       console.error("[ClientAssets] Failed to fetch data:", error);
@@ -104,7 +125,7 @@ export default function ClientAssets() {
     if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedId(key);
-    toast.success(`Copied to clipboard!`);
+    toast.success(`Copied ${key}!`);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -179,16 +200,28 @@ export default function ClientAssets() {
 
   if (loading) {
     return (
-      <div style={{ padding: "4rem 2rem", textAlign: "center", color: "#0f5c44", fontWeight: 700 }}>
-        Loading Assets &amp; Logins...
+      <div className={styles.loadingContainer}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={styles.loadingCard}
+        >
+          <span className="spin" style={{ fontSize: "1.4rem", color: "#059669" }}>⟳</span>
+          <span style={{ fontWeight: 600, color: "#334155" }}>Loading Assets &amp; Logins...</span>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className={styles.pageContainer}>
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className={styles.pageContainer}
+    >
       {/* ================= HEADER ================= */}
-      <div className={styles.header}>
+      <motion.div variants={itemVariants} className={styles.header}>
         <div>
           <h1 className={styles.title}>Assets &amp; Platform Logins</h1>
           <p className={styles.subtitle}>
@@ -197,46 +230,53 @@ export default function ClientAssets() {
         </div>
 
         <div className={styles.headerActions}>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
             type="button"
             className={styles.refreshBtn}
             onClick={() => fetchData(true)}
             disabled={refreshing}
           >
-            <FiRefreshCw className={refreshing ? "spin" : ""} size={14} />
-            <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
-          </button>
-          <button
+            <FiRefreshCw className={refreshing ? "spin" : ""} size={13} />
+            <span>{refreshing ? "Syncing..." : "Refresh"}</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
             type="button"
             className={styles.primaryBtn}
             onClick={() => setIsAddModalOpen(true)}
           >
-            <FiPlus size={16} />
+            <FiPlus size={15} />
             <span>Add Platform Login</span>
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* ================= ENCRYPTION NOTICE ================= */}
-      <div className={styles.securityNotice}>
+      <motion.div variants={itemVariants} className={styles.securityNotice}>
         <FiShield className={styles.securityIcon} />
-        <div>
+        <div className={styles.securityText}>
           <strong>Enterprise Access Protection:</strong> All platform credentials, API tokens, and shared cloud folders are encrypted and strictly restricted to authorized Vidya Digital Studio creative staff.
         </div>
-      </div>
+      </motion.div>
 
       {/* ================= DIGITAL STUDIO ASSETS & SHARED WORKSPACES ================= */}
-      <div>
+      <motion.div variants={itemVariants} className={styles.sectionBlock}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitle}>
-            <FiFolder color="#0f5c44" />
-            <span>Digital Studio Assets &amp; Shared Workspaces</span>
+            <FiFolder className={styles.sectionIcon} />
+            <span>Digital Studio Master Workspaces</span>
           </div>
         </div>
 
         <div className={styles.assetsGrid}>
           {/* 1. Google Drive Creative Master Folder */}
-          <div className={styles.assetCard}>
+          <motion.div
+            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            className={styles.assetCard}
+          >
             <div className={styles.assetCardTop}>
               <div className={`${styles.assetIconWrap} ${styles.driveIconWrap}`}>
                 <FaGoogleDrive />
@@ -261,38 +301,45 @@ export default function ClientAssets() {
             <div className={styles.assetActions}>
               {driveUrl ? (
                 <>
-                  <a
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
                     href={driveUrl}
                     target="_blank"
                     rel="noreferrer"
                     className={styles.assetLinkBtn}
                   >
-                    <span>Open in Google Drive</span>
+                    <span>Open in Drive</span>
                     <FiExternalLink size={13} />
-                  </a>
-                  <button
+                  </motion.a>
+                  <motion.button
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.85 }}
                     type="button"
                     className={styles.assetCopyBtn}
-                    onClick={() => copyToClipboard(driveUrl, "Google Drive Link")}
+                    onClick={() => copyToClipboard(driveUrl, "Drive Link")}
                     title="Copy Drive Link"
                   >
-                    {copiedId === "Google Drive Link" ? (
-                      <FiCheck color="#059669" size={14} />
+                    {copiedId === "Drive Link" ? (
+                      <FiCheck color="#059669" size={13} />
                     ) : (
-                      <FiCopy size={14} />
+                      <FiCopy size={13} />
                     )}
-                  </button>
+                  </motion.button>
                 </>
               ) : (
-                <div style={{ fontSize: "0.8rem", color: "#64748b", fontStyle: "italic" }}>
+                <div className={styles.pendingText}>
                   Drive folder assignment in progress by studio management.
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* 2. Content Calendar & Spreadsheet */}
-          <div className={styles.assetCard}>
+          <motion.div
+            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            className={styles.assetCard}
+          >
             <div className={styles.assetCardTop}>
               <div className={`${styles.assetIconWrap} ${styles.calendarIconWrap}`}>
                 <FiCalendar />
@@ -317,107 +364,52 @@ export default function ClientAssets() {
             <div className={styles.assetActions}>
               {calendarUrl ? (
                 <>
-                  <a
+                  <motion.a
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
                     href={calendarUrl}
                     target="_blank"
                     rel="noreferrer"
                     className={styles.assetLinkBtn}
                   >
-                    <span>Open Calendar Sheet</span>
+                    <span>Open Sheet</span>
                     <FiExternalLink size={13} />
-                  </a>
-                  <button
+                  </motion.a>
+                  <motion.button
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.85 }}
                     type="button"
                     className={styles.assetCopyBtn}
-                    onClick={() => copyToClipboard(calendarUrl, "Calendar Sheet Link")}
+                    onClick={() => copyToClipboard(calendarUrl, "Calendar Link")}
                     title="Copy Calendar Link"
                   >
-                    {copiedId === "Calendar Sheet Link" ? (
-                      <FiCheck color="#059669" size={14} />
+                    {copiedId === "Calendar Link" ? (
+                      <FiCheck color="#059669" size={13} />
                     ) : (
-                      <FiCopy size={14} />
+                      <FiCopy size={13} />
                     )}
-                  </button>
+                  </motion.button>
                 </>
               ) : (
                 <a href="#/client-portal/calendar" className={styles.assetLinkBtn}>
-                  <span>View Interactive Calendar</span>
+                  <span>View Calendar</span>
                   <FiExternalLink size={13} />
                 </a>
               )}
             </div>
-          </div>
+          </motion.div>
 
-          {/* 3. Official Brand Identity Asset */}
-          <div className={styles.assetCard}>
-            <div className={styles.assetCardTop}>
-              {brandLogoUrl ? (
-                <img src={brandLogoUrl} alt={clientName} className={styles.assetLogoPreview} />
-              ) : (
-                <div className={`${styles.assetIconWrap} ${styles.brandIconWrap}`}>
-                  <FiImage />
-                </div>
-              )}
-              <div className={styles.assetMeta}>
-                <div className={styles.assetTitleRow}>
-                  <div className={styles.assetName}>Brand Identity &amp; Assets</div>
-                  <span
-                    className={`${styles.assetBadge} ${
-                      brandLogoUrl ? styles.badgeActive : styles.badgePending
-                    }`}
-                  >
-                    {brandLogoUrl ? "Official Logo" : "Default Monogram"}
-                  </span>
-                </div>
-                <div className={styles.assetDesc}>
-                  Primary studio-approved vector / high-res brand logo, identity assets, typography, and brand watermark.
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.assetActions}>
-              {brandLogoUrl ? (
-                <>
-                  <a
-                    href={brandLogoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={styles.assetLinkBtn}
-                  >
-                    <span>View Brand Logo</span>
-                    <FiExternalLink size={13} />
-                  </a>
-                  <button
-                    type="button"
-                    className={styles.assetCopyBtn}
-                    onClick={() => copyToClipboard(brandLogoUrl, "Brand Logo Link")}
-                    title="Copy Logo URL"
-                  >
-                    {copiedId === "Brand Logo Link" ? (
-                      <FiCheck color="#059669" size={14} />
-                    ) : (
-                      <FiCopy size={14} />
-                    )}
-                  </button>
-                </>
-              ) : (
-                <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
-                  Brand identity registered under: <strong>{clientName}</strong>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ================= PLATFORM CREDENTIALS ================= */}
-      <div>
+      <motion.div variants={itemVariants} className={styles.sectionBlock}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitle}>
-            <FiKey color="#0f5c44" />
+            <FiKey className={styles.sectionIcon} />
             <span>Platform Credentials &amp; Delegated Logins</span>
           </div>
-          <span style={{ fontSize: "0.82rem", color: "#64748b" }}>
+          <span className={styles.countBadge}>
             {credentials.length} account{credentials.length === 1 ? "" : "s"} saved
           </span>
         </div>
@@ -428,7 +420,11 @@ export default function ClientAssets() {
               const isPasswordVisible = Boolean(showPasswordIds[cred._id]);
 
               return (
-                <div key={cred._id} className={styles.card}>
+                <motion.div
+                  key={cred._id}
+                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                  className={styles.card}
+                >
                   <div className={styles.cardHeader}>
                     <div className={styles.platformInfo}>
                       <div className={styles.platformIcon}>
@@ -436,24 +432,28 @@ export default function ClientAssets() {
                       </div>
                       <h3 className={styles.platformName}>{cred.platform}</h3>
                     </div>
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.85 }}
                       type="button"
                       className={styles.deleteCredBtn}
                       onClick={() => handleDeleteCredential(cred._id)}
                       title="Remove Login"
                       aria-label="Remove Login"
                     >
-                      <FiTrash2 size={14} />
-                    </button>
+                      <FiTrash2 size={13} />
+                    </motion.button>
                   </div>
 
                   {/* Username */}
                   <div className={styles.field}>
-                    <span className={styles.label}>Username / Email / Handle</span>
+                    <span className={styles.label}>Username / Handle / Email</span>
                     <div className={styles.valueRow}>
                       <span className={styles.valueText}>{cred.username || "N/A"}</span>
                       {cred.username && (
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.85 }}
                           type="button"
                           className={styles.iconBtn}
                           onClick={() => copyToClipboard(cred.username, `${cred.platform} Username`)}
@@ -464,7 +464,7 @@ export default function ClientAssets() {
                           ) : (
                             <FiCopy size={12} />
                           )}
-                        </button>
+                        </motion.button>
                       )}
                     </div>
                   </div>
@@ -480,16 +480,20 @@ export default function ClientAssets() {
                         {isPasswordVisible ? cred.password || "No password stored" : "••••••••••••"}
                       </span>
                       <div className={styles.btnWrap}>
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.85 }}
                           type="button"
                           className={styles.iconBtn}
                           onClick={() => togglePasswordVisibility(cred._id)}
                           title={isPasswordVisible ? "Hide Password" : "Show Password"}
                         >
                           {isPasswordVisible ? <FiEyeOff size={12} /> : <FiEye size={12} />}
-                        </button>
+                        </motion.button>
                         {cred.password && (
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.85 }}
                             type="button"
                             className={styles.iconBtn}
                             onClick={() => copyToClipboard(cred.password, `${cred.platform} Password`)}
@@ -500,7 +504,7 @@ export default function ClientAssets() {
                             ) : (
                               <FiCopy size={12} />
                             )}
-                          </button>
+                          </motion.button>
                         )}
                       </div>
                     </div>
@@ -509,22 +513,11 @@ export default function ClientAssets() {
                   {/* Notes / Instructions */}
                   {cred.note && (
                     <div className={styles.noteField}>
-                      <span
-                        style={{
-                          fontWeight: 700,
-                          color: "#64748b",
-                          textTransform: "uppercase",
-                          fontSize: "0.7rem",
-                          display: "block",
-                          marginBottom: 2,
-                        }}
-                      >
-                        Access Note:
-                      </span>
-                      {cred.note}
+                      <span className={styles.noteLabel}>Access Note:</span>
+                      <span className={styles.noteText}>{cred.note}</span>
                     </div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -537,134 +530,156 @@ export default function ClientAssets() {
             <p className={styles.emptyDesc}>
               Save your social media handles (Instagram, Meta, YouTube), website CMS, or ad account credentials here so our creative team can seamlessly publish your content.
             </p>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
               type="button"
               className={styles.primaryBtn}
-              style={{ marginTop: "8px" }}
+              style={{ marginTop: "10px" }}
               onClick={() => setIsAddModalOpen(true)}
             >
-              <FiPlus size={16} />
+              <FiPlus size={15} />
               <span>Add Your First Platform Login</span>
-            </button>
+            </motion.button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* ================= ADD PLATFORM LOGIN MODAL ================= */}
-      {isAddModalOpen && (
-        <div className={styles.modalBackdrop} onClick={() => setIsAddModalOpen(false)}>
-          <div className={styles.modalDialog} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Add Platform Login</h3>
-              <button
-                type="button"
-                className={styles.modalClose}
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                <FiX />
-              </button>
-            </div>
+      <AnimatePresence>
+        {isAddModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className={styles.modalBackdrop}
+            onClick={() => setIsAddModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 12 }}
+              transition={{ type: "spring", duration: 0.32, bounce: 0.08 }}
+              className={styles.modalDialog}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.modalHeader}>
+                <h3 className={styles.modalTitle}>Add Platform Login</h3>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  type="button"
+                  className={styles.modalClose}
+                  onClick={() => setIsAddModalOpen(false)}
+                >
+                  <FiX size={16} />
+                </motion.button>
+              </div>
 
-            <form onSubmit={handleAddCredential}>
-              <div className={styles.modalBody}>
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Platform / Service *</label>
-                  <select
-                    className={styles.formSelect}
-                    value={newPlatform}
-                    onChange={(e) => setNewPlatform(e.target.value)}
-                    required
-                  >
-                    <option value="Instagram">Instagram</option>
-                    <option value="Facebook / Meta">Facebook / Meta</option>
-                    <option value="YouTube">YouTube / YouTube Studio</option>
-                    <option value="Google Drive">Google Drive / Workspace</option>
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="Twitter / X">Twitter / X</option>
-                    <option value="Website CMS / WordPress">Website CMS / WordPress</option>
-                    <option value="Meta Ads Manager">Meta Ads Manager</option>
-                    <option value="Google Ads">Google Ads</option>
-                    <option value="Other">Other Platform</option>
-                  </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Username / Handle / Email *</label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    placeholder="e.g. @brand_official or social@brand.com"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Password / Token</label>
-                  <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                    <input
-                      type={showModalPassword ? "text" : "password"}
-                      className={styles.formInput}
-                      placeholder="Enter account password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      style={{ paddingRight: "2.8rem" }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowModalPassword((prev) => !prev)}
-                      style={{
-                        position: "absolute",
-                        right: "8px",
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "#64748b",
-                        padding: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                      tabIndex="-1"
+              <form onSubmit={handleAddCredential}>
+                <div className={styles.modalBody}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Platform / Service *</label>
+                    <select
+                      className={styles.formSelect}
+                      value={newPlatform}
+                      onChange={(e) => setNewPlatform(e.target.value)}
+                      required
                     >
-                      {showModalPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                    </button>
+                      <option value="Instagram">Instagram</option>
+                      <option value="Facebook / Meta">Facebook / Meta</option>
+                      <option value="YouTube">YouTube / YouTube Studio</option>
+                      <option value="Google Drive">Google Drive / Workspace</option>
+                      <option value="LinkedIn">LinkedIn</option>
+                      <option value="Twitter / X">Twitter / X</option>
+                      <option value="Website CMS / WordPress">Website CMS / WordPress</option>
+                      <option value="Meta Ads Manager">Meta Ads Manager</option>
+                      <option value="Google Ads">Google Ads</option>
+                      <option value="Other">Other Platform</option>
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Username / Handle / Email *</label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      placeholder="e.g. @brand_official or social@brand.com"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Password / Token</label>
+                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                      <input
+                        type={showModalPassword ? "text" : "password"}
+                        className={styles.formInput}
+                        placeholder="Enter account password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        style={{ paddingRight: "2.8rem" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowModalPassword((prev) => !prev)}
+                        style={{
+                          position: "absolute",
+                          right: "8px",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#64748b",
+                          padding: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                        tabIndex="-1"
+                      >
+                        {showModalPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>Access Note / 2FA Instructions</label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      placeholder="e.g. OTP is sent to +91-9876543210"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                    />
                   </div>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Access Note / 2FA Instructions</label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    placeholder="e.g. OTP is sent to +91-9876543210"
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                  />
+                <div className={styles.modalFooter}>
+                  <button
+                    type="button"
+                    className={styles.cancelBtn}
+                    onClick={() => setIsAddModalOpen(false)}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="submit"
+                    className={styles.saveBtn}
+                    disabled={submitting}
+                  >
+                    {submitting ? "Saving..." : "Save Platform Login"}
+                  </motion.button>
                 </div>
-              </div>
-
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setIsAddModalOpen(false)}
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={styles.primaryBtn}
-                  disabled={submitting}
-                >
-                  {submitting ? "Saving..." : "Save Platform Login"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

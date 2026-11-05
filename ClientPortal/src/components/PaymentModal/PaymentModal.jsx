@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiX,
   FiCopy,
@@ -53,17 +54,31 @@ export default function PaymentModal({ invoice, onClose }) {
 
   // Generate Dynamic SVG QR Code
   const dynamicQrSvg = useMemo(() => {
-    return generateQrSvg(dynamicUpiUrl, 190);
+    return generateQrSvg(dynamicUpiUrl, 180);
   }, [dynamicUpiUrl]);
 
   const handleNotifyPayment = () => {
-    toast.success("Payment logged. Studio admin will verify.");
+    toast.success("Payment recorded. Studio finance executive will verify within 2-4 hours.");
     if (onClose) onClose();
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className={styles.modalOverlay}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.94, opacity: 0, y: 12 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.94, opacity: 0, y: 12 }}
+        transition={{ type: "spring", duration: 0.32, bounce: 0.08 }}
+        className={styles.modalContent}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className={styles.modalHeader}>
           <div className={styles.headerLeft}>
@@ -77,9 +92,15 @@ export default function PaymentModal({ invoice, onClose }) {
               </div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Close modal">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Close modal"
+          >
             <FiX size={18} />
-          </button>
+          </motion.button>
         </div>
 
         {/* Body */}
@@ -87,10 +108,10 @@ export default function PaymentModal({ invoice, onClose }) {
           {/* Outstanding Balance Banner */}
           <div className={styles.amountBox}>
             <div>
-              <div className={styles.amountBoxLabel}>Payable Amount Due</div>
+              <div className={styles.amountBoxLabel}>Payable Balance Due</div>
               <div className={styles.amountBoxSub}>
                 {invoice.advanceAmount > 0
-                  ? `₹${invoice.advanceAmount.toLocaleString("en-IN")} already received`
+                  ? `₹${Number(invoice.advanceAmount).toLocaleString("en-IN")} advance credited`
                   : "Total invoice balance"}
               </div>
             </div>
@@ -106,128 +127,166 @@ export default function PaymentModal({ invoice, onClose }) {
               className={`${styles.tabSwitchBtn} ${qrMode === "dynamic" ? styles.tabSwitchBtnActive : ""}`}
               onClick={() => setQrMode("dynamic")}
             >
-              <FiZap size={13} />
-              <span>Exact Amount QR (₹{amountToPay.toLocaleString("en-IN")} Pre-filled)</span>
+              {qrMode === "dynamic" && (
+                <motion.div
+                  layoutId="paymentTabSwitchPill"
+                  className={styles.tabSwitchActiveBg}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className={styles.tabBtnContent}>
+                <FiZap size={13} />
+                <span>Exact Amount QR (Pre-filled)</span>
+              </span>
             </button>
             <button
               type="button"
               className={`${styles.tabSwitchBtn} ${qrMode === "static" ? styles.tabSwitchBtnActive : ""}`}
               onClick={() => setQrMode("static")}
             >
-              <FaQrcode size={12} />
-              <span>Studio Static QR</span>
+              {qrMode === "static" && (
+                <motion.div
+                  layoutId="paymentTabSwitchPill"
+                  className={styles.tabSwitchActiveBg}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <span className={styles.tabBtnContent}>
+                <FaQrcode size={12} />
+                <span>Studio Static QR</span>
+              </span>
             </button>
           </div>
 
           {/* QR Code Box */}
           <div className={styles.qrContainer}>
             <div className={styles.qrImageWrap}>
-              {qrMode === "dynamic" && dynamicQrSvg ? (
-                <div
-                  dangerouslySetInnerHTML={{ __html: dynamicQrSvg }}
-                  className={styles.dynamicSvgWrapper}
-                />
-              ) : (
-                <img
-                  src={qrCodeImg}
-                  alt="Studio UPI QR Code"
-                  className={styles.qrImage}
-                />
-              )}
+              <AnimatePresence mode="wait">
+                {qrMode === "dynamic" && dynamicQrSvg ? (
+                  <motion.div
+                    key="dynamic-qr"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.18 }}
+                    dangerouslySetInnerHTML={{ __html: dynamicQrSvg }}
+                    className={styles.dynamicSvgWrapper}
+                  />
+                ) : (
+                  <motion.img
+                    key="static-qr"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.18 }}
+                    src={qrCodeImg}
+                    alt="Studio UPI QR Code"
+                    className={styles.qrImage}
+                  />
+                )}
+              </AnimatePresence>
             </div>
 
             {qrMode === "dynamic" ? (
-              <>
+              <div className={styles.qrMetaBlock}>
                 <div className={styles.qrPrompt}>
-                  Scan to Pay ₹{amountToPay.toLocaleString("en-IN")} Automatically
+                  Scan to Pay ₹{amountToPay.toLocaleString("en-IN")}
                 </div>
                 <div className={styles.qrSubtext}>
-                  GPay, PhonePe, Paytm, or BHIM will automatically pre-fill the exact amount!
+                  GPay, PhonePe, Paytm, or BHIM will automatically pre-fill the exact amount
                 </div>
                 <div className={styles.amountBadgePreFilled}>
                   <FiCheck size={12} /> Pre-filled: ₹{amountToPay.toLocaleString("en-IN")}
                 </div>
-              </>
+              </div>
             ) : (
-              <>
+              <div className={styles.qrMetaBlock}>
                 <div className={styles.qrPrompt}>Studio Official Payment QR</div>
                 <div className={styles.qrSubtext}>
                   Scan and enter ₹{amountToPay.toLocaleString("en-IN")} manually in your UPI app
                 </div>
-              </>
+              </div>
             )}
           </div>
 
           {/* Bank Account Details */}
           <div className={styles.bankDetailsCard}>
             <div className={styles.bankSectionHeader}>
-              Direct IMPS / NEFT / RTGS Transfer
+              <span>Direct IMPS / NEFT / RTGS Transfer</span>
             </div>
 
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>Account Holder</span>
               <div className={styles.detailValueWrap}>
-                <span>{bank.accountHolderName}</span>
-                <button
+                <span className={styles.detailValueText}>{bank.accountHolderName}</span>
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
                   type="button"
                   className={styles.copyMiniBtn}
                   onClick={() => copyText(bank.accountHolderName, "Account Holder")}
                   title="Copy account holder"
                 >
-                  {copiedKey === "Account Holder" ? <FiCheck size={12} /> : <FiCopy size={12} />}
-                </button>
+                  {copiedKey === "Account Holder" ? <FiCheck size={12} color="#059669" /> : <FiCopy size={12} />}
+                </motion.button>
               </div>
             </div>
 
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>Bank Name</span>
               <div className={styles.detailValueWrap}>
-                <span>{bank.bankName}</span>
+                <span className={styles.detailValueText}>{bank.bankName}</span>
               </div>
             </div>
 
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>Account Number</span>
               <div className={styles.detailValueWrap}>
-                <span>{bank.accountNumber}</span>
-                <button
+                <span className={styles.detailValueText}>{bank.accountNumber}</span>
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
                   type="button"
                   className={styles.copyMiniBtn}
                   onClick={() => copyText(bank.accountNumber, "Account Number")}
                   title="Copy account number"
                 >
-                  {copiedKey === "Account Number" ? <FiCheck size={12} /> : <FiCopy size={12} />}
-                </button>
+                  {copiedKey === "Account Number" ? <FiCheck size={12} color="#059669" /> : <FiCopy size={12} />}
+                </motion.button>
               </div>
             </div>
 
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>IFSC Code</span>
               <div className={styles.detailValueWrap}>
-                <span>{bank.ifscCode}</span>
-                <button
+                <span className={styles.detailValueText}>{bank.ifscCode}</span>
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
                   type="button"
                   className={styles.copyMiniBtn}
                   onClick={() => copyText(bank.ifscCode, "IFSC Code")}
                   title="Copy IFSC"
                 >
-                  {copiedKey === "IFSC Code" ? <FiCheck size={12} /> : <FiCopy size={12} />}
-                </button>
+                  {copiedKey === "IFSC Code" ? <FiCheck size={12} color="#059669" /> : <FiCopy size={12} />}
+                </motion.button>
               </div>
             </div>
 
             <div className={styles.detailRow}>
               <span className={styles.detailLabel}>UPI ID (VPA)</span>
               <div className={styles.detailValueWrap}>
-                <span>{bank.upiId}</span>
-                <button
+                <span className={styles.detailValueText}>{bank.upiId}</span>
+                <motion.button
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.85 }}
                   type="button"
                   className={styles.copyMiniBtn}
                   onClick={() => copyText(bank.upiId, "UPI ID")}
                   title="Copy UPI ID"
                 >
-                  {copiedKey === "UPI ID" ? <FiCheck size={12} /> : <FiCopy size={12} />}
-                </button>
+                  {copiedKey === "UPI ID" ? <FiCheck size={12} color="#059669" /> : <FiCopy size={12} />}
+                </motion.button>
               </div>
             </div>
           </div>
@@ -235,23 +294,29 @@ export default function PaymentModal({ invoice, onClose }) {
 
         {/* Footer */}
         <div className={styles.modalFooter}>
-          <a
+          <motion.a
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             href={dynamicUpiUrl}
             className={styles.upiPayBtn}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <FiExternalLink /> Pay ₹{amountToPay.toLocaleString("en-IN")} via UPI App
-          </a>
-          <button
+            <FiExternalLink size={14} />
+            <span>Pay ₹{amountToPay.toLocaleString("en-IN")} via UPI App</span>
+          </motion.a>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
             type="button"
             className={styles.notifyPaidBtn}
             onClick={handleNotifyPayment}
           >
-            I Have Paid
-          </button>
+            <FiCheck size={14} />
+            <span>I Have Paid</span>
+          </motion.button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

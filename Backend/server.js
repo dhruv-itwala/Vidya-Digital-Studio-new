@@ -42,6 +42,7 @@ import targetRoutes from "./StaffCRM/Targets/Target.routes.js";
 import systemSettingsRoutes from "./StaffCRM/Settings/SystemSettings.routes.js";
 
 import { globalErrorHandler } from "./StaffCRM/middleware/error.middleware.js";
+import { responseCompression } from "./StaffCRM/middleware/compression.middleware.js";
 import notificationRoutes from "./StaffCRM/Notifications/notification.routes.js";
 import ticketRoutes from "./StaffCRM/Tickets/ticket.routes.js";
 import payrollRoutes from "./StaffCRM/Payroll/payroll.routes.js";
@@ -57,13 +58,22 @@ connectDB();
 
 // Middleware
 app.use(cors("*"));
+app.use(responseCompression);
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 app.use((req, res, next) => {
   req.requestId = crypto.randomUUID();
-  req.startTime = Date.now();
-  console.log(`📨 [${req.requestId}] ${req.method} ${req.url}`);
+  const startTime = Date.now();
+
+  res.on("finish", () => {
+    const duration = Date.now() - startTime;
+    const tag = duration > 1000 ? "⚠️ SLOW" : "⚡";
+    console.log(
+      `${tag} [${req.requestId}] ${req.method} ${req.originalUrl || req.url} ${res.statusCode} (${duration}ms)`
+    );
+  });
+
   next();
 });
 

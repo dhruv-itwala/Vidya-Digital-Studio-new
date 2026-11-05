@@ -76,5 +76,7 @@ const leadSchema = new mongoose.Schema(
 
 leadSchema.index({ status: 1 });
 leadSchema.index({ createdAt: -1 });
+leadSchema.index({ updatedAt: -1 });
+leadSchema.index({ isConverted: 1 });
 
 export default mongoose.model("Lead", leadSchema);

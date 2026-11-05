@@ -24,11 +24,11 @@ import "../StaffCRM/Tasks/cron/contentTaskReminder.cron.js";
 
 console.log("🕒 All cron jobs initialized");
 
-/* Heartbeat Monitor */
+/* Heartbeat Monitor: runs hourly to avoid log spam */
 cron.schedule(
-  "* * * * *",
+  "0 * * * *",
   () => {
-    console.log("💓 Cron heartbeat", new Date().toISOString());
+    console.log("💓 Cron heartbeat (hourly check)", new Date().toISOString());
   },
   {
     timezone: "Asia/Kolkata",

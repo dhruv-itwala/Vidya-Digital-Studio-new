@@ -35,4 +35,6 @@ const todoSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+todoSchema.index({ user: 1, date: 1 }, { unique: true });
+
 export default mongoose.model("Todo", todoSchema);

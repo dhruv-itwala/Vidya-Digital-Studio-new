@@ -139,4 +139,8 @@ clientSchema.pre("save", async function () {
   }
 });
 
+clientSchema.index({ email: 1 });
+clientSchema.index({ isActive: 1 });
+clientSchema.index({ createdAt: -1 });
+
 export default mongoose.model("Client", clientSchema);
