@@ -511,7 +511,7 @@ export default function InvoiceBuilderPage() {
                     className={styles.inputControl}
                     value={client.phone}
                     onChange={(e) => setClient({ ...client, phone: e.target.value })}
-                    placeholder="10-digit mobile number"
+                    placeholder="Phone number"
                   />
                 </div>
 

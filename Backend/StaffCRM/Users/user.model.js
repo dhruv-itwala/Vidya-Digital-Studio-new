@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      match: /^[0-9]{10}$/,
+      trim: true,
     },
     email: {
       type: String,
@@ -108,9 +108,9 @@ const userSchema = new mongoose.Schema(
     },
 
     contactNo: {
-      //emergency contact number
+      // emergency contact number
       type: String,
-      match: /^[0-9]{10}$/, // adjust regex if needed
+      trim: true,
     },
 
     gender: {

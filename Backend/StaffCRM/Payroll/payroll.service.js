@@ -22,16 +22,34 @@ export const getPayrollPayoutDate = (month, year) => {
 export const generateDraftPayrollsService = async (month, year) => {
   if (!month || !year) throw new AppError("Month and year are required", 400);
 
-  // Calculate start and end dates of the month
+  // Calculate start and end dates of the month in IST
   const startDate = new Date(year, month - 1, 1).toLocaleDateString("en-CA");
   const endDate = new Date(year, month, 0).toLocaleDateString("en-CA");
+  const monthStartDateTime = new Date(`${startDate}T00:00:00+05:30`);
+  const monthEndDateTime = new Date(`${endDate}T23:59:59+05:30`);
+
+  // Auto cleanup: delete any existing draft/pending payrolls for users terminated before this month
+  const terminatedBeforeUsers = await User.find({
+    isTerminated: true,
+    terminationDate: { $lt: monthStartDateTime },
+  }).select("_id");
+
+  if (terminatedBeforeUsers.length > 0) {
+    const termIds = terminatedBeforeUsers.map((u) => u._id);
+    await Payroll.deleteMany({
+      month,
+      year,
+      user: { $in: termIds },
+      status: { $in: ["Pending", "DRAFT"] },
+    });
+  }
 
   const [attendanceData, approvedLeaves] = await Promise.all([
     getAllAttendanceByDateRangeService(startDate, endDate),
     Leave.find({
       status: "APPROVED",
-      fromDate: { $lte: new Date(`${endDate}T23:59:59+05:30`) },
-      toDate: { $gte: new Date(`${startDate}T00:00:00+05:30`) },
+      fromDate: { $lte: monthEndDateTime },
+      toDate: { $gte: monthStartDateTime },
     }).lean(),
   ]);
 
@@ -57,9 +75,10 @@ export const generateDraftPayrollsService = async (month, year) => {
       return attDateKey >= fromKey && attDateKey <= toKey;
     });
 
-    const isLate =
-      att.status === "HALF_DAY" ||
-      (att.punchIn && isPunchInAfter1030IST(att.punchIn));
+    const isHrOverridden = att.source === "HR" || att.source === "ADMIN";
+    const isLate = isHrOverridden
+      ? att.status === "HALF_DAY"
+      : (att.status === "HALF_DAY" || (att.punchIn && isPunchInAfter1030IST(att.punchIn)));
 
     // LEAVES MODULE RULE:
     // If employee has taken an approved paid leave (CASUAL, SICK, EARNED), do NOT deduct salary!
@@ -92,13 +111,13 @@ export const generateDraftPayrollsService = async (month, year) => {
     }
   });
 
-  // Include active employees AND employees terminated during or after this payroll month
+  // Include active employees who are NOT terminated, PLUS employees terminated on or after this month's start
   const users = await User.find({
     $or: [
-      { isActive: true },
+      { isActive: true, isTerminated: { $ne: true } },
       {
         isTerminated: true,
-        terminationDate: { $gte: new Date(`${startDate}T00:00:00+05:30`) },
+        terminationDate: { $gte: monthStartDateTime },
       },
     ],
   }).lean();
@@ -153,9 +172,36 @@ export const generateDraftPayrollsService = async (month, year) => {
 };
 
 export const getPayrollsByMonthService = async (month, year) => {
-  return Payroll.find({ month, year })
+  const startDate = new Date(year, month - 1, 1);
+
+  // Auto cleanup: if any draft/pending payroll exists for a user who was terminated before this month's start, clean it up
+  const payrolls = await Payroll.find({ month, year })
     .populate("user", "name email designation subrole isTerminated terminationDate")
     .lean();
+
+  const validPayrolls = [];
+  const stalePayrollIds = [];
+
+  for (const p of payrolls) {
+    const u = p.user;
+    if (u && u.isTerminated && u.terminationDate) {
+      const termDate = new Date(u.terminationDate);
+      if (termDate < startDate) {
+        // Employee exited before this month started
+        if (p.status === "Pending" || p.status === "DRAFT") {
+          stalePayrollIds.push(p._id);
+          continue; // exclude from return list
+        }
+      }
+    }
+    validPayrolls.push(p);
+  }
+
+  if (stalePayrollIds.length > 0) {
+    await Payroll.deleteMany({ _id: { $in: stalePayrollIds } });
+  }
+
+  return validPayrolls;
 };
 
 export const getMyPayslipsService = async (userId) => {

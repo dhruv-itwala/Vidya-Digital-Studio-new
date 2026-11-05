@@ -121,10 +121,10 @@ export const NAVBAR_MENUS = {
 
      "divider",
      // Finance
-    { label: "Finance & Cash Flow", path: "/admin/finance" },
-    { label: "Expenses & Bills", path: "/admin/expenses" },
-    { label: "Payroll", path: "/admin/payroll" },
-    { label: "Bank & Cash Accounts", path: "/admin/cash-accounts" },
+    { label: "Finance & Cash Flow", path: "/hr/finance" },
+    { label: "Expenses & Bills", path: "/hr/expenses" },
+    { label: "Payroll", path: "/hr/payroll" },
+    { label: "Bank & Cash Accounts", path: "/hr/cash-accounts" },
 
     "divider",
     // general HR tools

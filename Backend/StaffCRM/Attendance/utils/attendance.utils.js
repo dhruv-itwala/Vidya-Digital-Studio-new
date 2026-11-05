@@ -39,7 +39,12 @@ export const isWithinOfficeHoursIST = (dateUTC, role = "employee") => {
 };
 
 export const calcWorkMinutes = (record) => {
-  if (!record.punchIn) return;
+  if (!record.punchIn) {
+    record.totalWorkMinutes = 0;
+    record.totalBreakMinutes = 0;
+    record.netWorkMinutes = 0;
+    return;
+  }
 
   let total = 0;
   if (record.punches && record.punches.length > 0) {
@@ -151,10 +156,10 @@ export const calcLiveBreakSeconds = (record, now = new Date()) => {
   }, 0);
 };
 
-export const getCurrentWeekRangeIST = () => {
+export const getCurrentWeekRangeIST = (baseDate = new Date()) => {
   const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5h30m in ms
 
-  const nowUTC = new Date();
+  const nowUTC = new Date(baseDate);
   const nowIST = new Date(nowUTC.getTime() + IST_OFFSET);
 
   const day = nowIST.getUTCDay(); // use UTC getters after manual shift

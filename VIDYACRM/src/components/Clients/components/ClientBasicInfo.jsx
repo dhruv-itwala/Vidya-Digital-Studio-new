@@ -4,6 +4,8 @@ import { FiUser, FiCheckCircle } from "react-icons/fi";
 import { validateFile } from "../../../utils/fileValidator";
 import InlineLoader from "../../UI/InlineLoader";
 import toast from "react-hot-toast";
+import PhoneInput from "react-country-phone-input";
+import "react-country-phone-input/lib/style.css";
 
 export default function ClientBasicInfo({
   form,
@@ -31,8 +33,8 @@ export default function ClientBasicInfo({
       toast.error("Invalid email format");
       return;
     }
-    if (form.phone && !/^\d{10}$/.test(form.phone)) {
-      toast.error("Phone must be 10 digits");
+    if (form.phone && !/^\+?[0-9\s\-()]{6,20}$/.test(form.phone)) {
+      toast.error("Please enter a valid phone number");
       return;
     }
 
@@ -154,14 +156,25 @@ export default function ClientBasicInfo({
 
         <div className={styles.inputGroup}>
           <label>Phone Number</label>
-          <input
-            type="tel"
-            name="phone"
+          <PhoneInput
+            country={"in"}
             value={form.phone || ""}
-            onChange={handleChange}
+            onChange={(value) => {
+              const formatted = value ? (value.startsWith("+") ? value : `+${value}`) : "";
+              setForm((prev) => ({ ...prev, phone: formatted }));
+            }}
             disabled={readOnly}
-            className={styles.inputField}
-            placeholder="+1 234 567 890"
+            enableSearch
+            searchPlaceholder="Search country..."
+            containerClass={styles.phoneInputContainer}
+            inputClass={styles.phoneInputControl}
+            buttonClass={styles.phoneInputButton}
+            dropdownClass={styles.phoneInputDropdown}
+            inputProps={{
+              name: "phone",
+              disabled: readOnly,
+              placeholder: "Enter international phone number",
+            }}
           />
         </div>
 

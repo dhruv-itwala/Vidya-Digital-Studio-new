@@ -16,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import mystaff.vidyadigitalstudio.com.data.models.UserDto
 import mystaff.vidyadigitalstudio.com.ui.theme.*
 
@@ -47,14 +49,25 @@ fun ProfileScreen(
                 .background(BrandPrimary),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = user?.name?.take(1)?.uppercase() ?: "S",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    color = SurfaceWhite,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 32.sp
+            if (!user?.avatarUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = user!!.avatarUrl,
+                    contentDescription = "Profile Photo",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
                 )
-            )
+            } else {
+                Text(
+                    text = user?.name?.take(1)?.uppercase() ?: "S",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        color = SurfaceWhite,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 32.sp
+                    )
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))

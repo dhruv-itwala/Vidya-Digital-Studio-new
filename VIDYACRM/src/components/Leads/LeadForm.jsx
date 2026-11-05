@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiCheckCircle } from "react-icons/fi";
 import InlineLoader from "../UI/InlineLoader";
+import PhoneInput from "react-country-phone-input";
+import "react-country-phone-input/lib/style.css";
 
 const statusOptions = [
   "Raw Lead",
@@ -216,13 +218,23 @@ export default function LeadForm({ mode = "create", initialData = null }) {
 
             <div className={styles.inputGroup}>
               <label>Phone Number</label>
-              <input
-                type="text"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="+1 234 567 890"
-                className={styles.inputField}
+              <PhoneInput
+                country={"in"}
+                value={form.phone || ""}
+                onChange={(value) => {
+                  const formatted = value ? (value.startsWith("+") ? value : `+${value}`) : "";
+                  setForm((prev) => ({ ...prev, phone: formatted }));
+                }}
+                enableSearch
+                searchPlaceholder="Search country..."
+                containerClass={styles.phoneInputContainer}
+                inputClass={styles.phoneInputControl}
+                buttonClass={styles.phoneInputButton}
+                dropdownClass={styles.phoneInputDropdown}
+                inputProps={{
+                  name: "phone",
+                  placeholder: "Enter international phone number",
+                }}
               />
             </div>
           </div>

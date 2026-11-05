@@ -95,8 +95,8 @@ export default function ClientForm({ mode = "view", initialData = null }) {
     if (!form.clientName.trim()) return "Business/Client name is required";
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email))
       return "Invalid email format";
-    if (form.phone && !/^\d{10}$/.test(form.phone))
-      return "Phone must be 10 digits";
+    if (form.phone && !/^\+?[0-9\s\-()]{6,20}$/.test(form.phone))
+      return "Please enter a valid phone number";
     return null;
   };
 

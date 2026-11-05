@@ -357,9 +357,8 @@ export default function EmployeeModal({ user, onClose, onSaved }) {
                 <label>Phone Number <span className={styles.required}>*</span></label>
                 <input
                   type="tel"
-                  placeholder="9876543210"
+                  placeholder="+91 9876543210"
                   value={form.phone}
-                  maxLength={10}
                   onChange={(e) => handleChange("phone", e.target.value)}
                   className={styles.inputField}
                   required

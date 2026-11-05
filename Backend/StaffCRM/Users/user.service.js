@@ -6,6 +6,7 @@ import AppError from "../utils/AppError.js";
 import Lead from "../Leads/Lead.model.js";
 import Client from "../Clients/Client.model.js";
 import Attendance from "../Attendance/attendance.model.js";
+import Payroll from "../Payroll/payroll.model.js";
 import {
   deleteFromCloudinary,
   uploadImageToCloudinary,
@@ -182,6 +183,21 @@ export const terminateUserService = async (
   user.terminatedBy = loggedInUser.id || loggedInUser._id;
 
   await user.save();
+
+  // Automatically delete any pending or draft payrolls for months AFTER this termination date
+  const termDate = new Date(terminationDate);
+  const termYear = termDate.getFullYear();
+  const termMonth = termDate.getMonth() + 1; // 1-12
+
+  await Payroll.deleteMany({
+    user: targetUserId,
+    status: { $in: ["Pending", "DRAFT"] },
+    $or: [
+      { year: { $gt: termYear } },
+      { year: termYear, month: { $gt: termMonth } },
+    ],
+  });
+
   return user;
 };
 

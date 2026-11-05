@@ -91,6 +91,35 @@ const HROverride = () => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const toDatetimeLocal = (utcDate) => {
+    if (!utcDate) return "";
+
+    const date = new Date(utcDate);
+    if (isNaN(date.getTime())) return "";
+
+    // Convert cleanly to IST string "YYYY-MM-DDTHH:mm"
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    return formatter.format(date).replace(", ", "T").replace(" ", "T");
+  };
+
+  const parseLocalISTToISO = (val) => {
+    if (!val) return null;
+    // val from datetime-local is "YYYY-MM-DDTHH:mm"
+    if (val.length === 16) {
+      return new Date(`${val}:00+05:30`).toISOString();
+    }
+    return new Date(val).toISOString();
+  };
+
   const handleSubmit = async () => {
     if (loading) return;
     try {
@@ -99,16 +128,25 @@ const HROverride = () => {
       await hrOverrideAttendanceAPI({
         userId: selectedUser,
         date,
-        punchIn: form.punchIn ? new Date(form.punchIn).toISOString() : null,
-        punchOut: form.punchOut ? new Date(form.punchOut).toISOString() : null,
+        punchIn: parseLocalISTToISO(form.punchIn),
+        punchOut: parseLocalISTToISO(form.punchOut),
         breaks: form.breaks.map((b) => ({
-          in: b.in ? new Date(b.in).toISOString() : null,
-          out: b.out ? new Date(b.out).toISOString() : null,
+          in: parseLocalISTToISO(b.in),
+          out: parseLocalISTToISO(b.out),
         })),
         status: form.status,
       });
 
       toast.success("Updated successfully");
+
+      // Notify other components (Attendance Dashboard, timer hooks) universally
+      window.dispatchEvent(
+        new CustomEvent("attendance-updated", {
+          detail: { userId: selectedUser, date },
+        })
+      );
+
+      await fetchData();
     } catch (err) {
       toast.error(err?.response?.data?.message || err?.message || "Failed to update attendance");
     } finally {
@@ -116,17 +154,6 @@ const HROverride = () => {
     }
   };
 
-  const toDatetimeLocal = (utcDate) => {
-    if (!utcDate) return "";
-
-    const date = new Date(utcDate);
-
-    // Convert to IST manually
-    const istOffset = 5.5 * 60; // minutes
-    const istTime = new Date(date.getTime() + istOffset * 60000);
-
-    return istTime.toISOString().slice(0, 16);
-  };
   /* ================= UI ================= */
 
   return (

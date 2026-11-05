@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import mystaff.vidyadigitalstudio.com.data.models.ProfilePictureDeserializer
+import mystaff.vidyadigitalstudio.com.data.models.ProfilePictureDto
 import mystaff.vidyadigitalstudio.com.data.models.UserDto
 
 object TokenManager {
@@ -15,7 +18,9 @@ object TokenManager {
     private const val KEY_CUSTOM_API_URL = "custom_base_api_url"
 
     private lateinit var prefs: SharedPreferences
-    private val gson = Gson()
+    private val gson: Gson = GsonBuilder()
+        .registerTypeAdapter(ProfilePictureDto::class.java, ProfilePictureDeserializer())
+        .create()
 
     fun init(context: Context) {
         prefs = try {

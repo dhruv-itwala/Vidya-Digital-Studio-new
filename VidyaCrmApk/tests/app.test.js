@@ -148,4 +148,29 @@ describe("MyStaff Native Android Kotlin Verification", () => {
     const loginCode = fs.readFileSync(path.join(kotlinRoot, "ui", "screens", "auth", "LoginScreen.kt"), "utf8");
     assert.ok(loginCode.includes("import androidx.compose.ui.graphics.Color"), "LoginScreen must import Color");
   });
+
+  test("1.8 AuthModels supports resilient ProfilePictureDto deserialization (Object or String)", () => {
+    const authModelsPath = path.join(
+      rootDir,
+      "app",
+      "src",
+      "main",
+      "java",
+      "mystaff",
+      "vidyadigitalstudio",
+      "com",
+      "data",
+      "models",
+      "AuthModels.kt",
+    );
+    assert.ok(fs.existsSync(authModelsPath), "AuthModels.kt must exist");
+    const code = fs.readFileSync(authModelsPath, "utf8");
+    assert.ok(code.includes("ProfilePictureDto"), "Must declare ProfilePictureDto");
+    assert.ok(code.includes("ProfilePictureDeserializer"), "Must declare ProfilePictureDeserializer");
+    assert.ok(
+      code.includes("@JsonAdapter(ProfilePictureDeserializer::class)"),
+      "ProfilePictureDto must use ProfilePictureDeserializer JsonAdapter",
+    );
+    assert.ok(code.includes("val profilePicture: ProfilePictureDto?"), "UserDto must use ProfilePictureDto");
+  });
 });

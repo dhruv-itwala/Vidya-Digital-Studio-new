@@ -1,7 +1,11 @@
 package mystaff.vidyadigitalstudio.com.data.api
 
 import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import mystaff.vidyadigitalstudio.com.data.local.TokenManager
+import mystaff.vidyadigitalstudio.com.data.models.ProfilePictureDeserializer
+import mystaff.vidyadigitalstudio.com.data.models.ProfilePictureDto
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -11,6 +15,10 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
 
     private const val DEFAULT_BASE_URL = "https://backend.vidyadigitalstudio.com/api/v1.0/"
+
+    val gson: Gson = GsonBuilder()
+        .registerTypeAdapter(ProfilePictureDto::class.java, ProfilePictureDeserializer())
+        .create()
 
     private var retrofit: Retrofit? = null
     private var apiService: MyStaffApiService? = null
@@ -39,7 +47,7 @@ object ApiClient {
         val instance = Retrofit.Builder()
             .baseUrl(formattedBaseUrl)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
         retrofit = instance

@@ -164,11 +164,36 @@ export default function PayrollManagement() {
     }
   };
 
-  // Aggregated totals
-  const totalBaseSalary = payrolls.reduce((acc, p) => acc + (p.baseSalary || 0), 0);
-  const totalDeductions = payrolls.reduce((acc, p) => acc + (p.deductions || 0), 0);
-  const totalNetPayable = payrolls.reduce((acc, p) => acc + (p.netPay || 0), 0);
-  const totalPaidOut = payrolls.reduce((acc, p) => {
+  // Filter state: 'all' | 'active' | 'terminated'
+  const [employeeFilter, setEmployeeFilter] = useState("all");
+
+  const monthStartDate = new Date(year, month - 1, 1);
+
+  // Exclude employees terminated BEFORE this month (they have 0 work days in this month)
+  const validPayrolls = payrolls.filter((p) => {
+    if (p.user?.isTerminated && p.user?.terminationDate) {
+      const termDate = new Date(p.user.terminationDate);
+      if (termDate < monthStartDate) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const activeCount = validPayrolls.filter((p) => !p.user?.isTerminated).length;
+  const terminatedCount = validPayrolls.filter((p) => p.user?.isTerminated).length;
+
+  const displayPayrolls = validPayrolls.filter((p) => {
+    if (employeeFilter === "active") return !p.user?.isTerminated;
+    if (employeeFilter === "terminated") return !!p.user?.isTerminated;
+    return true;
+  });
+
+  // Aggregated totals computed from valid payrolls
+  const totalBaseSalary = validPayrolls.reduce((acc, p) => acc + (p.baseSalary || 0), 0);
+  const totalDeductions = validPayrolls.reduce((acc, p) => acc + (p.deductions || 0), 0);
+  const totalNetPayable = validPayrolls.reduce((acc, p) => acc + (p.netPay || 0), 0);
+  const totalPaidOut = validPayrolls.reduce((acc, p) => {
     const s = (p.status || "").toLowerCase();
     if (s === "salary paid" || s === "paid") return acc + (p.netPay || 0);
     if (s === "partial paid") return acc + (p.paidAmount || 0);
@@ -270,6 +295,35 @@ export default function PayrollManagement() {
           </div>
         </div>
 
+        {/* ================= FILTER TABS (FOR MONTHS WITH TERMINATED STAFF) ================= */}
+        {terminatedCount > 0 && (
+          <div className={styles.filterBar}>
+            <div className={styles.filterTabs}>
+              <button
+                type="button"
+                className={`${styles.filterTab} ${employeeFilter === "all" ? styles.filterTabActive : ""}`}
+                onClick={() => setEmployeeFilter("all")}
+              >
+                All Staff ({validPayrolls.length})
+              </button>
+              <button
+                type="button"
+                className={`${styles.filterTab} ${employeeFilter === "active" ? styles.filterTabActive : ""}`}
+                onClick={() => setEmployeeFilter("active")}
+              >
+                Active Only ({activeCount})
+              </button>
+              <button
+                type="button"
+                className={`${styles.filterTab} ${employeeFilter === "terminated" ? styles.filterTabActive : ""}`}
+                onClick={() => setEmployeeFilter("terminated")}
+              >
+                Terminated / Exit ({terminatedCount})
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ================= SALARY TABLE ================= */}
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
@@ -292,14 +346,16 @@ export default function PayrollManagement() {
                     <Loader />
                   </td>
                 </tr>
-              ) : payrolls.length === 0 ? (
+              ) : displayPayrolls.length === 0 ? (
                 <tr>
                   <td colSpan="8" style={{ textAlign: "center", padding: "50px", color: "#64748b" }}>
-                    No payrolls generated for {workMonthName} {year}. Click "Generate Monthly Payrolls" above.
+                    {validPayrolls.length === 0
+                      ? `No payrolls generated for ${workMonthName} ${year}. Click "Generate Monthly Payrolls" above.`
+                      : `No employees match the "${employeeFilter}" filter for ${workMonthName} ${year}.`}
                   </td>
                 </tr>
               ) : (
-                payrolls.map((p) => {
+                displayPayrolls.map((p) => {
                   const rawStatus = p.status || "Pending";
                   const normalizedStatus =
                     rawStatus === "PAID" || rawStatus === "Salary paid"

@@ -303,11 +303,12 @@ export const punchOutService = async (userId) => {
   const policy = getWorkPolicy(user?.role || "employee");
 
   /* ===== LATE CALCULATION ===== */
-  const shiftStart = new Date(record.date);
-  shiftStart.setUTCHours(policy.officeHours.start - 5, 30, 0, 0);
+  const shiftStart = new Date(new Date(record.date).getTime() + (policy.officeHours?.start || 10) * 3600 * 1000);
 
-  if (record.punchIn > shiftStart) {
+  if (record.punchIn && record.punchIn > shiftStart) {
     record.lateMinutes = Math.floor((record.punchIn - shiftStart) / 60000);
+  } else {
+    record.lateMinutes = 0;
   }
 
   /* ===== OVERTIME ===== */
@@ -449,7 +450,10 @@ export const getAllEmployeesAttendanceService = async (date) => {
     const work = workRecordMap.get(String(u._id));
     let status = null;
 
-    if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
+    if (att && (att.source === "HR" || att.source === "ADMIN")) {
+      // HR/Admin explicit override takes precedence
+      status = att.status;
+    } else if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
       // Strict rule: Login after 10:30 AM IST automatically becomes HALF_DAY
       status = "HALF_DAY";
     } else if (att) {
@@ -468,12 +472,22 @@ export const getAllEmployeesAttendanceService = async (date) => {
       }
     }
 
+    const isHrOverridden = att?.source === "HR" || att?.source === "ADMIN";
+    const isLateHalfDay = isHrOverridden ? (att.status === "HALF_DAY") : isPunchInAfter1030IST(work?.punchIn);
+
     return {
       _id: u._id,
       name: u.name,
       email: u.email,
       role: u.role,
       status: status || "ABSENT", // Fallback
+      source: att?.source || "SYSTEM",
+      punchIn: work?.punchIn || null,
+      punchOut: work?.punchOut || null,
+      punches: work?.punches || (work?.punchIn ? [{ in: work.punchIn, out: work.punchOut || null }] : []),
+      isLateHalfDay,
+      totalWorkMinutes: work?.totalWorkMinutes || 0,
+      netWorkMinutes: work?.netWorkMinutes || 0,
     };
   });
 };
@@ -617,7 +631,10 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
       );
 
       let status = null;
-      if (matchingLeave) {
+      if (att && (att.source === "HR" || att.source === "ADMIN")) {
+        // HR/Admin explicit override takes precedence
+        status = att.status;
+      } else if (matchingLeave) {
         if (matchingLeave.type === "UNPAID") {
           status = matchingLeave.isHalfDay ? "HALF_DAY" : "ABSENT";
         } else {
@@ -672,11 +689,14 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
         if (!netWorkMinutes && punches.length > 0) {
           const totalPunchMins = punches.reduce((sum, p) => {
             if (!p.in) return sum;
-            const end = p.out ? new Date(p.out) : (work?.punchOut ? new Date(work.punchOut) : new Date());
+            const end = p.out ? new Date(p.out) : (work?.punchOut ? new Date(work?.punchOut) : new Date());
             return sum + Math.max(0, Math.floor((end.getTime() - new Date(p.in).getTime()) / 60000));
           }, 0);
           netWorkMinutes = Math.max(0, totalPunchMins - formalBreakMinutes);
         }
+
+        const isHrOverridden = att?.source === "HR" || att?.source === "ADMIN";
+        const isLateHalfDay = isHrOverridden ? (att.status === "HALF_DAY") : isPunchInAfter1030IST(work?.punchIn);
 
         results.push({
           userId: u._id,
@@ -685,6 +705,8 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
           role: u.role,
           date: new Date(current),
           status,
+          source: att?.source || "SYSTEM",
+          remarks: att?.remarks || "",
           punchIn: work?.punchIn || null,
           punchOut: work?.punchOut || null,
           punches,
@@ -694,6 +716,7 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
           punchGapMinutes,
           totalWorkMinutes: work?.totalWorkMinutes || 0,
           netWorkMinutes,
+          isLateHalfDay,
         });
       }
     }
@@ -710,7 +733,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
 
   const mongoDate = parseIST(selectedKey);
 
-  const [users, records] = await Promise.all([
+  const [users, records, attendances] = await Promise.all([
     User.find({
       $or: [
         { isActive: true },
@@ -720,6 +743,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
       .select("name role profilePicture isTerminated terminationDate")
       .lean(),
     WorkRecord.find({ date: mongoDate }).lean(),
+    Attendance.find({ date: mongoDate }).lean(),
   ]);
 
   // ROLE PRIORITY
@@ -740,8 +764,13 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
   const recordMap = new Map();
   records.forEach((r) => recordMap.set(String(r.user), r));
 
+  const attMap = new Map();
+  attendances.forEach((a) => attMap.set(String(a.user), a));
+
   return users.map((u) => {
     const record = recordMap.get(String(u._id));
+    const att = attMap.get(String(u._id));
+    const isHrOverridden = att?.source === "HR" || att?.source === "ADMIN";
 
     if (!record || !record.punchIn) {
       return {
@@ -750,6 +779,7 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
         role: u.role,
         profilePicture: u.profilePicture,
         status: "NOT_STARTED",
+        attendanceStatus: att?.status || "ABSENT",
         workedSeconds: 0,
         breakSeconds: 0,
       };
@@ -762,18 +792,28 @@ export const getLiveEmployeesStatusByDateService = async (dateStr) => {
     if (record.punchOut) status = "COMPLETED";
     else if (onBreak) status = "ON_BREAK";
 
+    const punches =
+      record.punches && record.punches.length > 0
+        ? record.punches
+        : record.punchIn
+        ? [{ in: record.punchIn, out: record.punchOut || null }]
+        : [];
+
+    const isLateHalfDay = isHrOverridden ? (att.status === "HALF_DAY") : isPunchInAfter1030IST(record.punchIn);
+
     return {
       userId: u._id,
       name: u.name,
       role: u.role,
       profilePicture: u.profilePicture,
       status,
+      attendanceStatus: att?.status || record.attendanceStatus,
       workedSeconds: calcLiveNetSeconds(record),
       breakSeconds: calcLiveBreakSeconds(record),
       punchIn: record.punchIn,
       punchOut: record.punchOut,
-      punches: record.punches || [],
-      isLateHalfDay: isPunchInAfter1030IST(record.punchIn),
+      punches,
+      isLateHalfDay,
     };
   });
 };
@@ -814,8 +854,8 @@ export const getTodayWorkRecordService = async (userId) => {
   };
 };
 
-export const getWeeklyProgressService = async (userId) => {
-  const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST();
+export const getWeeklyProgressService = async (userId, targetDate = new Date()) => {
+  const { weekStartUTC, weekEndUTC } = getCurrentWeekRangeIST(targetDate);
 
   const [user, records, holidays, attendance] = await Promise.all([
     User.findById(userId).select("role").lean(),
@@ -974,31 +1014,39 @@ export const hrOverrideAttendanceService = async ({
   }
 
   // APPLY OVERRIDES
-  if (punchIn) targetRecord.punchIn = new Date(punchIn);
-  if (punchOut) targetRecord.punchOut = new Date(punchOut);
+  if (punchIn !== undefined) {
+    targetRecord.punchIn = punchIn ? new Date(punchIn) : null;
+  }
+  if (punchOut !== undefined) {
+    targetRecord.punchOut = punchOut ? new Date(punchOut) : null;
+  }
 
   if (punches && punches.length) {
     targetRecord.punches = punches.map((p) => ({
       in: new Date(p.in),
       out: p.out ? new Date(p.out) : null,
     }));
-    if (!punchIn && targetRecord.punches[0]?.in) {
+    if (!targetRecord.punchIn && targetRecord.punches[0]?.in) {
       targetRecord.punchIn = targetRecord.punches[0].in;
     }
-    if (!punchOut && targetRecord.punches.at(-1)?.out) {
+    if (!targetRecord.punchOut && targetRecord.punches.at(-1)?.out) {
       targetRecord.punchOut = targetRecord.punches.at(-1).out;
     }
-  } else if (targetRecord.punchIn && targetRecord.punchOut) {
+  } else if (targetRecord.punchIn) {
     targetRecord.punches = [
-      { in: targetRecord.punchIn, out: targetRecord.punchOut },
+      { in: targetRecord.punchIn, out: targetRecord.punchOut || null },
     ];
+  } else {
+    targetRecord.punches = [];
   }
 
-  if (breaks.length) {
-    targetRecord.breaks = breaks.map((b) => ({
-      in: new Date(b.in),
-      out: b.out ? new Date(b.out) : null,
-    }));
+  if (Array.isArray(breaks)) {
+    targetRecord.breaks = breaks
+      .filter((b) => b && b.in)
+      .map((b) => ({
+        in: new Date(b.in),
+        out: b.out ? new Date(b.out) : null,
+      }));
   }
 
   /* ======================
@@ -1015,25 +1063,32 @@ export const hrOverrideAttendanceService = async ({
      RECALCULATE
   ====================== */
 
-  calcWorkMinutes(targetRecord);
-
   const policy = getWorkPolicy(user.role);
 
-  // Late
-  const shiftStart = new Date(targetRecord.date);
-  shiftStart.setUTCHours(policy.officeHours.start - 5, 30, 0, 0);
+  if (!targetRecord.punchIn) {
+    targetRecord.totalWorkMinutes = 0;
+    targetRecord.totalBreakMinutes = 0;
+    targetRecord.netWorkMinutes = 0;
+    targetRecord.lateMinutes = 0;
+    targetRecord.overtimeMinutes = 0;
+  } else {
+    calcWorkMinutes(targetRecord);
 
-  targetRecord.lateMinutes =
-    targetRecord.punchIn && targetRecord.punchIn > shiftStart
-      ? Math.floor((targetRecord.punchIn - shiftStart) / 60000)
-      : 0;
+    // Late: shiftStart is date + officeHours.start hours in IST
+    const shiftStart = new Date(new Date(targetRecord.date).getTime() + (policy.officeHours?.start || 10) * 3600 * 1000);
 
-  // Overtime
-  const requiredMinutes = policy.dailyHours * 60;
-  targetRecord.overtimeMinutes =
-    targetRecord.netWorkMinutes > requiredMinutes
-      ? targetRecord.netWorkMinutes - requiredMinutes
-      : 0;
+    targetRecord.lateMinutes =
+      targetRecord.punchIn && targetRecord.punchIn > shiftStart
+        ? Math.floor((targetRecord.punchIn - shiftStart) / 60000)
+        : 0;
+
+    // Overtime
+    const requiredMinutes = policy.dailyHours * 60;
+    targetRecord.overtimeMinutes =
+      targetRecord.netWorkMinutes > requiredMinutes
+        ? targetRecord.netWorkMinutes - requiredMinutes
+        : 0;
+  }
 
   // Status
   targetRecord.attendanceStatus =
@@ -1052,15 +1107,21 @@ export const hrOverrideAttendanceService = async ({
     {
       status: targetRecord.attendanceStatus,
       source: "HR",
+      remarks: "Updated via HR Override Panel",
     },
-    { upsert: true },
+    { upsert: true, new: true },
   );
 
   /* ======================
      SYNC WEEKLY
   ====================== */
 
-  await getWeeklyProgressService(userId);
+  await getWeeklyProgressService(userId, day);
+  const { weekStartUTC: currentWeekStart } = getCurrentWeekRangeIST(new Date());
+  const { weekStartUTC: overrideWeekStart } = getCurrentWeekRangeIST(day);
+  if (currentWeekStart.getTime() !== overrideWeekStart.getTime()) {
+    await getWeeklyProgressService(userId, new Date());
+  }
 
   return targetRecord;
 };

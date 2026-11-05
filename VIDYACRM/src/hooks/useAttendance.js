@@ -281,12 +281,18 @@ export const useAttendance = () => {
       }
     };
 
+    const handleAttendanceUpdated = () => {
+      syncFromServer().catch((err) => console.error("HR Override sync error:", err));
+    };
+
     window.addEventListener("focus", handleWakeUp);
     document.addEventListener("visibilitychange", handleWakeUp);
+    window.addEventListener("attendance-updated", handleAttendanceUpdated);
 
     return () => {
       window.removeEventListener("focus", handleWakeUp);
       document.removeEventListener("visibilitychange", handleWakeUp);
+      window.removeEventListener("attendance-updated", handleAttendanceUpdated);
     };
   }, [syncFromServer]);
 

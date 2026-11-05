@@ -109,7 +109,7 @@ export default function TopHeader({ onMenuClick }) {
   return (
     <>
       {/* 1. TOP REMINDER BANNER (Shown when active reminder exists for logged-in user) */}
-      {reminders.length > 0 && currentReminder && (
+      {/* {reminders.length > 0 && currentReminder && (
         <div className={styles.topReminderBanner}>
           <div className={styles.reminderLeft}>
             <span className={styles.reminderIcon}>
@@ -170,7 +170,7 @@ export default function TopHeader({ onMenuClick }) {
             )}
           </div>
         </div>
-      )}
+      )} */}
 
       {/* 2. MAIN HEADER BAR */}
       <header className={styles.topHeader}>
@@ -230,7 +230,7 @@ export default function TopHeader({ onMenuClick }) {
                                 : `in ${rem.daysLeft}d`}
                               )
                             </span>
-                            <button
+                            {/* <button
                               type="button"
                               className={styles.btnDropdownDone}
                               onClick={() => handleMarkAsDone(rem)}
@@ -238,7 +238,7 @@ export default function TopHeader({ onMenuClick }) {
                             >
                               <FiCheckCircle />
                               <span>{updatingId === rem.id ? "..." : "Done"}</span>
-                            </button>
+                            </button> */}
                           </div>
                         </div>
                       ))}

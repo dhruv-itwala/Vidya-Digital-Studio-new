@@ -32,7 +32,8 @@ class AuthRepository {
         try {
             val response = api.getProfile()
             if (response.isSuccessful && response.body()?.success == true) {
-                val user = response.body()!!.data
+                val body = response.body()!!
+                val user = body.user ?: body.data
                 user?.let { TokenManager.saveUser(it) }
                 Result.success(user ?: TokenManager.getUser() ?: UserDto())
             } else {

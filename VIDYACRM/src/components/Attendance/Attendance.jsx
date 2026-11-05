@@ -246,12 +246,26 @@ export default function Attendance() {
       }
     };
 
+    const handleAttendanceUpdated = () => {
+      if (activeTab === "live") {
+        refetchLive?.();
+      } else if (activeTab === "daily") {
+        fetchDaily(true);
+      } else if (activeTab === "range" && fromDate && toDate) {
+        fetchRange(true);
+      } else if (activeTab === "weekly" && weeklyFrom) {
+        fetchWeekly(true);
+      }
+    };
+
     window.addEventListener("focus", handleWakeUp);
     document.addEventListener("visibilitychange", handleWakeUp);
+    window.addEventListener("attendance-updated", handleAttendanceUpdated);
 
     return () => {
       window.removeEventListener("focus", handleWakeUp);
       document.removeEventListener("visibilitychange", handleWakeUp);
+      window.removeEventListener("attendance-updated", handleAttendanceUpdated);
     };
   }, [activeTab, fetchDaily, fromDate, toDate, weeklyFrom, refetchLive]);
 
