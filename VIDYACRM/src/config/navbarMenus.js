@@ -54,14 +54,14 @@ export const NAVBAR_MENUS = {
 
     "divider",
     // Clients and sales
-    { label: "Quotations", path: "/admin/quotations" },
-    { label: "Invoices", path: "/admin/invoices" },
-    { label: "Leads", path: "/admin/leads" },
+        { label: "Leads", path: "/admin/leads" },
     { label: "Clients", path: "/admin/clients" },
     { label: "WhatsApp Chats", path: "/admin/whatsapp-chats" },
 
      "divider",
      // Finance
+    { label: "Quotations", path: "/admin/quotations" },
+    { label: "Invoices", path: "/admin/invoices" },
     { label: "Finance & Cash Flow", path: "/admin/finance" },
     { label: "Expenses & Bills", path: "/admin/expenses" },
     { label: "Payroll", path: "/admin/payroll" },
@@ -113,14 +113,14 @@ export const NAVBAR_MENUS = {
     { label: "UGC Creators", path: "/hr/ugc-creators" },
     "divider",
     // Clients and sales
-    { label: "Quotations", path: "/hr/quotations" },
-    { label: "Invoices", path: "/hr/invoices" },
     { label: "Leads", path: "/hr/leads" },
     { label: "Clients", path: "/hr/clients" },
     { label: "WhatsApp Chats", path: "/hr/whatsapp-chats" },
 
      "divider",
      // Finance
+    { label: "Quotations", path: "/hr/quotations" },
+    { label: "Invoices", path: "/hr/invoices" },
     { label: "Finance & Cash Flow", path: "/hr/finance" },
     { label: "Expenses & Bills", path: "/hr/expenses" },
     { label: "Payroll", path: "/hr/payroll" },
