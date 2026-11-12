@@ -127,6 +127,8 @@ const getQrCodeDataUri = () => {
 export const generateInvoicePdfBuffer = async ({
   invoiceNumber = "IND/2026 : #1001",
   invoiceDate = "30TH OCT, 2026",
+  invoiceType = "regular",
+  amountToBePaid,
   client = {},
   items = [],
   gstEnabled = false,
@@ -140,6 +142,7 @@ export const generateInvoicePdfBuffer = async ({
   paymentTerms = [],
   notes = [],
   bankDetails = {},
+  status = "unpaid",
 }) => {
   console.time("Invoice PDF | Total Duration");
 
@@ -174,18 +177,24 @@ export const generateInvoicePdfBuffer = async ({
       upiId: bankDetails.upiId || "dheemahi2@okhdfcbank",
     };
 
-    // Calculate exact payable amount for dynamic QR Code
-    const numRemaining = Number(remainingAmount);
+    // Calculate exact payable amount for dynamic QR Code and invoice billing summary
+    const numRemaining = Number(remainingAmount) || 0;
     const numAdvance = Number(advanceAmount) || 0;
     const numTotal = Number(totalAmount) || 0;
 
     let payableAmount = 0;
-    if (numRemaining > 0) {
-      payableAmount = numRemaining;
-    } else if (numAdvance > 0 && numAdvance >= numTotal) {
-      payableAmount = 0;
+    if (typeof amountToBePaid === "number" && amountToBePaid > 0) {
+      payableAmount = Number(amountToBePaid);
+    } else if (invoiceType === "advance") {
+      payableAmount = numAdvance > 0 ? numAdvance : numTotal;
+    } else if (invoiceType === "remaining") {
+      payableAmount = numRemaining > 0 ? numRemaining : Math.max(0, numTotal - numAdvance);
     } else {
-      payableAmount = numTotal;
+      if (numAdvance > 0 && numAdvance < numTotal) {
+        payableAmount = numAdvance;
+      } else {
+        payableAmount = numTotal;
+      }
     }
 
     // Generate Dynamic NPCI UPI QR Code with pre-filled amount and invoice number
@@ -224,6 +233,8 @@ export const generateInvoicePdfBuffer = async ({
     const html = await ejs.renderFile(templatePath, {
       invoiceNumber,
       invoiceDate,
+      invoiceType,
+      amountToBePaid: payableAmount,
       client,
       items,
       gstEnabled: !!gstEnabled,
@@ -238,6 +249,7 @@ export const generateInvoicePdfBuffer = async ({
       notes: parsedNotes,
       bankDetails: finalBankDetails,
       payableAmount,
+      status,
       css,
       qrCodeDataUri,
       logoUrl:

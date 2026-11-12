@@ -83,6 +83,10 @@ export const generateInvoice = async (req, res) => {
       invoiceNumber,
       sequenceNumber,
       invoiceDate,
+      invoiceType = "regular",
+      amountToBePaid,
+      parentInvoiceId,
+      parentInvoiceNumber,
       client = {},
       items = [],
       gstEnabled = false,
@@ -140,10 +144,31 @@ export const generateInvoice = async (req, res) => {
 
     const advanceAmount = Number(rawAdvanceAmount) || 0;
 
-    const calcRemainingAmount =
-      rawRemainingAmount !== undefined
-        ? Number(rawRemainingAmount)
-        : Math.max(0, calcTotalAmount - advanceAmount);
+    let finalInvoiceType = invoiceType || "regular";
+    if (finalInvoiceType === "regular" && advanceAmount > 0 && advanceAmount < calcTotalAmount) {
+      finalInvoiceType = "advance";
+    }
+
+    let calcRemainingAmount = 0;
+    let calcAmountToBePaid = 0;
+
+    if (finalInvoiceType === "advance") {
+      calcAmountToBePaid = advanceAmount > 0 ? advanceAmount : calcTotalAmount;
+      calcRemainingAmount = Math.max(0, calcTotalAmount - advanceAmount);
+    } else if (finalInvoiceType === "remaining") {
+      calcAmountToBePaid =
+        rawRemainingAmount !== undefined
+          ? Number(rawRemainingAmount)
+          : Math.max(0, calcTotalAmount - advanceAmount);
+      calcRemainingAmount = 0;
+    } else {
+      calcAmountToBePaid = calcTotalAmount;
+      calcRemainingAmount = 0;
+    }
+
+    if (typeof amountToBePaid === "number" && amountToBePaid > 0) {
+      calcAmountToBePaid = Number(amountToBePaid);
+    }
 
     const formattedInvoiceNumber =
       invoiceNumber || `IND/${new Date().getFullYear()} : #1001`;
@@ -160,6 +185,8 @@ export const generateInvoice = async (req, res) => {
     const pdfBuffer = await generateInvoicePdfBuffer({
       invoiceNumber: formattedInvoiceNumber,
       invoiceDate: formattedInvoiceDate,
+      invoiceType: finalInvoiceType,
+      amountToBePaid: calcAmountToBePaid,
       client,
       items,
       gstEnabled: isGst,
@@ -173,6 +200,7 @@ export const generateInvoice = async (req, res) => {
       paymentTerms,
       notes,
       bankDetails,
+      status: "unpaid",
     });
 
     // Cloudinary Upload
@@ -219,6 +247,10 @@ export const generateInvoice = async (req, res) => {
         cgst: calcCgst,
         sgst: calcSgst,
         totalAmount: calcTotalAmount,
+        invoiceType: finalInvoiceType,
+        amountToBePaid: calcAmountToBePaid,
+        parentInvoiceId: parentInvoiceId || undefined,
+        parentInvoiceNumber: parentInvoiceNumber || "",
         advanceAmount,
         remainingAmount: calcRemainingAmount,
         remainingDate,
@@ -235,7 +267,7 @@ export const generateInvoice = async (req, res) => {
           : undefined,
         pdfUrl,
         cloudinaryPublicId,
-        status: advanceAmount >= calcTotalAmount ? "paid" : advanceAmount > 0 ? "partial" : "unpaid",
+        status: "unpaid",
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
@@ -365,6 +397,8 @@ export const updateInvoice = async (req, res) => {
     const {
       invoiceNumber = invoice.invoiceNumber,
       invoiceDate = invoice.invoiceDate,
+      invoiceType = invoice.invoiceType || "regular",
+      amountToBePaid,
       client = invoice.client,
       items = invoice.items,
       gstEnabled = invoice.gstEnabled,
@@ -385,12 +419,36 @@ export const updateInvoice = async (req, res) => {
     const calcSgst = isGst ? Math.round(calcSubtotal * 0.09) : 0;
     const calcTotalAmount = calcSubtotal + calcCgst + calcSgst;
     const numAdvance = Number(advanceAmount) || 0;
-    const calcRemainingAmount = Math.max(0, calcTotalAmount - numAdvance);
+
+    let finalInvoiceType = invoiceType;
+    if (finalInvoiceType === "regular" && numAdvance > 0 && numAdvance < calcTotalAmount) {
+      finalInvoiceType = "advance";
+    }
+
+    let calcRemainingAmount = 0;
+    let calcAmountToBePaid = 0;
+
+    if (finalInvoiceType === "advance") {
+      calcAmountToBePaid = numAdvance > 0 ? numAdvance : calcTotalAmount;
+      calcRemainingAmount = Math.max(0, calcTotalAmount - numAdvance);
+    } else if (finalInvoiceType === "remaining") {
+      calcAmountToBePaid = Math.max(0, calcTotalAmount - numAdvance);
+      calcRemainingAmount = 0;
+    } else {
+      calcAmountToBePaid = calcTotalAmount;
+      calcRemainingAmount = 0;
+    }
+
+    if (typeof amountToBePaid === "number" && amountToBePaid > 0) {
+      calcAmountToBePaid = Number(amountToBePaid);
+    }
 
     // Regenerate PDF Buffer
     const pdfBuffer = await generateInvoicePdfBuffer({
       invoiceNumber,
       invoiceDate,
+      invoiceType: finalInvoiceType,
+      amountToBePaid: calcAmountToBePaid,
       client,
       items,
       gstEnabled: isGst,
@@ -404,6 +462,7 @@ export const updateInvoice = async (req, res) => {
       paymentTerms,
       notes,
       bankDetails,
+      status: invoice.status || "unpaid",
     });
 
     // Upload updated PDF to Cloudinary & delete old file
@@ -445,6 +504,8 @@ export const updateInvoice = async (req, res) => {
     invoice.cgst = calcCgst;
     invoice.sgst = calcSgst;
     invoice.totalAmount = calcTotalAmount;
+    invoice.invoiceType = finalInvoiceType;
+    invoice.amountToBePaid = calcAmountToBePaid;
     invoice.advanceAmount = numAdvance;
     invoice.remainingAmount = calcRemainingAmount;
     invoice.remainingDate = remainingDate;
@@ -453,8 +514,9 @@ export const updateInvoice = async (req, res) => {
     invoice.bankDetails = bankDetails;
     invoice.pdfUrl = pdfUrl;
     invoice.cloudinaryPublicId = cloudinaryPublicId;
-    invoice.status =
-      numAdvance >= calcTotalAmount ? "paid" : numAdvance > 0 ? "partial" : "unpaid";
+    if (!invoice.status) {
+      invoice.status = "unpaid";
+    }
 
     await invoice.save();
 
@@ -546,11 +608,16 @@ export const updateInvoiceStatus = async (req, res) => {
     }
 
     let deltaReceived = 0;
+    const invoiceBillAmount =
+      invoice.amountToBePaid ||
+      (invoice.invoiceType === "advance"
+        ? invoice.advanceAmount || invoice.totalAmount
+        : invoice.invoiceType === "remaining"
+        ? invoice.remainingAmount || Math.max(0, invoice.totalAmount - (invoice.advanceAmount || 0))
+        : invoice.totalAmount);
 
     if (normalizedStatus === "received" || normalizedStatus === "paid") {
-      deltaReceived = Math.max(0, invoice.totalAmount - (invoice.advanceAmount || 0));
-      invoice.advanceAmount = invoice.totalAmount;
-      invoice.remainingAmount = 0;
+      deltaReceived = receivedAmount && Number(receivedAmount) > 0 ? Number(receivedAmount) : invoiceBillAmount;
       invoice.status = "paid";
     } else if (normalizedStatus === "partial received" || normalizedStatus === "partial") {
       const added = Number(receivedAmount);
@@ -561,13 +628,9 @@ export const updateInvoiceStatus = async (req, res) => {
         });
       }
       deltaReceived = added;
-      const currentAdvance = invoice.advanceAmount || 0;
-      invoice.advanceAmount = Math.min(invoice.totalAmount, currentAdvance + added);
-      invoice.remainingAmount = Math.max(0, invoice.totalAmount - invoice.advanceAmount);
-      invoice.status = invoice.remainingAmount === 0 ? "paid" : "partial";
+      invoice.status = added >= invoiceBillAmount ? "paid" : "partial";
     } else if (normalizedStatus === "pending" || normalizedStatus === "unpaid") {
-      invoice.status = (invoice.advanceAmount || 0) > 0 ? "partial" : "unpaid";
-      invoice.remainingAmount = Math.max(0, invoice.totalAmount - (invoice.advanceAmount || 0));
+      invoice.status = "unpaid";
     }
 
     // Regenerate PDF with updated advance & remaining amounts & dynamic amount QR code
@@ -575,6 +638,8 @@ export const updateInvoiceStatus = async (req, res) => {
       const pdfBuffer = await generateInvoicePdfBuffer({
         invoiceNumber: invoice.invoiceNumber,
         invoiceDate: invoice.invoiceDate,
+        invoiceType: invoice.invoiceType,
+        amountToBePaid: invoice.status === "paid" ? 0 : invoice.amountToBePaid,
         client: invoice.client,
         items: invoice.items,
         gstEnabled: invoice.gstEnabled,
@@ -588,6 +653,7 @@ export const updateInvoiceStatus = async (req, res) => {
         paymentTerms: invoice.paymentTerms,
         notes: invoice.notes,
         bankDetails: invoice.bankDetails,
+        status: invoice.status,
       });
 
       const sanitizedName = (invoice.client?.companyName || invoice.client?.name || "Invoice")

@@ -9,6 +9,7 @@ import {
   getInvoiceByIdAPI,
   updateInvoiceAPI,
 } from "../../api/invoice.api";
+import { generateUpiUrl, generateQrSvg } from "../../utils/qrGenerator";
 import InvoicePreviewModal from "./InvoicePreviewModal";
 import { Images } from "../../assets/Data/images";
 import styles from "./InvoiceBuilderPage.module.css";
@@ -82,7 +83,10 @@ export default function InvoiceBuilderPage() {
   ]);
 
   const [gstEnabled, setGstEnabled] = useState(false);
-  const [advanceAmount, setAdvanceAmount] = useState(0);
+  const [invoiceType, setInvoiceType] = useState("advance"); // "advance" | "remaining" | "regular"
+  const [parentInvoiceId, setParentInvoiceId] = useState("");
+  const [parentInvoiceNumber, setParentInvoiceNumber] = useState("");
+  const [advanceAmount, setAdvanceAmount] = useState(7500);
   const [remainingDate, setRemainingDate] = useState("");
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState(DEFAULT_TERMS);
@@ -155,6 +159,15 @@ export default function InvoiceBuilderPage() {
             }
             setGstEnabled(Boolean(inv.gstEnabled));
             setAdvanceAmount(Number(inv.advanceAmount) || 0);
+            if (inv.invoiceType) {
+              setInvoiceType(inv.invoiceType);
+            } else if (Number(inv.advanceAmount) > 0 && Number(inv.advanceAmount) < Number(inv.totalAmount)) {
+              setInvoiceType("advance");
+            } else {
+              setInvoiceType("regular");
+            }
+            if (inv.parentInvoiceId) setParentInvoiceId(inv.parentInvoiceId);
+            if (inv.parentInvoiceNumber) setParentInvoiceNumber(inv.parentInvoiceNumber);
             setRemainingDate(inv.remainingDate || "");
             if (Array.isArray(inv.notes)) {
               setNotes(inv.notes.join("\n"));
@@ -183,8 +196,53 @@ export default function InvoiceBuilderPage() {
             const list = clientRes.value.data.data || [];
             setCrmClients(list);
             const searchParams = new URLSearchParams(location.search);
+            const parentId = searchParams.get("parentInvoiceId");
+            const typeParam = searchParams.get("type");
+
+            if (parentId) {
+              try {
+                const parentRes = await getInvoiceByIdAPI(parentId);
+                if (parentRes.data?.success && isMounted) {
+                  const pInv = parentRes.data.data;
+                  setParentInvoiceId(pInv._id);
+                  setParentInvoiceNumber(pInv.invoiceNumber);
+                  setInvoiceType("remaining");
+                  if (pInv.client) {
+                    setClient({
+                      clientId: pInv.client.clientId || "",
+                      name: pInv.client.name || "",
+                      companyName: pInv.client.companyName || "",
+                      address: pInv.client.address || "",
+                      email: pInv.client.email || "",
+                      phone: pInv.client.phone || "",
+                      gstNumber: pInv.client.gstNumber || "",
+                      designation: pInv.client.designation || "Owner",
+                    });
+                  }
+                  if (Array.isArray(pInv.items) && pInv.items.length > 0) {
+                    setItems(
+                      pInv.items.map((item, idx) => ({
+                        srNo: item.srNo || idx + 1,
+                        service: item.service || "",
+                        description: item.description || "",
+                        amount: Number(item.amount) || 0,
+                      }))
+                    );
+                  }
+                  setGstEnabled(Boolean(pInv.gstEnabled));
+                  setAdvanceAmount(Number(pInv.advanceAmount) || 0);
+                  setNotes(`Remaining payment invoice against ${pInv.invoiceNumber}`);
+                  toast.success(`Prepared remaining balance invoice for ${pInv.invoiceNumber}`);
+                }
+              } catch (err) {
+                console.warn("Failed to load parent invoice for remaining flow:", err);
+              }
+            } else if (typeParam) {
+              setInvoiceType(typeParam);
+            }
+
             const preselectedId = searchParams.get("clientId");
-            if (preselectedId) {
+            if (preselectedId && !parentId) {
               const found = list.find((c) => c._id === preselectedId);
               if (found) {
                 setClient({
@@ -254,7 +312,40 @@ export default function InvoiceBuilderPage() {
   const cgst = useMemo(() => (gstEnabled ? Math.round(subtotal * 0.09) : 0), [subtotal, gstEnabled]);
   const sgst = useMemo(() => (gstEnabled ? Math.round(subtotal * 0.09) : 0), [subtotal, gstEnabled]);
   const totalAmount = useMemo(() => subtotal + cgst + sgst, [subtotal, cgst, sgst]);
-  const remainingAmount = useMemo(() => Math.max(0, totalAmount - (Number(advanceAmount) || 0)), [totalAmount, advanceAmount]);
+
+  const amountToBePaid = useMemo(() => {
+    if (invoiceType === "advance") {
+      return Number(advanceAmount) || 0;
+    } else if (invoiceType === "remaining") {
+      return Math.max(0, totalAmount - (Number(advanceAmount) || 0));
+    } else {
+      return totalAmount;
+    }
+  }, [invoiceType, totalAmount, advanceAmount]);
+
+  const remainingBalance = useMemo(() => {
+    if (invoiceType === "advance") {
+      return Math.max(0, totalAmount - (Number(advanceAmount) || 0));
+    } else {
+      return 0;
+    }
+  }, [invoiceType, totalAmount, advanceAmount]);
+
+  // Dynamic QR Code SVG for live preview
+  const qrSvg = useMemo(() => {
+    if (amountToBePaid <= 0) return null;
+    try {
+      const upiUrl = generateUpiUrl({
+        upiId: bankDetails.upiId,
+        payeeName: "Vidya Digital Studio",
+        amount: amountToBePaid,
+        note: `Invoice ${invoiceNumber}`,
+      });
+      return generateQrSvg(upiUrl, 100, 2);
+    } catch (e) {
+      return null;
+    }
+  }, [bankDetails.upiId, amountToBePaid, invoiceNumber]);
 
   // Service Row Actions
   const handleAddItem = () => {
@@ -317,6 +408,10 @@ export default function InvoiceBuilderPage() {
       const payload = {
         invoiceNumber,
         invoiceDate,
+        invoiceType,
+        amountToBePaid,
+        parentInvoiceId: parentInvoiceId || undefined,
+        parentInvoiceNumber: parentInvoiceNumber || undefined,
         client,
         items,
         gstEnabled,
@@ -325,7 +420,7 @@ export default function InvoiceBuilderPage() {
         sgst,
         totalAmount,
         advanceAmount: Number(advanceAmount) || 0,
-        remainingAmount,
+        remainingAmount: remainingBalance,
         remainingDate,
         paymentTerms: terms,
         notes: notes
@@ -409,6 +504,18 @@ export default function InvoiceBuilderPage() {
               : "Generate modern 3-page studio invoice with terms & QR payment"}
           </p>
         </div>
+
+        {parentInvoiceNumber && (
+          <div className={styles.parentInvoiceNotice}>
+            <div>
+              <span className={styles.parentNoticeTitle}>Remaining Balance Settlement Invoice</span>
+              <span style={{ marginLeft: "8px" }}>
+                Creating balance invoice linked to Advance Invoice: <strong>{parentInvoiceNumber}</strong>
+              </span>
+            </div>
+            <span className={styles.cardBadge}>Remaining Invoice</span>
+          </div>
+        )}
 
         <div className={styles.workspaceLayout}>
           {/* Main Form Column */}
@@ -601,12 +708,58 @@ export default function InvoiceBuilderPage() {
               </button>
             </div>
 
-            {/* Card 3: GST & Advance Payment */}
+            {/* Card 3: GST & Payment Breakdown */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitle}>
                   <FiDollarSign className={styles.cardTitleIcon} />
                   <span>Tax &amp; Payment Breakdown</span>
+                </div>
+              </div>
+
+              {/* Invoice Type Selection */}
+              <div className={styles.typeSelectorWrap}>
+                <label className={styles.label}>Invoice Purpose / Type:</label>
+                <div className={styles.typeSelectorGrid}>
+                  <button
+                    type="button"
+                    className={`${styles.typeOptionBtn} ${invoiceType === "advance" ? styles.typeOptionActive : ""}`}
+                    onClick={() => {
+                      setInvoiceType("advance");
+                      if (!advanceAmount || advanceAmount === totalAmount) {
+                        setAdvanceAmount(Math.round(totalAmount * 0.5));
+                      }
+                    }}
+                  >
+                    <span className={styles.typeOptionTitle}>Advance Invoice</span>
+                    <span className={styles.typeOptionSubtitle}>Upfront deposit to start work</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.typeOptionBtn} ${invoiceType === "remaining" ? styles.typeOptionActive : ""}`}
+                    onClick={() => {
+                      setInvoiceType("remaining");
+                      if (!advanceAmount) {
+                        setAdvanceAmount(Math.round(totalAmount * 0.5));
+                      }
+                    }}
+                  >
+                    <span className={styles.typeOptionTitle}>Remaining Invoice</span>
+                    <span className={styles.typeOptionSubtitle}>Final balance after advance</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.typeOptionBtn} ${invoiceType === "regular" ? styles.typeOptionActive : ""}`}
+                    onClick={() => {
+                      setInvoiceType("regular");
+                      setAdvanceAmount(0);
+                    }}
+                  >
+                    <span className={styles.typeOptionTitle}>Full Invoice</span>
+                    <span className={styles.typeOptionSubtitle}>100% full invoice payment</span>
+                  </button>
                 </div>
               </div>
 
@@ -629,30 +782,56 @@ export default function InvoiceBuilderPage() {
               </div>
 
               <div className={styles.inputGrid2}>
-                <div className={styles.inputField}>
-                  <label className={styles.label}>Advance Amount Paid (₹)</label>
-                  <input
-                    type="number"
-                    className={styles.inputControl}
-                    value={advanceAmount || ""}
-                    onChange={(e) => setAdvanceAmount(Number(e.target.value) || 0)}
-                    placeholder="0"
-                  />
-                  <div className={styles.chipGroup}>
-                    <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.25))}>
-                      25%
-                    </button>
-                    <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.5))}>
-                      50%
-                    </button>
-                    <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(totalAmount)}>
-                      100% (Paid)
-                    </button>
+                {invoiceType === "advance" && (
+                  <div className={styles.inputField}>
+                    <label className={styles.label}>Advance amount to be pay (₹)</label>
+                    <input
+                      type="number"
+                      className={styles.inputControl}
+                      value={advanceAmount || ""}
+                      onChange={(e) => setAdvanceAmount(Number(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                    <div className={styles.chipGroup}>
+                      <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.25))}>
+                        25%
+                      </button>
+                      <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.5))}>
+                        50%
+                      </button>
+                      <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.75))}>
+                        75%
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {invoiceType === "remaining" && (
+                  <div className={styles.inputField}>
+                    <label className={styles.label}>Advance amount already paid (₹)</label>
+                    <input
+                      type="number"
+                      className={styles.inputControl}
+                      value={advanceAmount || ""}
+                      onChange={(e) => setAdvanceAmount(Number(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                    <div className={styles.chipGroup}>
+                      <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.25))}>
+                        25%
+                      </button>
+                      <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.5))}>
+                        50%
+                      </button>
+                      <button type="button" className={styles.chipBtn} onClick={() => setAdvanceAmount(Math.round(totalAmount * 0.75))}>
+                        75%
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className={styles.inputField}>
-                  <label className={styles.label}>Remaining Payment Due Date</label>
+                  <label className={styles.label}>Last date to pay this invoice</label>
                   <input
                     type="date"
                     className={styles.inputControl}
@@ -660,6 +839,25 @@ export default function InvoiceBuilderPage() {
                     onChange={(e) => setRemainingDate(e.target.value)}
                   />
                 </div>
+              </div>
+
+              {/* Informational Callout */}
+              <div className={styles.breakdownCallout}>
+                {invoiceType === "advance" && (
+                  <div>
+                    Client will receive this invoice requesting an advance of <strong>₹{amountToBePaid.toLocaleString("en-IN")}</strong>. Remaining balance of <strong>₹{remainingBalance.toLocaleString("en-IN")}</strong> will remain due for a subsequent invoice.
+                  </div>
+                )}
+                {invoiceType === "remaining" && (
+                  <div>
+                    Client will receive this invoice for the remaining balance of <strong>₹{amountToBePaid.toLocaleString("en-IN")}</strong> (Total project ₹{totalAmount.toLocaleString("en-IN")} minus ₹{(Number(advanceAmount) || 0).toLocaleString("en-IN")} advance already settled).
+                  </div>
+                )}
+                {invoiceType === "regular" && (
+                  <div>
+                    Standard invoice requesting full payment of <strong>₹{totalAmount.toLocaleString("en-IN")}</strong>.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -767,12 +965,20 @@ export default function InvoiceBuilderPage() {
                 </div>
 
                 <div className={styles.qrWrap}>
-                  <img
-                    src={Images.payment_qr}
-                    alt="Payment QR Code"
-                    className={styles.qrImg}
-                  />
-                  <span className={styles.qrCaption}>Scan to Pay via UPI</span>
+                  {qrSvg ? (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: qrSvg }}
+                      style={{ display: "inline-block", width: "100px", height: "100px" }}
+                    />
+                  ) : (
+                    <img
+                      src={Images.payment_qr}
+                      alt="Payment QR Code"
+                      className={styles.qrImg}
+                    />
+                  )}
+                  <span className={styles.qrCaption}>Scan to Pay ₹{amountToBePaid.toLocaleString("en-IN")}</span>
+                  <span style={{ fontSize: "9.5px", color: "#64748b" }}>Pre-filled in UPI Apps</span>
                 </div>
               </div>
             </div>
@@ -806,20 +1012,45 @@ export default function InvoiceBuilderPage() {
                 <span>₹{totalAmount.toLocaleString("en-IN")}</span>
               </div>
 
-              <div className={`${styles.summaryRow} ${styles.advanceRow}`} style={{ marginTop: "12px" }}>
-                <span>Advance Paid:</span>
-                <span>₹{(Number(advanceAmount) || 0).toLocaleString("en-IN")}</span>
-              </div>
+              {invoiceType === "advance" && (
+                <>
+                  <div className={styles.amountToPayHighlight}>
+                    <div className={styles.amountToPayLabel}>Amount to be paid in this invoice:</div>
+                    <div className={styles.amountToPayVal}>₹{amountToBePaid.toLocaleString("en-IN")}</div>
+                  </div>
 
-              <div className={`${styles.summaryRow} ${styles.dueRow}`}>
-                <span>Remaining Due:</span>
-                <span>₹{remainingAmount.toLocaleString("en-IN")}</span>
-              </div>
+                  <div className={`${styles.summaryRow} ${styles.dueRow}`} style={{ marginTop: "10px" }}>
+                    <span>Remaining Balance (Due Later):</span>
+                    <span>₹{remainingBalance.toLocaleString("en-IN")}</span>
+                  </div>
+                </>
+              )}
+
+              {invoiceType === "remaining" && (
+                <>
+                  <div className={`${styles.summaryRow} ${styles.advanceRow}`} style={{ marginTop: "10px" }}>
+                    <span>Advance Already Paid:</span>
+                    <span>₹{(Number(advanceAmount) || 0).toLocaleString("en-IN")}</span>
+                  </div>
+
+                  <div className={styles.amountToPayHighlight}>
+                    <div className={styles.amountToPayLabel}>Amount to be paid in this invoice:</div>
+                    <div className={styles.amountToPayVal}>₹{amountToBePaid.toLocaleString("en-IN")}</div>
+                  </div>
+                </>
+              )}
+
+              {invoiceType === "regular" && (
+                <div className={styles.amountToPayHighlight}>
+                  <div className={styles.amountToPayLabel}>Amount to be paid in this invoice:</div>
+                  <div className={styles.amountToPayVal}>₹{amountToBePaid.toLocaleString("en-IN")}</div>
+                </div>
+              )}
 
               {remainingDate && (
-                <div className={styles.summaryRow} style={{ fontSize: "11.5px" }}>
-                  <span>Due Date:</span>
-                  <span>{remainingDate}</span>
+                <div className={styles.summaryRow} style={{ fontSize: "11.5px", marginTop: "10px" }}>
+                  <span>Last date to pay this invoice:</span>
+                  <span style={{ fontWeight: 600 }}>{remainingDate}</span>
                 </div>
               )}
 

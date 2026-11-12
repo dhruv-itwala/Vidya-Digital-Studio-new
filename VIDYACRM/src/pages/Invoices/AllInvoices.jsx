@@ -82,19 +82,29 @@ export default function AllInvoices() {
   // KPIs
   const stats = useMemo(() => {
     let totalBilled = 0;
-    let totalAdvance = 0;
+    let totalCollected = 0;
     let totalPending = 0;
 
     invoices.forEach((inv) => {
+      const bill =
+        Number(inv.amountToBePaid) ||
+        (inv.invoiceType === "advance"
+          ? Number(inv.advanceAmount) || Number(inv.totalAmount) || 0
+          : Number(inv.totalAmount) || 0);
+
       totalBilled += Number(inv.totalAmount || 0);
-      totalAdvance += Number(inv.advanceAmount || 0);
-      totalPending += Number(inv.remainingAmount || 0);
+      const st = (inv.status || "unpaid").toLowerCase();
+      if (st === "paid" || st === "received") {
+        totalCollected += bill;
+      } else {
+        totalPending += bill;
+      }
     });
 
     return {
       count: invoices.length,
       billed: totalBilled,
-      collected: totalAdvance,
+      collected: totalCollected,
       pending: totalPending,
     };
   }, [invoices]);
@@ -166,7 +176,7 @@ export default function AllInvoices() {
               <FiCheckCircle />
             </div>
             <div className={styles.metricInfo}>
-              <span className={styles.metricLabel}>Collected Advance</span>
+              <span className={styles.metricLabel}>Collected Payments</span>
               <span className={styles.metricValue}>₹{stats.collected.toLocaleString("en-IN")}</span>
             </div>
           </div>
@@ -176,7 +186,7 @@ export default function AllInvoices() {
               <FiClock />
             </div>
             <div className={styles.metricInfo}>
-              <span className={styles.metricLabel}>Pending Balance</span>
+              <span className={styles.metricLabel}>Pending Payments</span>
               <span className={styles.metricValue}>₹{stats.pending.toLocaleString("en-IN")}</span>
             </div>
           </div>
@@ -229,7 +239,7 @@ export default function AllInvoices() {
                   <th>Issue Date</th>
                   <th>Billed To</th>
                   <th>Total Amount</th>
-                  <th>Advance / Pending</th>
+                  <th>Advance / Current Due</th>
                   <th>Status</th>
                   <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
@@ -237,14 +247,52 @@ export default function AllInvoices() {
               <tbody>
                 {filteredInvoices.map((inv) => {
                   const status = (inv.status || "unpaid").toLowerCase();
+                  const isPaid = status === "paid" || status === "received";
                   let badgeClass = styles.statusUnpaid;
-                  if (status === "paid" || status === "received") badgeClass = styles.statusPaid;
+                  if (isPaid) badgeClass = styles.statusPaid;
                   else if (status === "partial" || status === "partial received") badgeClass = styles.statusPartial;
+
+                  const total = Number(inv.totalAmount || 0);
+                  const advance = Number(inv.advanceAmount || 0);
+                  const remaining =
+                    typeof inv.remainingAmount === "number"
+                      ? inv.remainingAmount
+                      : Math.max(0, total - advance);
+
+                  // Detect type with fallback for old invoices
+                  const isAdvance =
+                    inv.invoiceType === "advance" ||
+                    (!inv.invoiceType && advance > 0 && advance < total);
+                  const isRemaining = inv.invoiceType === "remaining";
+
+                  // Calculate exact current due
+                  const currentDue = isPaid
+                    ? 0
+                    : typeof inv.remainingAmount === "number" && inv.remainingAmount > 0
+                    ? inv.remainingAmount
+                    : inv.amountToBePaid || Math.max(0, total - advance);
 
                   return (
                     <tr key={inv._id || inv.invoiceNumber}>
                       <td>
-                        <span className={styles.invBadge}>{inv.invoiceNumber}</span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                          <span className={styles.invBadge}>{inv.invoiceNumber}</span>
+                          {isAdvance && (
+                            <span style={{ fontSize: "10px", fontWeight: 700, color: "#0369a1", background: "#e0f2fe", padding: "1px 6px", borderRadius: "4px", width: "fit-content" }}>
+                              Advance Inv
+                            </span>
+                          )}
+                          {isRemaining && (
+                            <span style={{ fontSize: "10px", fontWeight: 700, color: "#6b21a8", background: "#f3e8ff", padding: "1px 6px", borderRadius: "4px", width: "fit-content" }}>
+                              Remaining Inv
+                            </span>
+                          )}
+                          {!isAdvance && !isRemaining && (
+                            <span style={{ fontSize: "10px", fontWeight: 700, color: "#475569", background: "#f1f5f9", padding: "1px 6px", borderRadius: "4px", width: "fit-content" }}>
+                              Full Inv
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td>{inv.invoiceDate || "—"}</td>
                       <td>
@@ -259,16 +307,54 @@ export default function AllInvoices() {
                       </td>
                       <td>
                         <strong style={{ fontVariantNumeric: "tabular-nums" }}>
-                          ₹{(inv.totalAmount || 0).toLocaleString("en-IN")}
+                          ₹{total.toLocaleString("en-IN")}
                         </strong>
                       </td>
                       <td>
                         <div className={styles.amountGroup}>
-                          <span>Advance: ₹{(inv.advanceAmount || 0).toLocaleString("en-IN")}</span>
-                          {inv.remainingAmount > 0 && (
-                            <span className={styles.amountBalance}>
-                              Due: ₹{inv.remainingAmount.toLocaleString("en-IN")}
-                            </span>
+                          {isAdvance ? (
+                            <>
+                              <span style={{ color: "#0f5c44", fontWeight: 700 }}>
+                                Pay: ₹{(inv.amountToBePaid || advance || total).toLocaleString("en-IN")}
+                              </span>
+                              {currentDue > 0 ? (
+                                <span className={styles.amountBalance} style={{ color: "#dc2626", fontWeight: 700 }}>
+                                  Due: ₹{currentDue.toLocaleString("en-IN")}
+                                </span>
+                              ) : (
+                                <span style={{ color: "#059669", fontSize: "11px", fontWeight: 700 }}>
+                                  Paid
+                                </span>
+                              )}
+                            </>
+                          ) : isRemaining ? (
+                            <>
+                              <span style={{ color: "#0f5c44", fontWeight: 700 }}>
+                                Balance: ₹{(inv.amountToBePaid || currentDue || remaining).toLocaleString("en-IN")}
+                              </span>
+                              {advance > 0 && (
+                                <span style={{ fontSize: "11px", color: "#64748b" }}>
+                                  Adv: ₹{advance.toLocaleString("en-IN")}
+                                </span>
+                              )}
+                              {currentDue > 0 && (
+                                <span className={styles.amountBalance} style={{ color: "#dc2626", fontWeight: 700 }}>
+                                  Due: ₹{currentDue.toLocaleString("en-IN")}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            // Old invoices or regular/full invoices
+                            <>
+                              {advance > 0 && (
+                                <span style={{ fontSize: "11px", color: "#0f5c44", fontWeight: 600 }}>
+                                  Adv: ₹{advance.toLocaleString("en-IN")}
+                                </span>
+                              )}
+                              <span className={styles.amountBalance} style={{ color: currentDue > 0 ? "#dc2626" : "#059669", fontWeight: 700 }}>
+                                {currentDue > 0 ? `Due: ₹${currentDue.toLocaleString("en-IN")}` : "Paid in Full"}
+                              </span>
+                            </>
                           )}
                         </div>
                       </td>
@@ -279,6 +365,18 @@ export default function AllInvoices() {
                       </td>
                       <td>
                         <div className={styles.actionsCell} style={{ justifyContent: "flex-end" }}>
+                          {(isAdvance || (remaining > 0 && !isRemaining)) && (
+                            <Link
+                              to={`${basePath}/create-invoice?parentInvoiceId=${inv._id}`}
+                              className={styles.tableActionBtn}
+                              style={{ color: "#6b21a8", borderColor: "#e9d5ff", background: "#faf5ff" }}
+                              title="Generate Remaining Balance Invoice"
+                            >
+                              <FiPlus size={13} />
+                              <span>Remaining Inv</span>
+                            </Link>
+                          )}
+
                           <button
                             type="button"
                             className={styles.tableActionBtn}

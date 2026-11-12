@@ -45,9 +45,11 @@ export const getFinanceDashboardMetrics = asyncHandler(async (req, res) => {
   const overdueInvoiceList = [];
 
   invoices.forEach((inv) => {
-    // If remainingAmount is explicitly stored, use it; otherwise compute from totalAmount - advanceAmount
+    // If amountToBePaid is set, use it; otherwise remainingAmount or total - advance
     const remaining =
-      typeof inv.remainingAmount === "number"
+      typeof inv.amountToBePaid === "number" && inv.amountToBePaid > 0
+        ? inv.amountToBePaid
+        : typeof inv.remainingAmount === "number"
         ? inv.remainingAmount
         : Math.max(0, (inv.totalAmount || 0) - (inv.advanceAmount || 0));
 

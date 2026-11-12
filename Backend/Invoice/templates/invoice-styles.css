@@ -244,6 +244,17 @@ body {
   margin-bottom: 6px;
 }
 
+.amount-to-pay-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 /* ================= PAGE 2: PAYMENT TERMS & NOTES ================= */
 .terms-list {
   margin: 12px 0 20px 0;

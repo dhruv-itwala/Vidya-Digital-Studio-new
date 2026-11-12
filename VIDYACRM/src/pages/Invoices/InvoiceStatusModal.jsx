@@ -17,18 +17,24 @@ export default function InvoiceStatusModal({ isOpen, onClose, invoice, onUpdated
 
   useEffect(() => {
     if (isOpen && invoice) {
+      const total = Number(invoice.totalAmount) || 0;
+      const advance = Number(invoice.advanceAmount) || 0;
       const remaining =
         typeof invoice.remainingAmount === "number"
           ? invoice.remainingAmount
-          : Math.max(0, (invoice.totalAmount || 0) - (invoice.advanceAmount || 0));
+          : Math.max(0, total - advance);
 
-      if (remaining > 0) {
-        setStatus("received");
-        setReceivedAmount(remaining);
-      } else {
-        setStatus("received");
-        setReceivedAmount(0);
-      }
+      const invoiceType =
+        invoice.invoiceType ||
+        (advance > 0 && advance < total ? "advance" : "regular");
+
+      const due =
+        invoice.status === "paid" || invoice.status === "received"
+          ? 0
+          : invoice.amountToBePaid || (remaining > 0 ? remaining : total);
+
+      setStatus("received");
+      setReceivedAmount(due);
 
       setNotes(`Payment for ${invoice.invoiceNumber}`);
 
@@ -49,7 +55,21 @@ export default function InvoiceStatusModal({ isOpen, onClose, invoice, onUpdated
 
   const total = Number(invoice.totalAmount) || 0;
   const currentAdvance = Number(invoice.advanceAmount) || 0;
-  const currentDue = Math.max(0, total - currentAdvance);
+  const remaining =
+    typeof invoice.remainingAmount === "number"
+      ? invoice.remainingAmount
+      : Math.max(0, total - currentAdvance);
+
+  const invoiceType =
+    invoice.invoiceType ||
+    (currentAdvance > 0 && currentAdvance < total ? "advance" : "regular");
+
+  const currentDue =
+    invoice.status === "paid" || invoice.status === "received"
+      ? 0
+      : invoice.amountToBePaid || (remaining > 0 ? remaining : total);
+
+  const invoiceBillAmount = currentDue;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,7 +79,7 @@ export default function InvoiceStatusModal({ isOpen, onClose, invoice, onUpdated
       if (!added || added <= 0) {
         return toast.error("Please enter a valid partial amount received.");
       }
-      if (added > currentDue) {
+      if (added > currentDue && currentDue > 0) {
         return toast.error(`Received amount cannot exceed current balance due (₹${currentDue.toLocaleString("en-IN")})`);
       }
     }
@@ -124,7 +144,7 @@ export default function InvoiceStatusModal({ isOpen, onClose, invoice, onUpdated
           >
             <div>
               <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700 }}>
-                TOTAL INVOICE
+                TOTAL AMOUNT
               </div>
               <div style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a" }}>
                 ₹{total.toLocaleString("en-IN")}
@@ -132,17 +152,23 @@ export default function InvoiceStatusModal({ isOpen, onClose, invoice, onUpdated
             </div>
             <div>
               <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 700 }}>
-                ADVANCE PAID
+                {invoiceType === "advance"
+                  ? "ADVANCE TO PAY"
+                  : currentAdvance > 0
+                  ? "ADVANCE PAID"
+                  : "INVOICE TYPE"}
               </div>
-              <div style={{ fontSize: "1rem", fontWeight: 800, color: "#0f5c44" }}>
-                ₹{currentAdvance.toLocaleString("en-IN")}
+              <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f5c44", marginTop: "2px" }}>
+                {currentAdvance > 0
+                  ? `₹${currentAdvance.toLocaleString("en-IN")}`
+                  : (invoiceType || "REGULAR").toUpperCase()}
               </div>
             </div>
             <div>
               <div style={{ fontSize: "0.7rem", color: "#991b1b", fontWeight: 700 }}>
-                BALANCE DUE
+                CURRENT DUE
               </div>
-              <div style={{ fontSize: "1rem", fontWeight: 800, color: "#dc2626" }}>
+              <div style={{ fontSize: "1.05rem", fontWeight: 800, color: currentDue > 0 ? "#dc2626" : "#059669", marginTop: "2px" }}>
                 ₹{currentDue.toLocaleString("en-IN")}
               </div>
             </div>
