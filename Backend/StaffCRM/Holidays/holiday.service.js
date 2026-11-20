@@ -2,7 +2,7 @@
 import Attendance from "../Attendance/attendance.model.js";
 import User from "../Users/user.model.js";
 import Holiday from "./holiday.model.js";
-import { normalizeDate } from "../utils/date.utils.js";
+import { normalizeDate, getISTDayRange } from "../utils/date.utils.js";
 import AppError from "../utils/AppError.js";
 
 // =============== ALL HOLIDAYS =======================
@@ -21,8 +21,8 @@ export const getUpcomingHolidaysService = async () => {
 
 // =============== CHECK IF HOLIDAY =======================
 export const isHolidayService = async (date) => {
-  const day = normalizeDate(date);
-  return Holiday.exists({ date: day });
+  const { start, end } = getISTDayRange(date);
+  return Holiday.exists({ date: { $gte: start, $lt: end } });
 };
 
 // ============= CREATE ======================
@@ -31,10 +31,11 @@ export const createHolidayService = async (data) => {
     throw new AppError("Holiday date and name are required", 400);
   }
 
+  const { start, end } = getISTDayRange(data.date);
   const date = normalizeDate(data.date);
 
   // 🔒 Prevent duplicate holiday
-  const exists = await Holiday.exists({ date });
+  const exists = await Holiday.exists({ date: { $gte: start, $lt: end } });
   if (exists) {
     throw new AppError("Holiday already exists for this date", 409);
   }
@@ -94,12 +95,12 @@ export const deleteHolidayService = async (id) => {
     throw new AppError("Holiday not found", 404);
   }
 
-  const date = holiday.date;
+  const { start, end } = getISTDayRange(holiday.date);
 
   // Revert attendance entries created by this holiday
   await Attendance.updateMany(
     {
-      date,
+      date: { $gte: start, $lt: end },
       status: "HOLIDAY",
       source: "SYSTEM",
     },

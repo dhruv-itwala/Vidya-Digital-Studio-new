@@ -4,6 +4,7 @@ import User from "../Users/user.model.js";
 import WorkRecord from "../Attendance/workRecord.model.js";
 import Holiday from "../Holidays/holiday.model.js";
 import AppError from "../utils/AppError.js";
+import { getISTDayRange } from "../utils/date.utils.js";
 import {
   punchInService,
   punchOutService,
@@ -28,13 +29,14 @@ export const getKioskEmployeesService = async (search = "", dateStr = null) => {
     userFilter.name = { $regex: search.trim(), $options: "i" };
   }
 
+  const holRange = getISTDayRange(queryDate);
   // Fetch active users, today's work records, and holiday status concurrently
   const [users, workRecords, holiday] = await Promise.all([
     User.find(userFilter)
       .select("name role designation profilePicture")
       .lean(),
     WorkRecord.find({ date: queryDate }).lean(),
-    Holiday.findOne({ date: queryDate }).lean(),
+    Holiday.findOne({ date: { $gte: holRange.start, $lt: holRange.end } }).lean(),
   ]);
 
   const workRecordMap = new Map();
@@ -106,11 +108,12 @@ export const getKioskEmployeeStatusService = async (employeeId, dateStr = null) 
   }
 
   const queryDate = dateStr ? parseISTDateOnly(dateStr) : todayISTUTC();
+  const holRange = getISTDayRange(queryDate);
 
   const [user, record, holiday] = await Promise.all([
     User.findById(employeeId).select("name role designation profilePicture isActive").lean(),
     WorkRecord.findOne({ user: employeeId, date: queryDate }).lean(),
-    Holiday.findOne({ date: queryDate }).lean(),
+    Holiday.findOne({ date: { $gte: holRange.start, $lt: holRange.end } }).lean(),
   ]);
 
   if (!user || !user.isActive) {

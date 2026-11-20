@@ -76,9 +76,9 @@ export const generateDraftPayrollsService = async (month, year) => {
     });
 
     const isHrOverridden = att.source === "HR" || att.source === "ADMIN";
-    const isLate = isHrOverridden
+    const isLate = (att.status !== "HOLIDAY" && att.status !== "LEAVE") && (isHrOverridden
       ? att.status === "HALF_DAY"
-      : (att.status === "HALF_DAY" || (att.punchIn && isPunchInAfter1030IST(att.punchIn)));
+      : (att.status === "HALF_DAY" || (att.punchIn && isPunchInAfter1030IST(att.punchIn))));
 
     // LEAVES MODULE RULE:
     // If employee has taken an approved paid leave (CASUAL, SICK, EARNED), do NOT deduct salary!

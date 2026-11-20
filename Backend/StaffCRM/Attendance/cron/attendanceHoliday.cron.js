@@ -4,12 +4,14 @@ import { todayISTUTC } from "../utils/attendance.utils.js";
 import holidayModel from "../../Holidays/holiday.model.js";
 import userModel from "../../Users/user.model.js";
 import attendanceModel from "../attendance.model.js";
+import { getISTDayRange } from "../../utils/date.utils.js";
 
 cron.schedule(
   "0 0 * * *",
   async () => {
     const today = todayISTUTC();
-    const isHoliday = await holidayModel.findOne({ date: today });
+    const { start, end } = getISTDayRange(today);
+    const isHoliday = await holidayModel.findOne({ date: { $gte: start, $lt: end } });
 
     if (!isHoliday) return;
 

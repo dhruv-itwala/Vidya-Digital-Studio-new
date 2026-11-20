@@ -21,7 +21,7 @@ import User from "../Users/user.model.js";
 import Holiday from "../Holidays/holiday.model.js";
 import Leave from "../Leaves/leave.model.js";
 
-import { parseIST, toISTDateKey } from "../utils/date.utils.js";
+import { parseIST, toISTDateKey, getISTDayRange } from "../utils/date.utils.js";
 import AppError from "../utils/AppError.js";
 
 // ================= MY ATTENDANCE ================= */
@@ -38,56 +38,126 @@ export const getMyAttendanceService = async (userId, from, to) => {
     throw new AppError("Invalid date range", 400);
   }
 
-  const [attendances, holidays, leaves] = await Promise.all([
+  const [attendances, holidays, leaves, workRecords] = await Promise.all([
     Attendance.find({
       user: userId,
       date: { $gte: fromDate, $lte: toDate },
     }).lean(),
-    Holiday.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
+    Holiday.find({
+      $or: [
+        { date: { $gte: fromDate, $lte: toDate } },
+        {
+          date: {
+            $gte: new Date(fromDate.getTime() - 24 * 3600 * 1000),
+            $lte: new Date(toDate.getTime() + 24 * 3600 * 1000),
+          },
+        },
+      ],
+    }).lean(),
     Leave.find({
       user: userId,
       status: "APPROVED",
       fromDate: { $lte: toDate },
       toDate: { $gte: fromDate },
     }).lean(),
+    WorkRecord.find({
+      user: userId,
+      date: { $gte: fromDate, $lte: toDate },
+    }).lean(),
   ]);
 
   const attMap = new Map();
-  attendances.forEach((a) => attMap.set(a.date.getTime(), a));
+  attendances.forEach((a) => attMap.set(toISTDateKey(a.date), a));
 
   const holMap = new Map();
-  holidays.forEach((h) => holMap.set(h.date.getTime(), h));
+  holidays.forEach((h) => holMap.set(toISTDateKey(h.date), h));
+
+  const workMap = new Map();
+  workRecords.forEach((w) => workMap.set(toISTDateKey(w.date), w));
 
   const records = [];
   let current = new Date(fromDate);
   
   while (current <= toDate) {
-    const time = current.getTime();
+    const curKey = toISTDateKey(current);
+    const holiday = holMap.get(curKey);
+    const isSunday = new Date(current.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
+    const isHol = !!holiday || isSunday;
+
+    const matchingLeave = leaves.find(
+      (l) => curKey >= toISTDateKey(l.fromDate) && curKey <= toISTDateKey(l.toDate)
+    );
+
+    const att = attMap.get(curKey);
+    const work = workMap.get(curKey);
+
     let status = null;
     let remarks = null;
-    
-    if (attMap.has(time)) {
-      status = attMap.get(time).status;
-      remarks = attMap.get(time).remarks || "";
-    } else {
-      const isHol = holMap.has(time) || new Date(time + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
-      const isLeave = leaves.some(l => current >= l.fromDate && current <= l.toDate);
-      
-      if (current > nowDay) {
-        if (isHol) status = "HOLIDAY";
-        else if (isLeave) status = "LEAVE";
+    let isLateHalfDay = false;
+    let isHalfDayLeave = false;
+
+    if (att && (att.source === "HR" || att.source === "ADMIN")) {
+      // HR/Admin explicit override takes precedence
+      status = att.status;
+      remarks = att.remarks || "";
+    } else if (work?.punchIn) {
+      // If employee actually punched in on this day
+      if (isPunchInAfter1030IST(work.punchIn)) {
+        status = "HALF_DAY";
+        isLateHalfDay = true;
+        remarks = "Login after 10:30 AM (Strict Rule: Auto Half Day)";
       } else {
-        if (isHol) status = "HOLIDAY";
-        else if (isLeave) status = "LEAVE";
-        else status = "ABSENT";
+        status = att?.status || "PRESENT";
+        remarks = att?.remarks || "";
+      }
+    } else if (isHol) {
+      // Approved Holiday or Sunday -> Always Holiday, Never Absent!
+      status = "HOLIDAY";
+      remarks = holiday?.name || "Sunday";
+    } else if (matchingLeave) {
+      if (matchingLeave.type === "UNPAID") {
+        status = matchingLeave.isHalfDay ? "HALF_DAY" : "ABSENT";
+      } else {
+        status = matchingLeave.isHalfDay ? "HALF_DAY" : "LEAVE";
+      }
+      isHalfDayLeave = !!matchingLeave.isHalfDay;
+      remarks = matchingLeave.reason || "Approved Leave";
+    } else if (att) {
+      status = att.status;
+      remarks = att.remarks || "";
+    } else {
+      if (current > nowDay) {
+        status = null;
+      } else {
+        status = "ABSENT";
       }
     }
-    
+
+    if (status === "HALF_DAY") {
+      if (
+        isLateHalfDay ||
+        att?.remarks?.toLowerCase().includes("late") ||
+        att?.remarks?.includes("10:30") ||
+        (work?.punchIn && isPunchInAfter1030IST(work.punchIn))
+      ) {
+        isLateHalfDay = true;
+      } else if (matchingLeave?.isHalfDay) {
+        isHalfDayLeave = true;
+      }
+    }
+
     if (status) {
       records.push({
         date: new Date(current),
         status,
         remarks,
+        isLateHalfDay,
+        isHalfDayLeave,
+        displayStatus: isLateHalfDay
+          ? "Halfday (Late)"
+          : isHalfDayLeave
+          ? "Halfday (Leave)"
+          : status,
       });
     }
     current.setUTCDate(current.getUTCDate() + 1);
@@ -178,9 +248,11 @@ export const punchInService = async (userId) => {
   // Self-heal: ensure any dangling previous day records are closed
   await autoClosePastUnclosedWorkRecords(userId);
 
+  const { start, end } = getISTDayRange(date);
+
   const [user, isHoliday, existing] = await Promise.all([
     User.findById(userId).select("role").lean(),
-    Holiday.exists({ date }),
+    Holiday.exists({ date: { $gte: start, $lt: end } }),
     WorkRecord.findOne({ user: userId, date }),
   ]);
 
@@ -415,6 +487,7 @@ export const getAllEmployeesAttendanceService = async (date) => {
 
   const day = parseISTDateOnly(date);
   const nowDay = todayISTUTC();
+  const { start, end } = getISTDayRange(date);
 
   const [users, records, workRecords, holiday, leaves] = await Promise.all([
     User.find({
@@ -425,10 +498,10 @@ export const getAllEmployeesAttendanceService = async (date) => {
     })
       .select("name email role isTerminated terminationDate")
       .lean(),
-    Attendance.find({ date: day }).lean(),
-    WorkRecord.find({ date: day }).lean(),
-    Holiday.findOne({ date: day }).lean(),
-    Leave.find({ status: "APPROVED", fromDate: { $lte: day }, toDate: { $gte: day } }).lean(),
+    Attendance.find({ date: { $gte: start, $lt: end } }).lean(),
+    WorkRecord.find({ date: { $gte: start, $lt: end } }).lean(),
+    Holiday.findOne({ date: { $gte: start, $lt: end } }).lean(),
+    Leave.find({ status: "APPROVED", fromDate: { $lte: end }, toDate: { $gte: start } }).lean(),
   ]);
 
   const recordMap = new Map();
@@ -436,6 +509,9 @@ export const getAllEmployeesAttendanceService = async (date) => {
 
   const workRecordMap = new Map();
   workRecords.forEach((w) => workRecordMap.set(String(w.user), w));
+
+  const isSunday = new Date(day.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
+  const isHol = !!holiday || isSunday;
 
   const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
 
@@ -448,32 +524,54 @@ export const getAllEmployeesAttendanceService = async (date) => {
   return users.map((u) => {
     const att = recordMap.get(String(u._id));
     const work = workRecordMap.get(String(u._id));
+    const matchingLeave = leaves.find((l) => String(l.user) === String(u._id));
+
     let status = null;
+    let isLateHalfDay = false;
+    let isHalfDayLeave = false;
 
     if (att && (att.source === "HR" || att.source === "ADMIN")) {
       // HR/Admin explicit override takes precedence
       status = att.status;
-    } else if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
-      // Strict rule: Login after 10:30 AM IST automatically becomes HALF_DAY
-      status = "HALF_DAY";
+    } else if (work?.punchIn) {
+      if (isPunchInAfter1030IST(work.punchIn)) {
+        status = "HALF_DAY";
+        isLateHalfDay = true;
+      } else {
+        status = att?.status || "PRESENT";
+      }
+    } else if (isHol) {
+      // 🌟 APPROVED HOLIDAY OR SUNDAY -> ALWAYS HOLIDAY, NEVER ABSENT!
+      status = "HOLIDAY";
+    } else if (matchingLeave) {
+      if (matchingLeave.type === "UNPAID") {
+        status = matchingLeave.isHalfDay ? "HALF_DAY" : "ABSENT";
+      } else {
+        status = matchingLeave.isHalfDay ? "HALF_DAY" : "LEAVE";
+      }
+      isHalfDayLeave = !!matchingLeave.isHalfDay;
     } else if (att) {
       status = att.status;
     } else {
-      const isHol = holiday || new Date(day.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
-      const isLeave = leaves.some(l => String(l.user) === String(u._id));
-      
       if (day > nowDay) {
-        if (isHol) status = "HOLIDAY";
-        else if (isLeave) status = "LEAVE";
+        status = null;
       } else {
-        if (isHol) status = "HOLIDAY";
-        else if (isLeave) status = "LEAVE";
-        else status = "ABSENT";
+        status = "ABSENT";
       }
     }
 
-    const isHrOverridden = att?.source === "HR" || att?.source === "ADMIN";
-    const isLateHalfDay = isHrOverridden ? (att.status === "HALF_DAY") : isPunchInAfter1030IST(work?.punchIn);
+    if (status === "HALF_DAY") {
+      if (
+        isLateHalfDay ||
+        att?.remarks?.toLowerCase().includes("late") ||
+        att?.remarks?.includes("10:30") ||
+        (work?.punchIn && isPunchInAfter1030IST(work.punchIn))
+      ) {
+        isLateHalfDay = true;
+      } else if (matchingLeave?.isHalfDay) {
+        isHalfDayLeave = true;
+      }
+    }
 
     return {
       _id: u._id,
@@ -481,11 +579,18 @@ export const getAllEmployeesAttendanceService = async (date) => {
       email: u.email,
       role: u.role,
       status: status || "ABSENT", // Fallback
-      source: att?.source || "SYSTEM",
+      displayStatus: isLateHalfDay
+        ? "Halfday (Late)"
+        : isHalfDayLeave
+        ? "Halfday (Leave)"
+        : (status || "ABSENT"),
+      source: att?.source || (isHol ? "SYSTEM" : "SYSTEM"),
+      remarks: att?.remarks || (holiday?.name || (isSunday ? "Sunday" : "")),
       punchIn: work?.punchIn || null,
       punchOut: work?.punchOut || null,
       punches: work?.punches || (work?.punchIn ? [{ in: work.punchIn, out: work.punchOut || null }] : []),
       isLateHalfDay,
+      isHalfDayLeave,
       totalWorkMinutes: work?.totalWorkMinutes || 0,
       netWorkMinutes: work?.netWorkMinutes || 0,
     };
@@ -530,7 +635,8 @@ export const markAttendanceStatusService = async (userId, date, status) => {
     }
   }
 
-  const isHoliday = await Holiday.exists({ date: day });
+  const { start, end } = getISTDayRange(date);
+  const isHoliday = await Holiday.exists({ date: { $gte: start, $lt: end } });
   if (isHoliday && status !== "HOLIDAY") {
     throw new AppError(
       "This day is a holiday. Attendance cannot be changed.",
@@ -548,16 +654,35 @@ export const markAttendanceStatusService = async (userId, date, status) => {
 // ================= ATTENDANCE BY DATE ================= */
 export const getUserAttendanceByDateService = async (userId, date) => {
   const day = parseISTDateOnly(date);
+  const { start, end } = getISTDayRange(date);
 
-  const attendance = await Attendance.findOne({ user: userId, date: day }).lean();
+  const [attendance, isHoliday] = await Promise.all([
+    Attendance.findOne({ user: userId, date: { $gte: start, $lt: end } }).lean(),
+    Holiday.exists({ date: { $gte: start, $lt: end } }),
+  ]);
+
+  const isSunday = new Date(day.getTime() + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
+
+  if (attendance && (attendance.source === "HR" || attendance.source === "ADMIN")) {
+    return attendance;
+  }
+
+  if (isHoliday || isSunday) {
+    return {
+      user: userId,
+      date: day,
+      status: "HOLIDAY",
+      source: "SYSTEM",
+      remarks: attendance?.remarks || (isSunday ? "Sunday" : "Holiday"),
+    };
+  }
+
   if (attendance) return attendance;
-
-  const isHoliday = await Holiday.exists({ date: day });
 
   return {
     user: userId,
     date: day,
-    status: isHoliday ? "HOLIDAY" : "ABSENT",
+    status: "ABSENT",
     source: "SYSTEM",
   };
 };
@@ -588,23 +713,33 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
     User.find(userFilter).select("name email role").lean(),
     Attendance.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
     WorkRecord.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
-    Holiday.find({ date: { $gte: fromDate, $lte: toDate } }).lean(),
+    Holiday.find({
+      $or: [
+        { date: { $gte: fromDate, $lte: toDate } },
+        {
+          date: {
+            $gte: new Date(fromDate.getTime() - 24 * 3600 * 1000),
+            $lte: new Date(toDate.getTime() + 24 * 3600 * 1000),
+          },
+        },
+      ],
+    }).lean(),
     Leave.find({ status: "APPROVED", fromDate: { $lte: toDate }, toDate: { $gte: fromDate } }).lean(),
   ]);
 
   const attMap = new Map();
   attendance.forEach((a) => {
-    attMap.set(`${a.user}_${a.date.getTime()}`, a);
+    attMap.set(`${a.user}_${toISTDateKey(a.date)}`, a);
   });
 
   const workMap = new Map();
   workRecords.forEach((w) => {
-    workMap.set(`${w.user}_${w.date.getTime()}`, w);
+    workMap.set(`${w.user}_${toISTDateKey(w.date)}`, w);
   });
   
   const holMap = new Map();
   holidays.forEach((h) => {
-    holMap.set(h.date.getTime(), h);
+    holMap.set(toISTDateKey(h.date), h);
   });
 
   const priority = { admin: 1, hr: 2, employee: 3, intern: 4 };
@@ -615,14 +750,16 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
   
   while (current <= toDate) {
     const time = current.getTime();
-    const isHol = holMap.has(time) || new Date(time + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
+    const curKey = toISTDateKey(current);
+    const holiday = holMap.get(curKey);
+    const isSunday = new Date(time + 5.5 * 60 * 60 * 1000).getUTCDay() === 0;
+    const isHol = !!holiday || isSunday;
     
     for (const u of users) {
-      const key = `${u._id}_${time}`;
-      const att = attMap.get(key);
-      const work = workMap.get(key);
+      const userDateKey = `${u._id}_${curKey}`;
+      const att = attMap.get(userDateKey);
+      const work = workMap.get(userDateKey);
       
-      const curKey = toISTDateKey(current);
       const matchingLeave = leaves.find(
         (l) =>
           String(l.user) === String(u._id) &&
@@ -631,25 +768,49 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
       );
 
       let status = null;
+      let isLateHalfDay = false;
+      let isHalfDayLeave = false;
+
       if (att && (att.source === "HR" || att.source === "ADMIN")) {
         // HR/Admin explicit override takes precedence
         status = att.status;
+      } else if (work?.punchIn) {
+        if (isPunchInAfter1030IST(work.punchIn)) {
+          status = "HALF_DAY";
+          isLateHalfDay = true;
+        } else {
+          status = att?.status || "PRESENT";
+        }
+      } else if (isHol) {
+        // 🌟 APPROVED HOLIDAY OR SUNDAY -> ALWAYS HOLIDAY, NEVER ABSENT!
+        status = "HOLIDAY";
       } else if (matchingLeave) {
         if (matchingLeave.type === "UNPAID") {
           status = matchingLeave.isHalfDay ? "HALF_DAY" : "ABSENT";
         } else {
           status = matchingLeave.isHalfDay ? "HALF_DAY" : "LEAVE";
         }
-      } else if (work?.punchIn && isPunchInAfter1030IST(work.punchIn)) {
-        // Strict rule: Login after 10:30 AM IST automatically becomes HALF_DAY
-        status = "HALF_DAY";
+        isHalfDayLeave = !!matchingLeave.isHalfDay;
       } else if (att) {
         status = att.status;
       } else {
         if (current > nowDay) {
-          if (isHol) status = "HOLIDAY";
+          status = null;
         } else {
-          status = isHol ? "HOLIDAY" : "ABSENT";
+          status = "ABSENT";
+        }
+      }
+
+      if (status === "HALF_DAY") {
+        if (
+          isLateHalfDay ||
+          att?.remarks?.toLowerCase().includes("late") ||
+          att?.remarks?.includes("10:30") ||
+          (work?.punchIn && isPunchInAfter1030IST(work.punchIn))
+        ) {
+          isLateHalfDay = true;
+        } else if (matchingLeave?.isHalfDay) {
+          isHalfDayLeave = true;
         }
       }
 
@@ -695,9 +856,6 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
           netWorkMinutes = Math.max(0, totalPunchMins - formalBreakMinutes);
         }
 
-        const isHrOverridden = att?.source === "HR" || att?.source === "ADMIN";
-        const isLateHalfDay = isHrOverridden ? (att.status === "HALF_DAY") : isPunchInAfter1030IST(work?.punchIn);
-
         results.push({
           userId: u._id,
           name: u.name,
@@ -705,8 +863,13 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
           role: u.role,
           date: new Date(current),
           status,
-          source: att?.source || "SYSTEM",
-          remarks: att?.remarks || "",
+          displayStatus: isLateHalfDay
+            ? "Halfday (Late)"
+            : isHalfDayLeave
+            ? "Halfday (Leave)"
+            : status,
+          source: att?.source || (isHol ? "SYSTEM" : "SYSTEM"),
+          remarks: att?.remarks || (holiday?.name ? holiday.name : (isSunday ? "Sunday" : "")),
           punchIn: work?.punchIn || null,
           punchOut: work?.punchOut || null,
           punches,
@@ -717,6 +880,7 @@ export const getAllAttendanceByDateRangeService = async (from, to, userIds = nul
           totalWorkMinutes: work?.totalWorkMinutes || 0,
           netWorkMinutes,
           isLateHalfDay,
+          isHalfDayLeave,
         });
       }
     }

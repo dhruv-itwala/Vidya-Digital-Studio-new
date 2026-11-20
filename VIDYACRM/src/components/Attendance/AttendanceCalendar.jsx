@@ -77,6 +77,7 @@ export default function AttendanceCalendar({
         </div>
         <div className={styles.statusLegend}>
           <span className={styles.legendItem}><span className={styles.dotPresent}></span> Present</span>
+          <span className={styles.legendItem}><span className={styles.dotHalfDayLate}></span> Halfday (Late)</span>
           <span className={styles.legendItem}><span className={styles.dotHalfDay}></span> Halfday</span>
           <span className={styles.legendItem}><span className={styles.dotIncomplete}></span> Incomplete</span>
           <span className={styles.legendItem}><span className={styles.dotAbsent}></span> Absent</span>
@@ -102,20 +103,40 @@ export default function AttendanceCalendar({
           }
 
           const record = attendanceForDate(date);
-          const statusClass = record ? styles[record.status.toLowerCase()] : "";
+          let statusKey = record ? record.status.toLowerCase() : "";
+          if (record?.status === "HALF_DAY") {
+            statusKey = record.isLateHalfDay ? "half_day_late" : "half_day";
+          }
+          const statusClass = record ? (styles[statusKey] || styles[record.status.toLowerCase()] || "") : "";
+
+          const badgeText = record
+            ? record.status === "HALF_DAY"
+              ? record.isLateHalfDay
+                ? "HALFDAY (LATE)"
+                : record.isHalfDayLeave
+                ? "HALFDAY (LEAVE)"
+                : "HALFDAY"
+              : record.status.toUpperCase()
+            : "";
+
+          const cellTitle = record?.remarks
+            ? `${record.remarks} (${record.isLateHalfDay ? "Halfday - Late" : record.status})`
+            : record?.isLateHalfDay
+            ? "Halfday (Late)"
+            : record?.status || "";
 
           return (
             <div
               key={idx}
               className={`${styles.cell} ${statusClass} ${isToday(date) ? styles.today : ""}`}
-              title={record?.remarks || record?.status || ""}
+              title={cellTitle}
             >
               <div className={styles.dateNumber}>
                 <span className={styles.mobileDayName}>{WEEK_DAYS[date.getDay()]}</span>
                 {date.getDate()}
               </div>
               {record && (
-                <div className={styles.statusBadge}>{record.status.toUpperCase()}</div>
+                <div className={styles.statusBadge}>{badgeText}</div>
               )}
             </div>
           );

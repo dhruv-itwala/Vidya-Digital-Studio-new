@@ -456,7 +456,7 @@ export default function Attendance() {
                               className={styles.lateHalfDayBadge}
                               title="Login after 10:30 AM (Strict Rule: Auto Half Day)"
                             >
-                              Late (Half Day)
+                              Halfday (Late)
                             </span>
                           )}
                         </div>
@@ -521,7 +521,7 @@ export default function Attendance() {
                               className={styles.lateHalfDayBadge}
                               title="Login after 10:30 AM (Strict Rule: Auto Half Day)"
                             >
-                              Late (Half Day)
+                              Halfday (Late)
                             </span>
                           )}
                         </td>
@@ -776,15 +776,19 @@ export default function Attendance() {
                           const totalBreakMins = item.totalBreakMinutes || 0;
                           const netWorkMins = item.netWorkMinutes || 0;
 
-                          const statusClass = status
+                          const statusClass = status === "HALF_DAY" && item.isLateHalfDay
+                            ? styles.status_half_day_late || styles.status_half_day
+                            : (status
                             ? styles[`status_${status.toLowerCase()}`] || styles.status_default
-                            : styles.status_default;
+                            : styles.status_default);
 
                           return (
                             <td key={e.id} className={styles.summaryCell}>
                               <div className={styles.cellHeaderRow}>
                                 <span className={`${styles.statusPill} ${statusClass}`}>
-                                  {status || "—"}
+                                  {status === "HALF_DAY"
+                                    ? (item.isLateHalfDay ? "Halfday (Late)" : (item.isHalfDayLeave ? "Halfday (Leave)" : "Half Day"))
+                                    : (status || "—")}
                                 </span>
                                 {netWorkMins > 0 && (
                                   <span

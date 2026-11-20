@@ -118,7 +118,14 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #b45309;
+  background: #ea580c;
+}
+
+.dotHalfDayLate {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d97706;
 }
 
 /* ================= WEEK ROW ================= */
@@ -227,6 +234,15 @@
 .half_day .statusBadge {
   background: #fff7ed;
   color: #ea580c;
+}
+
+.half_day_late {
+  border-left: 4px solid #d97706;
+}
+
+.half_day_late .statusBadge {
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .holiday {

@@ -2,6 +2,7 @@ import User from "../Users/user.model.js";
 import WorkRecord from "./workRecord.model.js";
 import Holiday from "../Holidays/holiday.model.js";
 import Leave from "../Leaves/leave.model.js";
+import { getISTDayRange } from "../utils/date.utils.js";
 import {
   todayISTUTC,
   calcLiveBreakSeconds,
@@ -40,9 +41,10 @@ export const checkPunchInReminder = async (force = false) => {
     }
 
     const today = todayISTUTC();
+    const { start: holStart, end: holEnd } = getISTDayRange(new Date());
 
     // 3. Guard against Company Holidays
-    const isHoliday = await Holiday.exists({ date: today });
+    const isHoliday = await Holiday.exists({ date: { $gte: holStart, $lt: holEnd } });
     if (isHoliday) {
       console.log("[Reminder] Today is a company holiday. Skipping punch-in reminders.");
       return { success: true, notifiedCount: 0, reason: "Company holiday" };
@@ -315,8 +317,9 @@ export const sendRemindersToAllUsers = async () => {
     );
 
     const today = todayISTUTC();
+    const { start: holRangeStart, end: holRangeEnd } = getISTDayRange(new Date());
     const [isHoliday, activeUsers, recordsToday] = await Promise.all([
-      Holiday.exists({ date: today }),
+      Holiday.exists({ date: { $gte: holRangeStart, $lt: holRangeEnd } }),
       User.find({ isActive: true }).select("_id").lean(),
       WorkRecord.find({ date: today }).lean(),
     ]);

@@ -390,6 +390,11 @@
   color: #c2410c;
 }
 
+.status_half_day_late {
+  background: #fef3c7;
+  color: #b45309;
+}
+
 .status_leave {
   background: #fef3c7;
   color: #b45309;

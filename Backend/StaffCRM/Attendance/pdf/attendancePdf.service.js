@@ -26,6 +26,7 @@ const STATUS_COLOR_MAP = {
   P: "#2ecc71", // green
   A: "#e74c3c", // red
   "H-D": "#f39c12", // orange
+  "H-D (Late)": "#d97706", // amber late
   L: "#9b59b6", // purple
   WFH: "#3498db", // blue
   H: "#95a5a6", // gray
@@ -47,7 +48,10 @@ function buildAttendanceMatrixWithPunch(data = []) {
     const empKey = att.userId;
     const empName = att.name;
 
-    const status = STATUS_MAP[att.status] || "—";
+    const status =
+      att.status === "HALF_DAY" && att.isLateHalfDay
+        ? "H-D (Late)"
+        : STATUS_MAP[att.status] || "—";
 
     const punchIn = att.punchIn
       ? dayjs.utc(att.punchIn).tz(IST).format("HH:mm")
