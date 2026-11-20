@@ -29,10 +29,23 @@ export default function PaymentModal({ invoice, onClose }) {
     upiId: "dheemahi2@okhdfcbank",
   };
 
-  const amountToPay =
-    invoice.remainingAmount !== undefined
-      ? invoice.remainingAmount
-      : invoice.amount || invoice.totalAmount || 0;
+  const amountToPay = useMemo(() => {
+    if (typeof invoice.amountToBePaid === "number" && invoice.amountToBePaid > 0) {
+      return invoice.amountToBePaid;
+    }
+    if (invoice.invoiceType === "advance" && Number(invoice.advanceAmount) > 0) {
+      return Number(invoice.advanceAmount);
+    }
+    if (invoice.invoiceType === "remaining") {
+      return typeof invoice.remainingAmount === "number"
+        ? invoice.remainingAmount
+        : Math.max(0, (Number(invoice.totalAmount) || 0) - (Number(invoice.advanceAmount) || 0));
+    }
+    if (typeof invoice.remainingAmount === "number" && invoice.remainingAmount > 0) {
+      return invoice.remainingAmount;
+    }
+    return Number(invoice.amount) || Number(invoice.totalAmount) || 0;
+  }, [invoice]);
 
   const copyText = (text, key) => {
     if (!text) return;

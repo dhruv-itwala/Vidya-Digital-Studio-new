@@ -270,16 +270,21 @@ export const getClientInvoices = async (req, res, next) => {
       const total = Number(inv.totalAmount) || 0;
       const advance = Number(inv.advanceAmount) || 0;
       const remaining = typeof inv.remainingAmount === "number" ? inv.remainingAmount : Math.max(0, total - advance);
+      const normalizedStatus = normalizeClientInvoiceStatus(inv);
+      const amountToPay = inv.amountToBePaid || (inv.invoiceType === "advance" ? (advance || total) : (inv.invoiceType === "remaining" ? remaining : total));
 
       return {
         _id: inv._id,
         invoiceNumber: inv.invoiceNumber,
+        invoiceType: inv.invoiceType || "regular",
+        parentInvoiceNumber: inv.parentInvoiceNumber || "",
         title: inv.items?.map((i) => i.service).join(", ").slice(0, 80) || "Creative Services",
-        amount: total,
+        amount: amountToPay,
+        amountToBePaid: amountToPay,
         totalAmount: total,
         advanceAmount: advance,
         remainingAmount: remaining,
-        status: normalizeClientInvoiceStatus(inv),
+        status: normalizedStatus,
         issueDate: inv.invoiceDate || inv.createdAt,
         dueDate: inv.remainingDate || inv.createdAt,
         url: inv.pdfUrl,
