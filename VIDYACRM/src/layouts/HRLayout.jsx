@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar/Sidebar";
 import TopHeader from "../components/TopHeader/TopHeader";
+import AIAssistantWidget from "../components/AIAssistant/AIAssistantWidget";
 import { useSidebarState } from "../hooks/useSidebarState";
 
 export default function HRLayout() {
@@ -29,6 +30,7 @@ export default function HRLayout() {
           <Outlet />
         </main>
       </div>
+      <AIAssistantWidget />
     </div>
   );
 }

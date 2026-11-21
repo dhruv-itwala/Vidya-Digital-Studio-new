@@ -22,6 +22,24 @@ import "../StaffCRM/Tasks/cron/contentTaskReminder.cron.js";
    SYSTEM HEALTH
 ================================ */
 
+/* ================================
+   AI ASSISTANT KEEP-ALIVE
+================================ */
+cron.schedule(
+  "*/10 * * * *",
+  async () => {
+    try {
+      const baseUrl = process.env.AI_BASE_URL || "https://itwala-dhruv-delta.hf.space";
+      await fetch(`${baseUrl}/ping`, { method: "GET" }).catch(() => {});
+    } catch (e) {
+      // Non-blocking ping
+    }
+  },
+  {
+    timezone: "Asia/Kolkata",
+  }
+);
+
 console.log("🕒 All cron jobs initialized");
 
 /* Heartbeat Monitor: runs hourly to avoid log spam */

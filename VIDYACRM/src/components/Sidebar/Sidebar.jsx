@@ -38,7 +38,6 @@ import {
   FiX,
   FiCircle,
 } from "react-icons/fi";
-import minilogo from "../../../public/favicon.svg";
 const getMenuIcon = (label = "") => {
   const key = label.trim().toLowerCase();
   switch (key) {

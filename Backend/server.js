@@ -48,6 +48,7 @@ import ticketRoutes from "./StaffCRM/Tickets/ticket.routes.js";
 import payrollRoutes from "./StaffCRM/Payroll/payroll.routes.js";
 
 import financeRoutes from "./Finance/routes/Finance.routes.js";
+import aiAssistantRoutes from "./StaffCRM/AIAssistant/aiAssistant.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -167,6 +168,9 @@ app.use(`/api/${VERSION}/payroll`, payrollRoutes);
 
 // Finance & Expenses Routes
 app.use(`/api/${VERSION}/finance`, financeRoutes);
+
+// AI Assistant Voice & Chatbot Routes
+app.use(`/api/${VERSION}/ai`, aiAssistantRoutes);
 
 app.use(globalErrorHandler);
 
